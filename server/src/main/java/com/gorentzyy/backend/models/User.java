@@ -1,0 +1,52 @@
+package com.gorentzyy.backend.models;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@Entity
+@Table(name = "rentzyy_user")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long userId;
+
+    private String fullName;
+    private String email;
+    private String phoneNumber;
+    private String address;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    private String password;
+    private String socialLoginId;
+
+    @Lob
+    private byte[] profilePicture;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "host", cascade = CascadeType.ALL)
+    private List<Car> cars;
+
+    @OneToMany(mappedBy = "renter", cascade = CascadeType.ALL)
+    private List<Booking> bookings;
+
+    @OneToMany(mappedBy = "reviewer", cascade = CascadeType.ALL)
+    private List<Review> reviews;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Notification> notifications;
+
+    public enum Role {
+        HOST, RENTER, BOTH
+    }
+}
