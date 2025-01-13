@@ -18,6 +18,7 @@ public class User {
     private Long userId;
 
     private String fullName;
+    @Column(unique = true, nullable = false)
     private String email;
     private String phoneNumber;
     private String address;
