@@ -24,6 +24,8 @@ public class Car {
     private String model;
     private int year;
     private String color;
+
+    @Column(unique = true, nullable = false)
     private String registrationNumber;
 
     @Enumerated(EnumType.STRING)
