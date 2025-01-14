@@ -4,7 +4,6 @@ import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.payloads.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -46,5 +45,26 @@ public class GlobalExceptionHandlerAdvice {
         // Provide a clear, specific message to the client
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The user with the specified ID does not exist.");
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(CarNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(CarNotFoundException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The car with the specified ID does not exist.");
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(RoleNotAuthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleRoleNotAuthorizedException(RoleNotAuthorizedException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidCarDataException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCarDataException(InvalidCarDataException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }
