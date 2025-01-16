@@ -67,4 +67,11 @@ public class GlobalExceptionHandlerAdvice {
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(BookingNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCarDataException(BookingNotFoundException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The booking is not found");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }
