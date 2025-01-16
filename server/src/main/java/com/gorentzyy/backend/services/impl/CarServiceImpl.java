@@ -59,6 +59,7 @@ public class CarServiceImpl implements CarService {
         // Map CarDto to Car entity
         Car newCar = modelMapper.map(carDto, Car.class);
 
+
         // Set the host as the owner of the car (if necessary)
         newCar.setHost(host);
         // Add the new car to the host's list of cars
