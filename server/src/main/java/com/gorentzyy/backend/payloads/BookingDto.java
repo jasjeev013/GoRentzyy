@@ -1,6 +1,5 @@
 package com.gorentzyy.backend.payloads;
 
-import com.gorentzyy.backend.models.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,10 +24,10 @@ public class BookingDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private Payment payment;
+
 /*
  private Car car;
-
+  private Payment payment;
 
     private User renter;
     private List<Review> reviews;
