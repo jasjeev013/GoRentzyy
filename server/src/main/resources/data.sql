@@ -19,6 +19,8 @@ His Cars:-
     "fuelType": "PETROL",
     "seatingCapacity": 5,
     "rentalPricePerDay": 45.99,
+    "rentalPricePerWeek": 299.99,
+    "rentalPricePerMonth": 1099.99,
     "availabilityStatus": "AVAILABLE",
     "maintenanceDueDate": "2025-06-15T10:00:00"
   }
@@ -33,6 +35,8 @@ His Cars:-
     "fuelType": "DIESEL",
     "seatingCapacity": 7,
     "rentalPricePerDay": 120.50,
+    "rentalPricePerWeek": 839.50,
+    "rentalPricePerMonth": 479.99,
     "availabilityStatus": "RESERVED",
     "maintenanceDueDate": "2025-04-22T14:30:00"
   }
