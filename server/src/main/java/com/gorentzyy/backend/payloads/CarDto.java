@@ -32,6 +32,8 @@ public class CarDto {
 
     private int seatingCapacity;
     private double rentalPricePerDay;
+    private double rentalPricePerWeek;
+    private double rentalPricePerMonth;
 
 
     private AvailabilityStatus availabilityStatus;

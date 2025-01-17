@@ -35,7 +35,11 @@ public class Car {
     private FuelType fuelType;
 
     private int seatingCapacity;
-    private double rentalPricePerDay;
+
+    // Base rental prices
+    private double rentalPricePerDay;     // Price for daily rentals
+    private double rentalPricePerWeek;    // Optional: Discounted weekly price
+    private double rentalPricePerMonth;   // Optional: Discounted monthly price
 
     @Enumerated(EnumType.STRING)
     private AvailabilityStatus availabilityStatus;
@@ -60,11 +64,12 @@ public class Car {
     }
 
     public enum FuelType {
-        PETROL, DIESEL, ELECTRIC,CNG, OTHER
+        PETROL, DIESEL, ELECTRIC, CNG, OTHER
     }
 
     public enum AvailabilityStatus {
         AVAILABLE, RESERVED, UNDER_MAINTENANCE
     }
 }
+
 
