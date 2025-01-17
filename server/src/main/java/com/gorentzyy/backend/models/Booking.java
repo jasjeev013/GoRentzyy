@@ -26,6 +26,8 @@ public class Booking {
 
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+
+    // Total price for the booking
     private double totalPrice;
 
     @Enumerated(EnumType.STRING)

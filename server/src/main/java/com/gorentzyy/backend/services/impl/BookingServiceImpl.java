@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 
@@ -39,6 +40,25 @@ public class BookingServiceImpl implements BookingService {
         this.carRepository = carRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+    }
+
+    public double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
+        long days = ChronoUnit.DAYS.between(startDate, endDate);
+        double totalPrice = 0.0;
+
+        if (days < 7) {
+            totalPrice = days * car.getRentalPricePerDay();
+        } else if (days < 30) {
+            long weeks = days / 7;
+            long remainingDays = days % 7;
+            totalPrice = (weeks * car.getRentalPricePerWeek()) + (remainingDays * car.getRentalPricePerDay());
+        } else {
+            long months = days / 30;
+            long remainingDays = days % 30;
+            totalPrice = (months * car.getRentalPricePerMonth()) + (remainingDays * car.getRentalPricePerDay());
+        }
+
+        return totalPrice;
     }
 
     @Override
@@ -61,6 +81,8 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now =  LocalDateTime.now();
         booking.setCreatedAt(now);
         booking.setUpdatedAt(now);
+
+        booking.setTotalPrice(calculateTotalPrice(car,booking.getStartDate(),booking.getEndDate()));
 
         try {
             // Attempt to save the booking to the database
@@ -168,4 +190,7 @@ public class BookingServiceImpl implements BookingService {
         return new ResponseEntity<>(new ApiResponseData(
                 "All Bookings fetched",true, Collections.singletonList(bookingDtos)),HttpStatus.OK);
     }
+
+
+
 }

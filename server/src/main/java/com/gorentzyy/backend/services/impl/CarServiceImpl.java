@@ -99,9 +99,11 @@ public class CarServiceImpl implements CarService {
         existingCar.setCategory(carDto.getCategory());
         existingCar.setFuelType(carDto.getFuelType());
         existingCar.setAvailabilityStatus(carDto.getAvailabilityStatus());*/
+        existingCar.setRentalPricePerDay(carDto.getRentalPricePerDay());
+        existingCar.setRentalPricePerWeek(carDto.getRentalPricePerWeek());
+        existingCar.setRentalPricePerMonth(carDto.getRentalPricePerMonth());
         existingCar.setMaintenanceDueDate(carDto.getMaintenanceDueDate());
         existingCar.setSeatingCapacity(carDto.getSeatingCapacity());
-        existingCar.setRentalPricePerDay(carDto.getRentalPricePerDay());
 
         try {
             // Step 3: Attempt to save the updated car details to the database
