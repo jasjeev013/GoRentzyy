@@ -74,4 +74,14 @@ public class GlobalExceptionHandlerAdvice {
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The booking is not found");
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(PaymentProcessingException.class)
+    public ResponseEntity<String> handlePaymentProcessingException(PaymentProcessingException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<String> handlePaymentNotFoundException(PaymentNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
 }
