@@ -15,7 +15,7 @@ public class Promotion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long promotionId;
-
+    @Column(unique = true, nullable = false)
     private String code;
     private double discountPercentage;
     private LocalDateTime startDate;
