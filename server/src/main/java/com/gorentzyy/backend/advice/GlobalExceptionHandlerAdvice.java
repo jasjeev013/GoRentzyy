@@ -1,6 +1,7 @@
 package com.gorentzyy.backend.advice;
 
 import com.gorentzyy.backend.exceptions.*;
+import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,4 +85,11 @@ public class GlobalExceptionHandlerAdvice {
     public ResponseEntity<String> handlePaymentNotFoundException(PaymentNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ResponseEntity<ApiResponseObject> handleNotificationNotFoundException(NotificationNotFoundException ex) {
+        return new ResponseEntity<>(new ApiResponseObject(ex.getMessage(), false, null), HttpStatus.NOT_FOUND);
+    }
+
+
 }
