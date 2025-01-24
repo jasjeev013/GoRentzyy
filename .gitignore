@@ -1,0 +1,37 @@
+# Ignore node_modules folder
+server/node_modules/
+
+# Ignore log files
+server/logs/
+server/*.log
+server/*.log.*
+
+# Ignore environment variable files
+server/.env
+
+# Ignore build output directories
+server/dist/
+server/build/
+
+# Ignore Spring Boot specific files
+springboot/target/
+springboot/.mvn/
+springboot/mvnw
+springboot/mvnw.cmd
+
+# Ignore IDE specific files
+springboot/.idea/
+springboot/.project
+springboot/.classpath
+springboot/.settings/
+springboot/.vscode/
+
+# Ignore OS specific files
+.DS_Store
+Thumbs.db
+
+# Ignore temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
