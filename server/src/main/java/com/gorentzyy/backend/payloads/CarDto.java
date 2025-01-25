@@ -1,6 +1,7 @@
 package com.gorentzyy.backend.payloads;
 
 
+import com.gorentzyy.backend.config.AppConstants;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
@@ -25,10 +26,10 @@ public class CarDto {
     private String registrationNumber;
 
 
-    private Category category;
+    private AppConstants.Category category;
 
 
-    private FuelType fuelType;
+    private AppConstants.FuelType fuelType;
 
     private int seatingCapacity;
     private double rentalPricePerDay;
@@ -36,7 +37,7 @@ public class CarDto {
     private double rentalPricePerMonth;
 
 
-    private AvailabilityStatus availabilityStatus;
+    private AppConstants.AvailabilityStatus availabilityStatus;
 
     private LocalDateTime maintenanceDueDate;
     private LocalDateTime createdAt;
@@ -48,15 +49,5 @@ public class CarDto {
     private List<Location> locations;
      */
 
-    public enum Category {
-        ECONOMY, LUXURY, SUV, OTHER
-    }
 
-    public enum FuelType {
-        PETROL, DIESEL, ELECTRIC,CNG, OTHER
-    }
-
-    public enum AvailabilityStatus {
-        AVAILABLE, RESERVED, UNDER_MAINTENANCE
-    }
 }

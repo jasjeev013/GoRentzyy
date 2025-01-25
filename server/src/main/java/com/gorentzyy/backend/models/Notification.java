@@ -1,5 +1,6 @@
 package com.gorentzyy.backend.models;
 
+import com.gorentzyy.backend.config.AppConstants;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,13 +23,11 @@ public class Notification {
     private String message;
 
     @Enumerated(EnumType.STRING)
-    private Type type;
+    private AppConstants.Type type;
 
     private boolean isRead;
     private LocalDateTime sentAt;
 
-    public enum Type {
-        BOOKING_CONFIRMATION, PAYMENT_ALERT, REMINDER, OTHER
-    }
+
 }
 

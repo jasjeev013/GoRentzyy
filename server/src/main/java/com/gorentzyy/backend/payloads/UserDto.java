@@ -1,6 +1,7 @@
 package com.gorentzyy.backend.payloads;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.gorentzyy.backend.config.AppConstants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +25,7 @@ public class UserDto {
     private String address;
 
 
-    private Role role;
+    private AppConstants.Role role;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String socialLoginId;
@@ -42,7 +43,5 @@ public class UserDto {
     private List<Notification> notifications;
     */
 
-    public enum Role {
-        HOST, RENTER, BOTH
-    }
+
 }

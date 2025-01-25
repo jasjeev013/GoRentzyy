@@ -1,11 +1,16 @@
 package com.gorentzyy.backend.models;
 
+
+import com.gorentzyy.backend.config.AppConstants.Status;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+
 
 @Data
 @NoArgsConstructor
@@ -45,8 +50,6 @@ public class Booking {
     @ManyToMany(mappedBy = "bookings")
     private List<Promotion> promotions;
 
-    public enum Status {
-        CONFIRMED, CANCELED, MODIFIED
-    }
+
 }
 

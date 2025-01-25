@@ -1,5 +1,6 @@
 package com.gorentzyy.backend.models;
 
+import com.gorentzyy.backend.config.AppConstants;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,24 +24,14 @@ public class Payment {
     private double amount;
 
     @Enumerated(EnumType.STRING)
-    private PaymentMethod paymentMethod;
+    private AppConstants.PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus;
+    private AppConstants.PaymentStatus paymentStatus;
 
     @Enumerated(EnumType.STRING)
-    private RefundStatus refundStatus;
+    private AppConstants.RefundStatus refundStatus;
 
-    public enum PaymentMethod {
-        CREDIT_CARD, PAYPAL,UPI, OTHER
-    }
 
-    public enum PaymentStatus {
-        SUCCESSFUL, FAILED, PENDING
-    }
-
-    public enum RefundStatus {
-        REFUNDED, NON_REFUNDABLE, PENDING
-    }
 }
 

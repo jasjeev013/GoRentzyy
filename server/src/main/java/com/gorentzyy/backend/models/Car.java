@@ -1,5 +1,6 @@
 package com.gorentzyy.backend.models;
 
+import com.gorentzyy.backend.config.AppConstants;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,10 +30,10 @@ public class Car {
     private String registrationNumber;
 
     @Enumerated(EnumType.STRING)
-    private Category category;
+    private AppConstants.Category category;
 
     @Enumerated(EnumType.STRING)
-    private FuelType fuelType;
+    private AppConstants.FuelType fuelType;
 
     private int seatingCapacity;
 
@@ -42,7 +43,7 @@ public class Car {
     private double rentalPricePerMonth;   // Optional: Discounted monthly price
 
     @Enumerated(EnumType.STRING)
-    private AvailabilityStatus availabilityStatus;
+    private AppConstants.AvailabilityStatus availabilityStatus;
 
     private LocalDateTime maintenanceDueDate;
     private LocalDateTime createdAt;
@@ -59,17 +60,7 @@ public class Car {
     )
     private List<Location> locations;
 
-    public enum Category {
-        ECONOMY, LUXURY, SUV, OTHER
-    }
 
-    public enum FuelType {
-        PETROL, DIESEL, ELECTRIC, CNG, OTHER
-    }
-
-    public enum AvailabilityStatus {
-        AVAILABLE, RESERVED, UNDER_MAINTENANCE
-    }
 }
 
 

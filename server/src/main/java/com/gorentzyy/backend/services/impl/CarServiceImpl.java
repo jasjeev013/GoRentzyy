@@ -95,10 +95,9 @@ public class CarServiceImpl implements CarService {
         existingCar.setModel(carDto.getModel());
         existingCar.setYear(carDto.getYear());
         existingCar.setColor(carDto.getColor());
-        /* Uncomment and set other fields if needed
         existingCar.setCategory(carDto.getCategory());
         existingCar.setFuelType(carDto.getFuelType());
-        existingCar.setAvailabilityStatus(carDto.getAvailabilityStatus());*/
+        existingCar.setAvailabilityStatus(carDto.getAvailabilityStatus());
         existingCar.setRentalPricePerDay(carDto.getRentalPricePerDay());
         existingCar.setRentalPricePerWeek(carDto.getRentalPricePerWeek());
         existingCar.setRentalPricePerMonth(carDto.getRentalPricePerMonth());

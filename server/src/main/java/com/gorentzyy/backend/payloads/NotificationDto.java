@@ -1,5 +1,6 @@
 package com.gorentzyy.backend.payloads;
 
+import com.gorentzyy.backend.config.AppConstants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,14 +15,13 @@ import java.time.LocalDateTime;
 public class NotificationDto {
     private Long notificationId;
     private String message;
-    private Type type;
+    private AppConstants.Type type;
+    private boolean isRead;
     private LocalDateTime sentAt;
 
     /*
     private User user;
      */
 
-    public enum Type {
-        BOOKING_CONFIRMATION, PAYMENT_ALERT, REMINDER, OTHER
-    }
+
 }

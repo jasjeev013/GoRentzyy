@@ -52,7 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
         Notification existingNotification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException("Notification with ID " + notificationId + " not found"));
 
-        // existingNotification.setRead(notificationDto.getRead()); // Assuming you want to update read status
+         existingNotification.setRead(notificationDto.isRead()); // Assuming you want to update read status
         existingNotification.setMessage(notificationDto.getMessage());
         Notification savedNotification = notificationRepository.save(existingNotification);
 

@@ -114,6 +114,7 @@ public class BookingServiceImpl implements BookingService {
 
         existingBooking.setStartDate(bookingDto.getStartDate());
         existingBooking.setEndDate(bookingDto.getEndDate());
+        existingBooking.setStatus(bookingDto.getStatus());
 
         LocalDateTime now = LocalDateTime.now();
         existingBooking.setUpdatedAt(now);

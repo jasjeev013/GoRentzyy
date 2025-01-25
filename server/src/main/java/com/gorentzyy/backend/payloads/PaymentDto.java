@@ -1,5 +1,6 @@
 package com.gorentzyy.backend.payloads;
 
+import com.gorentzyy.backend.config.AppConstants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,23 +19,13 @@ public class PaymentDto {
 
     private LocalDateTime paymentDate;
     private double amount;
-    private PaymentMethod paymentMethod;
-    private PaymentStatus paymentStatus;
-    private RefundStatus refundStatus;
+    private AppConstants.PaymentMethod paymentMethod;
+    private AppConstants.PaymentStatus paymentStatus;
+    private AppConstants.RefundStatus refundStatus;
     /*
     private Booking booking;
     */
 
 
-    public enum PaymentMethod {
-        CREDIT_CARD, PAYPAL,UPI, OTHER
-    }
 
-    public enum PaymentStatus {
-        SUCCESSFUL, FAILED, PENDING
-    }
-
-    public enum RefundStatus {
-        REFUNDED, NON_REFUNDABLE, PENDING
-    }
 }

@@ -1,5 +1,6 @@
 package com.gorentzyy.backend.models;
 
+import com.gorentzyy.backend.config.AppConstants;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,7 +25,7 @@ public class User {
     private String address;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private AppConstants.Role role;
 
     private String password;
     private String socialLoginId;
@@ -47,7 +48,5 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Notification> notifications;
 
-    public enum Role {
-        HOST, RENTER, BOTH
-    }
+
 }

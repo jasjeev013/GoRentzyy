@@ -1,5 +1,7 @@
 package com.gorentzyy.backend.payloads;
 
+
+import com.gorentzyy.backend.config.AppConstants.Status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,7 +38,5 @@ public class BookingDto {
 
  */
 
-    public enum Status {
-        CONFIRMED, CANCELED, MODIFIED
-    }
+
 }

@@ -73,8 +73,8 @@ public class PaymentServiceImpl implements PaymentService {
                     .orElseThrow(() -> new PaymentNotFoundException("Payment with ID " + paymentId + " not found."));
 
             // Update payment status
-//            existingPayment.setPaymentStatus(paymentDto.getPaymentStatus());
-//            existingPayment.setRefundStatus(paymentDto.getRefundStatus());
+            existingPayment.setPaymentStatus(paymentDto.getPaymentStatus());
+            existingPayment.setRefundStatus(paymentDto.getRefundStatus());
 
             // Save the updated payment record
             Payment savedPayment = paymentRepository.save(existingPayment);
