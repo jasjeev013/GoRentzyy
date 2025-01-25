@@ -90,6 +90,10 @@ public class GlobalExceptionHandlerAdvice {
     public ResponseEntity<ApiResponseObject> handleNotificationNotFoundException(NotificationNotFoundException ex) {
         return new ResponseEntity<>(new ApiResponseObject(ex.getMessage(), false, null), HttpStatus.NOT_FOUND);
     }
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ApiResponseObject> handleReviewNotFoundException(ReviewNotFoundException ex) {
+        return new ResponseEntity<>(new ApiResponseObject(ex.getMessage(), false, null), HttpStatus.NOT_FOUND);
+    }
 
 
 }
