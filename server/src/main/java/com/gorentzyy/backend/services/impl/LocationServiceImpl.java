@@ -40,29 +40,29 @@ public class LocationServiceImpl implements LocationService {
                 new CarNotFoundException("Car with ID " + carId + " does not exist.")
         );
 
-
         // Map DTO to Entity
         Location newLocation = modelMapper.map(locationDto, Location.class);
         newLocation.getCars().add(car);
-        car.getLocations().add(newLocation);
+        car.getLocations().add(newLocation);  // Associating car with location
 
         try {
-            // Save the car and location to the database
-            carRepository.save(car);
+            // Save the location and rely on cascading to save the car if configured
             Location savedLocation = locationRepository.save(newLocation);
 
-            return new ResponseEntity<>(new ApiResponseObject("The Location has been created", true,
-                    modelMapper.map(savedLocation, LocationDto.class)), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponseObject(
+                    "The Location has been created", true, modelMapper.map(savedLocation, LocationDto.class)),
+                    HttpStatus.CREATED); // Use CREATED (201) for new resources
         } catch (Exception e) {
             throw new DatabaseException("Error while saving the location.");
         }
     }
 
+
     @Override
     public ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto, Long locationId) {
         // Find the existing location
         Location existingLocation = locationRepository.findById(locationId).orElseThrow(() ->
-                new LocationNotFoundException("User with ID " + locationId + " does not exist.")
+                new LocationNotFoundException("Location with ID " + locationId + " does not exist.")
         );
 
         // Update the existing location with new values
@@ -77,17 +77,18 @@ public class LocationServiceImpl implements LocationService {
 
             return new ResponseEntity<>(new ApiResponseObject(
                     "The Location is updated", true, modelMapper.map(updatedLocation, LocationDto.class)),
-                    HttpStatus.OK);
+                    HttpStatus.ACCEPTED); // Use ACCEPTED (202) for updates
         } catch (Exception e) {
             throw new DatabaseException("Error while updating the location.");
         }
     }
 
+
     @Override
     public ResponseEntity<ApiResponseObject> getLocation(Long locationId) {
         // Find the location by ID
         Location existingLocation = locationRepository.findById(locationId).orElseThrow(() ->
-                new LocationNotFoundException("User with ID " + locationId + " does not exist.")
+                new LocationNotFoundException("Location with ID " + locationId + " does not exist.")
         );
 
         return new ResponseEntity<>(new ApiResponseObject(
@@ -95,13 +96,13 @@ public class LocationServiceImpl implements LocationService {
                 HttpStatus.OK);
     }
 
+
     @Override
     public ResponseEntity<ApiResponseObject> deleteLocation(Long locationId) {
         // Find the location to delete
         Location existingLocation = locationRepository.findById(locationId).orElseThrow(() ->
-                new LocationNotFoundException("User with ID " + locationId + " does not exist.")
+                new LocationNotFoundException("Location with ID " + locationId + " does not exist.")
         );
-
 
         try {
             // Delete the location
@@ -112,5 +113,6 @@ public class LocationServiceImpl implements LocationService {
             throw new DatabaseException("Error while deleting the location.");
         }
     }
+
 
 }

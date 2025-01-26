@@ -1,6 +1,7 @@
 package com.gorentzyy.backend.services.impl;
 
 import com.gorentzyy.backend.exceptions.BookingNotFoundException;
+import com.gorentzyy.backend.exceptions.DatabaseException;
 import com.gorentzyy.backend.exceptions.PromotionCodeAlreadyExistsException;
 import com.gorentzyy.backend.exceptions.PromotionNotFoundException;
 import com.gorentzyy.backend.models.Booking;
@@ -32,29 +33,35 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseObject> addPromotionCode(PromotionDto promotionDto,Long bookingId) {
+    public ResponseEntity<ApiResponseObject> addPromotionCode(PromotionDto promotionDto, Long bookingId) {
         // Check if the promotion code already exists
         if (promotionRepository.existsByCode(promotionDto.getCode())) {
             throw new PromotionCodeAlreadyExistsException("A promotion with this code already exists.");
         }
 
-        Booking exisitngBooking = bookingRepository.findById(bookingId)
+        // Check if the booking exists
+        Booking existingBooking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new BookingNotFoundException("Booking not found with ID " + bookingId));
 
         // Map DTO to Entity
         Promotion newPromotion = modelMapper.map(promotionDto, Promotion.class);
-        newPromotion.getBookings().add(exisitngBooking);
-        exisitngBooking.getPromotions().add(newPromotion);
-        bookingRepository.save(exisitngBooking);
+        newPromotion.getBookings().add(existingBooking);
+        existingBooking.getPromotions().add(newPromotion);
 
-        // Save promotion to the database
-        Promotion savedPromotion = promotionRepository.save(newPromotion);
+        try {
+            // Save promotion to the database
+            bookingRepository.save(existingBooking);
+            Promotion savedPromotion = promotionRepository.save(newPromotion);
 
-        return new ResponseEntity<>(new ApiResponseObject(
-                "The Promotion Code added successfully", true,
-                modelMapper.map(savedPromotion, PromotionDto.class)),
-                HttpStatus.CREATED);
+            return new ResponseEntity<>(new ApiResponseObject(
+                    "The Promotion Code added successfully", true,
+                    modelMapper.map(savedPromotion, PromotionDto.class)),
+                    HttpStatus.CREATED);
+        } catch (Exception e) {
+            throw new DatabaseException("Error occurred while adding promotion code.");
+        }
     }
+
 
 
     @Override
@@ -63,20 +70,31 @@ public class PromotionServiceImpl implements PromotionService {
         Promotion existingPromotion = promotionRepository.findById(promotionId)
                 .orElseThrow(() -> new PromotionNotFoundException("Promotion not found with ID " + promotionId));
 
+        // Check if the code already exists (if it's being updated)
+        if (!existingPromotion.getCode().equals(promotionDto.getCode()) &&
+                promotionRepository.existsByCode(promotionDto.getCode())) {
+            throw new PromotionCodeAlreadyExistsException("A promotion with this code already exists.");
+        }
+
         // Update promotion details
         existingPromotion.setCode(promotionDto.getCode());
         existingPromotion.setDescription(promotionDto.getDescription());
         existingPromotion.setStartDate(promotionDto.getStartDate());
         existingPromotion.setEndDate(promotionDto.getEndDate());
 
-        // Save updated promotion to the database
-        Promotion savedPromotion = promotionRepository.save(existingPromotion);
+        try {
+            // Save updated promotion to the database
+            Promotion savedPromotion = promotionRepository.save(existingPromotion);
 
-        return new ResponseEntity<>(new ApiResponseObject(
-                "The Promotion Code Updated successfully", true,
-                modelMapper.map(savedPromotion, PromotionDto.class)),
-                HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponseObject(
+                    "The Promotion Code Updated successfully", true,
+                    modelMapper.map(savedPromotion, PromotionDto.class)),
+                    HttpStatus.OK);
+        } catch (Exception e) {
+            throw new DatabaseException("Error occurred while updating promotion code.");
+        }
     }
+
 
 
 
@@ -87,9 +105,10 @@ public class PromotionServiceImpl implements PromotionService {
                 .orElseThrow(() -> new PromotionNotFoundException("Promotion not found with ID " + promotionId));
 
         return new ResponseEntity<>(new ApiResponseObject(
-                "The Promotion Data fetched Successfully",true,modelMapper.map(existingPromotion,PromotionDto.class)),
+                "The Promotion Data fetched Successfully", true, modelMapper.map(existingPromotion, PromotionDto.class)),
                 HttpStatus.OK);
     }
+
 
     @Override
     public ResponseEntity<ApiResponseObject> deletePromotionCode(Long promotionId) {
@@ -97,7 +116,13 @@ public class PromotionServiceImpl implements PromotionService {
         Promotion existingPromotion = promotionRepository.findById(promotionId)
                 .orElseThrow(() -> new PromotionNotFoundException("Promotion not found with ID " + promotionId));
 
-        promotionRepository.delete(existingPromotion);
-        return new ResponseEntity<>(new ApiResponseObject("The promotion has been deleted successfully",true,null),HttpStatus.OK);
+        try {
+            // Delete the promotion
+            promotionRepository.delete(existingPromotion);
+            return new ResponseEntity<>(new ApiResponseObject("The promotion has been deleted successfully", true, null), HttpStatus.OK);
+        } catch (Exception e) {
+            throw new DatabaseException("Error occurred while deleting promotion code.");
+        }
     }
+
 }
