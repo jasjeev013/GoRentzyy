@@ -69,6 +69,45 @@ public class GlobalExceptionHandlerAdvice {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InvalidBookingDateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidBookingDateException(InvalidBookingDateException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(InvalidBookingStateException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidBookingStateException(InvalidBookingStateException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidPaymentAmountException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPaymentAmountException(InvalidPaymentAmountException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(InvalidPaymentStatusException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPaymentStatusException(InvalidPaymentStatusException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(ReviewCreationException.class)
+    public ResponseEntity<ErrorResponse> handleReviewCreationException(ReviewCreationException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ReviewUpdateException.class)
+    public ResponseEntity<ErrorResponse> handleReviewUpdateException(ReviewUpdateException ex) {
+        // Provide a clear, specific message to the client
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "The role is not authorized");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(BookingNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCarDataException(BookingNotFoundException ex) {
         // Provide a clear, specific message to the client
