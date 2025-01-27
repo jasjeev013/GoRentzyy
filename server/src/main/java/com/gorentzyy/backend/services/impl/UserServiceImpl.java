@@ -16,11 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 
 @Service
@@ -73,7 +73,7 @@ public class UserServiceImpl implements UserService {
             ApiResponseObject response = new ApiResponseObject(
                     "User Created Successfully", true, savedUserDto);
             return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException | DatabaseException | ObjectOptimisticLockingFailureException e) {
             logger.error("Database integrity violation when saving user: {}", userDto.getEmail());
             throw new DatabaseException("Database integrity violation occurred while saving the user.");
         } catch (Exception e) {
@@ -82,6 +82,8 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+
+    //Errors: If anyone puts different ID , If i remove records it sets null
     @Override
     public ResponseEntity<ApiResponseObject> updateUser(UserDto userDto, Long userId) {
         // Check if user exists by userId
@@ -143,6 +145,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    // Response Entity is showing code of No Content
     @Override
     public ResponseEntity<ApiResponseObject> deleteUser(Long userId) {
 

@@ -10,7 +10,6 @@ import com.gorentzyy.backend.payloads.CarDto;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.CarService;
-import com.gorentzyy.backend.services.UserService;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -58,7 +57,7 @@ public class CarServiceImpl implements CarService {
             });
 
             // Check if the host's role is authorized (e.g., should be "HOST")
-            if (host.getRole() == AppConstants.Role.HOST) {
+            if (host.getRole() == AppConstants.Role.RENTER) {
                 logger.error("User with ID {} is not authorized to add cars.", hostId);
                 throw new RoleNotAuthorizedException("Role Not Authorized to add cars");
             }
@@ -108,7 +107,7 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseObject> updateCar(@org.jetbrains.annotations.NotNull CarDto carDto, Long carId) {
+    public ResponseEntity<ApiResponseObject> updateCar(CarDto carDto, Long carId) {
         // Step 1: Check if the car exists in the database, and if not, throw a CarNotFoundException
         Car existingCar = carRepository.findById(carId).orElseThrow(() ->
                 new CarNotFoundException("Car with ID " + carId + " does not exist.")

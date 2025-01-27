@@ -75,6 +75,14 @@ public class BookingServiceImpl implements BookingService {
             User renter = userRepository.findById(renterId).orElseThrow(() ->
                     new UserNotFoundException("User not found with id: " + renterId)
             );
+
+            // Check if the role is authorized (e.g., should be "HOST")
+            if (renter.getRole() == AppConstants.Role.HOST) {
+                logger.error("User with ID {} is not authorized to add cars.", renterId);
+                throw new RoleNotAuthorizedException("Role Not Authorized to add cars");
+            }
+
+
             logger.info("Renter with ID {} found for booking.", renterId);
 
             // Step 3: Map the BookingDto to the Booking entity
