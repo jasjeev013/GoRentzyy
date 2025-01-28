@@ -61,6 +61,8 @@ public class BookingServiceImpl implements BookingService {
 
         return totalPrice;
     }
+// Make Sure booking start n end dte differ by 1-2 days
+    // Booking of one cars specifc duration cannot be booked by other
 
     @Override
     public ResponseEntity<ApiResponseObject> createBooking(BookingDto bookingDto, Long renterId, Long carId) {
@@ -123,7 +125,7 @@ public class BookingServiceImpl implements BookingService {
             throw new DatabaseException("Error while saving the booking to the database.");
         }
     }
-
+// Booking start Date and end date cannot be changed.. Status can also be not changed
     @Override
     public ResponseEntity<ApiResponseObject> updateBooking(BookingDto bookingDto, Long bookingId) {
         try {
@@ -188,7 +190,7 @@ public class BookingServiceImpl implements BookingService {
             throw new DatabaseException("Error while updating the booking. Please try again.");
         }
     }
-
+// No Content Issues Below this in all functions
     @Override
     public ResponseEntity<ApiResponseObject> getBookingById(Long bookingId) {
         try {

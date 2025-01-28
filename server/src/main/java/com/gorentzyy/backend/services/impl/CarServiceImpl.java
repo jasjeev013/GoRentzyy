@@ -105,7 +105,7 @@ public class CarServiceImpl implements CarService {
             throw new DatabaseException("Error while saving the car to the database.");
         }
     }
-
+// Just while updation if the values are removed if changes all to none
     @Override
     public ResponseEntity<ApiResponseObject> updateCar(CarDto carDto, Long carId) {
         // Step 1: Check if the car exists in the database, and if not, throw a CarNotFoundException
@@ -175,7 +175,7 @@ public class CarServiceImpl implements CarService {
             throw new DatabaseException("An error occurred while retrieving the car.");
         }
     }
-
+// Response Entity Returning No COntent
     @Override
     public ResponseEntity<ApiResponseObject> removeCar(Long carId) {
         try {
@@ -212,7 +212,7 @@ public class CarServiceImpl implements CarService {
             throw new DatabaseException("An error occurred while deleting the car.");
         }
     }
-
+// For RENTERS show unauthorized
     @Override
     public ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(Long hostId) {
 
