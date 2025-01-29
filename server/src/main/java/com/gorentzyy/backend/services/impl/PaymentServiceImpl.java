@@ -33,7 +33,7 @@ public class PaymentServiceImpl implements PaymentService {
         this.bookingRepository = bookingRepository;
         this.modelMapper = modelMapper;
     }
-
+// THe date should be taken on its own
     @Override
     public ResponseEntity<ApiResponseObject> makePayment(PaymentDto paymentDto, Long bookingId) {
         try {

@@ -37,7 +37,7 @@ public class ReviewServiceImpl implements ReviewService {
         this.modelMapper = modelMapper;
         this.reviewRepository = reviewRepository;
     }
-
+    // the renter can review diff. renter's booking
     @Override
     @Transactional
     public ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto, Long renterId, Long bookingId) {
@@ -107,7 +107,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 
-
+// It should show review not found
     @Override
     public ResponseEntity<ApiResponseObject> getReview(Long reviewId) {
         try {
@@ -129,7 +129,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 
-
+// No Content thing
     @Override
     public ResponseEntity<ApiResponseObject> deleteReview(Long reviewId) {
         try {

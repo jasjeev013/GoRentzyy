@@ -57,7 +57,7 @@ public class LocationServiceImpl implements LocationService {
         }
     }
 
-
+// Fields get empty
     @Override
     public ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto, Long locationId) {
         // Find the existing location
@@ -96,7 +96,7 @@ public class LocationServiceImpl implements LocationService {
                 HttpStatus.OK);
     }
 
-
+// Not able to delete the location
     @Override
     public ResponseEntity<ApiResponseObject> deleteLocation(Long locationId) {
         // Find the location to delete

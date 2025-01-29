@@ -18,22 +18,22 @@ public class LocationController {
         this.locationService = locationService;
     }
 
-    @PostMapping("/api/{carId}")
+    @PostMapping("/create/{carId}")
     public ResponseEntity<ApiResponseObject> addLocation(@RequestBody LocationDto locationDto, @PathVariable Long carId){
         return locationService.addLocation(locationDto,carId);
     }
 
-    @PutMapping("/api/{locationId}")
+    @PutMapping("/update/{locationId}")
     public ResponseEntity<ApiResponseObject> updateLocation(@RequestBody LocationDto locationDto,@PathVariable Long locationId){
         return locationService.updateLocation(locationDto,locationId);
     }
 
-    @GetMapping("/api/get/{locationId}")
+    @GetMapping("/get/{locationId}")
     public ResponseEntity<ApiResponseObject> getLocation(@PathVariable Long locationId){
         return locationService.getLocation(locationId);
     }
 
-    @DeleteMapping("/api/delete/{locationId}")
+    @DeleteMapping("/delete/{locationId}")
     public ResponseEntity<ApiResponseObject> deleteLocation(@PathVariable Long locationId){
         return locationService.deleteLocation(locationId);
     }
