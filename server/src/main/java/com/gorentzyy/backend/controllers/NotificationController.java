@@ -3,12 +3,14 @@ package com.gorentzyy.backend.controllers;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.NotificationDto;
 import com.gorentzyy.backend.services.NotificationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/notification")
+@Valid
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -19,12 +21,12 @@ public class NotificationController {
     }
 
     @PostMapping("/create/{userId}")
-    public ResponseEntity<ApiResponseObject> addNotification(@RequestBody NotificationDto notificationDto, @PathVariable Long userId){
+    public ResponseEntity<ApiResponseObject> addNotification(@Valid @RequestBody NotificationDto notificationDto, @PathVariable Long userId){
         return notificationService.addNotification(notificationDto,userId);
     }
 
     @PutMapping("/update/{notificationId}")
-    public ResponseEntity<ApiResponseObject> updateNotification(@RequestBody NotificationDto notificationDto,@PathVariable Long notificationId){
+    public ResponseEntity<ApiResponseObject> updateNotification(@Valid @RequestBody NotificationDto notificationDto,@PathVariable Long notificationId){
         return notificationService.updateNotification(notificationDto,notificationId);
     }
 

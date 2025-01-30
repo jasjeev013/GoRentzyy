@@ -6,9 +6,14 @@ import com.gorentzyy.backend.payloads.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 @RestControllerAdvice
@@ -41,6 +46,13 @@ public class GlobalExceptionHandlerAdvice {
     public ResponseEntity<ErrorResponse> handleObjectOptimisticLockingFailureException(ObjectOptimisticLockingFailureException ex) {
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), "There was an error saving the user to the database.");
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponseObject> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String errors = ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return ResponseEntity.badRequest().body(new ApiResponseObject(errors, false, null));
     }
 
 

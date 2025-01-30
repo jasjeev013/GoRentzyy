@@ -3,10 +3,13 @@ package com.gorentzyy.backend.controllers;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.UserDto;
 import com.gorentzyy.backend.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -19,12 +22,12 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ApiResponseObject> createUser(@RequestBody UserDto userDto){
+    public ResponseEntity<ApiResponseObject> createUser(@Valid @RequestBody UserDto userDto){
         return userService.createNewUser(userDto);
     }
 
     @PutMapping("/update/{userId}")
-    public ResponseEntity<ApiResponseObject> updateUser(@PathVariable Long userId,@RequestBody UserDto userDto){
+    public ResponseEntity<ApiResponseObject> updateUser(@PathVariable Long userId,@Valid @RequestBody UserDto userDto){
         return userService.updateUser(userDto,userId);
     }
 

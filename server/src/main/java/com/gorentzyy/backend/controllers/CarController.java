@@ -4,11 +4,14 @@ import com.gorentzyy.backend.payloads.ApiResponseData;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.CarDto;
 import com.gorentzyy.backend.services.CarService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/car")
+@Validated
 public class CarController {
 
     private final CarService carService;
@@ -18,12 +21,12 @@ public class CarController {
     }
 
     @PostMapping("/create/{hostId}")
-    public ResponseEntity<ApiResponseObject> addNewCar(@RequestBody CarDto carDto, @PathVariable Long hostId){
+    public ResponseEntity<ApiResponseObject> addNewCar(@Valid @RequestBody CarDto carDto, @PathVariable Long hostId){
         return carService.addNewCar(carDto,hostId);
     }
 
     @PutMapping("/update/{carId}")
-    public ResponseEntity<ApiResponseObject> updateNewCar(@RequestBody CarDto carDto,@PathVariable Long carId){
+    public ResponseEntity<ApiResponseObject> updateNewCar(@Valid @RequestBody CarDto carDto,@PathVariable Long carId){
         return carService.updateCar(carDto,carId);
     }
 

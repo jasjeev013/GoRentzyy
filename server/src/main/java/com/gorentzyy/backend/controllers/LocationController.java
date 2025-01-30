@@ -3,12 +3,15 @@ package com.gorentzyy.backend.controllers;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.LocationDto;
 import com.gorentzyy.backend.services.LocationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/location")
+@Validated
 public class LocationController {
 
     private final LocationService locationService;
@@ -19,12 +22,12 @@ public class LocationController {
     }
 
     @PostMapping("/create/{carId}")
-    public ResponseEntity<ApiResponseObject> addLocation(@RequestBody LocationDto locationDto, @PathVariable Long carId){
+    public ResponseEntity<ApiResponseObject> addLocation(@Valid @RequestBody LocationDto locationDto, @PathVariable Long carId){
         return locationService.addLocation(locationDto,carId);
     }
 
     @PutMapping("/update/{locationId}")
-    public ResponseEntity<ApiResponseObject> updateLocation(@RequestBody LocationDto locationDto,@PathVariable Long locationId){
+    public ResponseEntity<ApiResponseObject> updateLocation(@Valid @RequestBody LocationDto locationDto,@PathVariable Long locationId){
         return locationService.updateLocation(locationDto,locationId);
     }
 
