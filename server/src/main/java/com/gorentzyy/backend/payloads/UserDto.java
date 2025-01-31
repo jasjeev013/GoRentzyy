@@ -3,12 +3,12 @@ package com.gorentzyy.backend.payloads;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.gorentzyy.backend.config.AppConstants;
-import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
