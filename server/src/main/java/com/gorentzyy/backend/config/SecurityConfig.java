@@ -17,14 +17,14 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception{
         http.authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/api/user/**").authenticated()
+                .requestMatchers("/api/user/get/{id}","/api/user/update/","/api/user/delete/","/api/user/get/email/").authenticated()
                 .requestMatchers("/api/car/**").authenticated()
                 .requestMatchers("/api/booking/**").authenticated()
                 .requestMatchers("/api/review/**").authenticated()
                 .requestMatchers("/api/promotion/**").authenticated()
                 .requestMatchers("/api/notification/**").authenticated()
                 .requestMatchers("/api/location/**").authenticated()
-                .requestMatchers("/api/test/**").permitAll());
+                .requestMatchers("/api/test/**","/api/user/create").permitAll());
         http.cors(AbstractHttpConfigurer::disable);
         http.csrf(AbstractHttpConfigurer::disable);
         http.formLogin(Customizer.withDefaults());
@@ -32,14 +32,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /*
-    @Bean
-    public UserDetailsService userDetailsService(DataSource dataSource){
-
-        return new JdbcUserDetailsManager(dataSource);
-    }
-
-     */
 
     // Checks if the password is compromised or not
 //    @Bean
