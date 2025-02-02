@@ -13,12 +13,14 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
 @Configuration
-@Profile("!prod")
-public class SecurityConfig {
+@Profile("prod")
+public class ProdSecurityConfig {
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception{
-        http.requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
+
+
+        http.requiresChannel(rcc -> rcc.anyRequest().requiresSecure()) // Only HTTP
                 .authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/api/user/get/{id}","/api/user/update/","/api/user/delete/","/api/user/get/email/").authenticated()
                 .requestMatchers("/api/car/**").authenticated()
