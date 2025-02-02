@@ -76,3 +76,13 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Contact
 
 For any inquiries, please contact [your-email@example.com](mailto:your-email@example.com).
+
+## Extras
+
+1. Accessing Data through Dtos
+2. Added Validations in DTo
+3. GlobalExceptionHandler for exceptions & with custom exceptions
+<!-- 4. Added Swagger for API Documentation -->
+5. Added Custom UserDetails Service & Authentication Provider
+6. Done with the concept of Profiles
+7. 
