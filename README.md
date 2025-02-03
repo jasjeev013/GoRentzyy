@@ -85,4 +85,4 @@ For any inquiries, please contact [your-email@example.com](mailto:your-email@exa
 <!-- 4. Added Swagger for API Documentation -->
 5. Added Custom UserDetails Service & Authentication Provider
 6. Done with the concept of Profiles
-7. 
+7. Added AUthenticationEntryPoint & AccessDeniedHandler
