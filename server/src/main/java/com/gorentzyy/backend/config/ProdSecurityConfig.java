@@ -22,7 +22,8 @@ public class ProdSecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception{
 
 
-        http.requiresChannel(rcc -> rcc.anyRequest().requiresSecure()) // Only HTTP
+        http.sessionManagement(smc -> smc.invalidSessionUrl("/invalidSession").maximumSessions(3).maxSessionsPreventsLogin(true)) //.expiredUrl()
+                .requiresChannel(rcc -> rcc.anyRequest().requiresSecure()) // Only HTTP
                 .authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/api/user/get/{id}","/api/user/update/","/api/user/delete/","/api/user/get/email/").authenticated()
                 .requestMatchers("/api/car/**").authenticated()
@@ -31,7 +32,8 @@ public class ProdSecurityConfig {
                 .requestMatchers("/api/promotion/**").authenticated()
                 .requestMatchers("/api/notification/**").authenticated()
                 .requestMatchers("/api/location/**").authenticated()
-                .requestMatchers("/api/test/**","/api/user/create").permitAll());
+                .requestMatchers("/api/test/**","/api/user/create","/invalidSession").permitAll());
+
         http.cors(AbstractHttpConfigurer::disable);
         http.csrf(AbstractHttpConfigurer::disable);
         http.formLogin(Customizer.withDefaults());

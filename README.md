@@ -86,3 +86,5 @@ For any inquiries, please contact [your-email@example.com](mailto:your-email@exa
 5. Added Custom UserDetails Service & Authentication Provider
 6. Done with the concept of Profiles
 7. Added AUthenticationEntryPoint & AccessDeniedHandler
+8. Session time & no. of session control
+9. Authentication events
