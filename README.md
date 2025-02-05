@@ -88,3 +88,5 @@ For any inquiries, please contact [your-email@example.com](mailto:your-email@exa
 7. Added AUthenticationEntryPoint & AccessDeniedHandler
 8. Session time & no. of session control
 9. Authentication events
+10. CORS  
+11. JWT
