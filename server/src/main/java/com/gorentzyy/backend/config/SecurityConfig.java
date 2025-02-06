@@ -7,11 +7,14 @@ import com.gorentzyy.backend.filter.JWTTokenValidatorFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -59,7 +62,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/promotion/**").authenticated()
                 .requestMatchers("/api/notification/**").authenticated()
                 .requestMatchers("/api/location/**").authenticated()
-                .requestMatchers("/api/test/**","/api/user/create","/invalidSession").permitAll());
+                .requestMatchers("/api/test/**","/api/user/create","/invalidSession","/api/user/login","api/user/basicAuth/login").permitAll());
 
         http.csrf(AbstractHttpConfigurer::disable);
         http.formLogin(Customizer.withDefaults());
@@ -79,4 +82,13 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+    @Bean
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService,PasswordEncoder passwordEncoder){
+        GoRentzyyProdUsernamePwdAuthenticationProvider authenticationProvider =
+                new GoRentzyyProdUsernamePwdAuthenticationProvider(userDetailsService,passwordEncoder);
+
+        ProviderManager providerManager = new ProviderManager(authenticationProvider);
+        providerManager.setEraseCredentialsAfterAuthentication(false);
+        return providerManager;
+    }
 }

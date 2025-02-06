@@ -61,7 +61,7 @@ public class ProdSecurityConfig {
                 .requestMatchers("/api/promotion/**").authenticated()
                 .requestMatchers("/api/notification/**").authenticated()
                 .requestMatchers("/api/location/**").authenticated()
-                .requestMatchers("/api/test/**","/api/user/create","/invalidSession").permitAll());
+                .requestMatchers("/api/test/**","/api/user/create","/invalidSession","/api/user/login","api/user/basicAuth/login").permitAll());
 
 //        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 //                .requestMatchers("/api/host/**").hasRole("HOST")
