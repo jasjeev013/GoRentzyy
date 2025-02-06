@@ -1,6 +1,6 @@
 package com.gorentzyy.backend.payloads;
 
-import com.gorentzyy.backend.config.AppConstants;
+import com.gorentzyy.backend.constants.AppConstants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

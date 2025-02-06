@@ -1,6 +1,6 @@
 package com.gorentzyy.backend.services.impl;
 
-import com.gorentzyy.backend.config.AppConstants;
+import com.gorentzyy.backend.constants.AppConstants;
 import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.models.Booking;
 import com.gorentzyy.backend.models.Car;

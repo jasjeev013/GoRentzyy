@@ -1,6 +1,6 @@
 package com.gorentzyy.backend.models;
 
-import com.gorentzyy.backend.config.AppConstants;
+import com.gorentzyy.backend.constants.AppConstants;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

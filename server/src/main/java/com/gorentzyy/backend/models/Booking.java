@@ -1,7 +1,7 @@
 package com.gorentzyy.backend.models;
 
 
-import com.gorentzyy.backend.config.AppConstants.Status;
+import com.gorentzyy.backend.constants.AppConstants.Status;
 
 import jakarta.persistence.*;
 import lombok.Data;
