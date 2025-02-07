@@ -85,10 +85,10 @@ public class UserServiceImpl implements UserService {
 
     //Errors: If anyone puts different ID , If i remove records it sets null
     @Override
-    public ResponseEntity<ApiResponseObject> updateUser(UserDto userDto, Long userId) {
+    public ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId) {
         // Check if user exists by userId
-        User existingUser = userRepository.findById(userId).orElseThrow(() ->
-                new UserNotFoundException("User with ID " + userId + " does not exist.")
+        User existingUser = userRepository.findByEmail(emailId).orElseThrow(() ->
+                new UserNotFoundException("User with Email ID " + emailId + " does not exist.")
         );
 
         // Update the user details

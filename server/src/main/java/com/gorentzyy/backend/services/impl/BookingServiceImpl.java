@@ -65,7 +65,7 @@ public class BookingServiceImpl implements BookingService {
     // Booking of one cars specifc duration cannot be booked by other
 
     @Override
-    public ResponseEntity<ApiResponseObject> createBooking(BookingDto bookingDto, Long renterId, Long carId) {
+    public ResponseEntity<ApiResponseObject> createBooking(BookingDto bookingDto, String emailId, Long carId) {
         try {
             // Step 1: Validate car existence
             Car car = carRepository.findById(carId).orElseThrow(() ->
@@ -74,18 +74,18 @@ public class BookingServiceImpl implements BookingService {
             logger.info("Car with ID {} found for booking.", carId);
 
             // Step 2: Validate renter existence
-            User renter = userRepository.findById(renterId).orElseThrow(() ->
-                    new UserNotFoundException("User not found with id: " + renterId)
+            User renter = userRepository.findByEmail(emailId).orElseThrow(() ->
+                    new UserNotFoundException("User not found with Email id: " + emailId)
             );
 
             // Check if the role is authorized (e.g., should be "HOST")
             if (renter.getRole() == AppConstants.Role.HOST) {
-                logger.error("User with ID {} is not authorized to add cars.", renterId);
+                logger.error("User with ID {} is not authorized to add cars.", emailId);
                 throw new RoleNotAuthorizedException("Role Not Authorized to add cars");
             }
 
 
-            logger.info("Renter with ID {} found for booking.", renterId);
+            logger.info("Renter with ID {} found for booking.", emailId);
 
             // Step 3: Map the BookingDto to the Booking entity
             Booking booking = modelMapper.map(bookingDto, Booking.class);
@@ -260,19 +260,19 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseData> getBookingsByRenter(Long renterId) {
+    public ResponseEntity<ApiResponseData> getBookingsByRenter(String emailId) {
         try {
             // Step 1: Check if the renter exists
-            User renter = userRepository.findById(renterId).orElseThrow(() ->
-                    new UserNotFoundException("User not found with id: " + renterId)
+            User renter = userRepository.findByEmail(emailId).orElseThrow(() ->
+                    new UserNotFoundException("User not found with id: " + emailId)
             );
-            logger.info("Renter with ID {} found.", renterId);
+            logger.info("Renter with ID {} found.", emailId);
 
             // Step 2: Fetch bookings for the renter
             List<Booking> bookings = bookingRepository.findByRenter(renter);
 
             if (bookings.isEmpty()) {
-                logger.info("No bookings found for renter with ID {}", renterId);
+                logger.info("No bookings found for renter with ID {}", emailId);
                 return new ResponseEntity<>(new ApiResponseData(
                         "No bookings found for the renter", false, Collections.emptyList()
                 ), HttpStatus.NO_CONTENT);  // HTTP 204 when there are no bookings
@@ -290,12 +290,12 @@ public class BookingServiceImpl implements BookingService {
 
         } catch (UserNotFoundException ex) {
             // Log and rethrow the exception
-            logger.error("Error fetching bookings for renter with ID {}: {}", renterId, ex.getMessage());
+            logger.error("Error fetching bookings for renter with ID {}: {}", emailId, ex.getMessage());
             throw ex;
 
         } catch (Exception ex) {
             // Log unexpected errors
-            logger.error("Unexpected error while fetching bookings for renter with ID {}: {}", renterId, ex.getMessage());
+            logger.error("Unexpected error while fetching bookings for renter with ID {}: {}", emailId, ex.getMessage());
             throw new DatabaseException("Error while fetching bookings. Please try again.");
         }
     }
@@ -342,19 +342,19 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseData> getBookingsByHost(Long hostId) {
+    public ResponseEntity<ApiResponseData> getBookingsByHost(String emailId) {
         try {
             // Step 1: Validate that the host exists
-            User host = userRepository.findById(hostId).orElseThrow(() ->
-                    new UserNotFoundException("User not found with id: " + hostId)
+            User host = userRepository.findByEmail(emailId).orElseThrow(() ->
+                    new UserNotFoundException("User not found with Email id: " + emailId)
             );
-            logger.info("Host with ID {} found.", hostId);
+            logger.info("Host with ID {} found.", emailId);
 
             // Step 2: Fetch bookings associated with the host's cars
             List<Booking> bookings = bookingRepository.findByCarHost(host);
 
             if (bookings.isEmpty()) {
-                logger.info("No bookings found for host with ID {}", hostId);
+                logger.info("No bookings found for host with ID {}", emailId);
                 return new ResponseEntity<>(new ApiResponseData(
                         "No bookings found for this host", false, Collections.emptyList()
                 ), HttpStatus.NO_CONTENT);  // HTTP 204 when no bookings found
@@ -372,12 +372,12 @@ public class BookingServiceImpl implements BookingService {
 
         } catch (UserNotFoundException ex) {
             // Log and rethrow the exception
-            logger.error("Error fetching bookings for host with ID {}: {}", hostId, ex.getMessage());
+            logger.error("Error fetching bookings for host with ID {}: {}", emailId, ex.getMessage());
             throw ex;
 
         } catch (Exception ex) {
             // Log unexpected errors
-            logger.error("Unexpected error while fetching bookings for host with ID {}: {}", hostId, ex.getMessage());
+            logger.error("Unexpected error while fetching bookings for host with ID {}: {}", emailId, ex.getMessage());
             throw new DatabaseException("Error while fetching bookings. Please try again.");
         }
     }

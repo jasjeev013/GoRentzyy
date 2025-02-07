@@ -1,6 +1,5 @@
 package com.gorentzyy.backend.services;
 
-import com.gorentzyy.backend.payloads.ApiResponseData;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.UserDto;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,7 @@ public interface UserService {
      * @param userId ID of the user to be updated.
      * @return ResponseEntity with status and result.
      */
-    ResponseEntity<ApiResponseObject> updateUser(UserDto userDto, Long userId);
+    ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId);
 
     /**
      * Retrieves a user by their unique ID.
@@ -49,5 +48,7 @@ public interface UserService {
      * @return ResponseEntity with user data or error information.
      */
     ResponseEntity<ApiResponseObject> getUserByEmail(String email);
+
+
 
 }

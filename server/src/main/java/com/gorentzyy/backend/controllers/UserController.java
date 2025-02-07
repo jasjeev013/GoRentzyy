@@ -51,24 +51,27 @@ public class UserController {
         return userService.createNewUser(userDto);
     }
 
-    @PutMapping("/update/{userId}")
-    public ResponseEntity<ApiResponseObject> updateUser(@PathVariable Long userId,@Valid @RequestBody UserDto userDto){
-        return userService.updateUser(userDto,userId);
+    @PutMapping("/update")
+    public ResponseEntity<ApiResponseObject> updateUser(Authentication authentication, @Valid @RequestBody UserDto userDto){
+        String email = authentication.getName();
+        return userService.updateUserByEmail(userDto, email);
+    }
+
+    @GetMapping("/get")
+    public ResponseEntity<ApiResponseObject> getUser(Authentication authentication) {
+        String email = authentication.getName();  // Extract email
+        return userService.getUserByEmail(email);
     }
 
     @GetMapping("/get/{userId}")
-    public ResponseEntity<ApiResponseObject> getUser(@PathVariable Long userId){
+    public ResponseEntity<ApiResponseObject> getUserById(@PathVariable Long userId){
         return userService.getUserById(userId);
     }
+
 
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity<ApiResponseObject> deleteUser(@PathVariable Long userId){
         return userService.deleteUser(userId);
-    }
-
-    @GetMapping("/get/email/{emailId}")
-    public ResponseEntity<ApiResponseObject> getUserByEmail(@PathVariable String emailId){
-        return userService.getUserByEmail(emailId);
     }
 
     @RequestMapping("/basicAuth/login")

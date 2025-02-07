@@ -7,13 +7,13 @@ import org.springframework.http.ResponseEntity;
 
 public interface BookingService {
 
-    ResponseEntity<ApiResponseObject> createBooking(BookingDto bookingDto,Long renterId,Long carId);
+    ResponseEntity<ApiResponseObject> createBooking(BookingDto bookingDto,String emailId,Long carId);
     ResponseEntity<ApiResponseObject> updateBooking(BookingDto bookingDto,Long bookingId);
     ResponseEntity<ApiResponseObject> getBookingById(Long bookingId);
     ResponseEntity<ApiResponseObject> cancelBooking(Long bookingId);
-    ResponseEntity<ApiResponseData> getBookingsByRenter(Long renterId);
+    ResponseEntity<ApiResponseData> getBookingsByRenter(String emailId);
     ResponseEntity<ApiResponseData> getBookingsByCar(Long carId);
-    ResponseEntity<ApiResponseData> getBookingsByHost(Long hostId);
+    ResponseEntity<ApiResponseData> getBookingsByHost(String emailId);
 
 
 }
