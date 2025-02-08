@@ -69,9 +69,10 @@ public class UserController {
     }
 
 
-    @DeleteMapping("/delete/{userId}")
-    public ResponseEntity<ApiResponseObject> deleteUser(@PathVariable Long userId){
-        return userService.deleteUser(userId);
+    @DeleteMapping("/delete")
+    public ResponseEntity<ApiResponseObject> deleteUser(Authentication authentication){
+        String email = authentication.getName();
+        return userService.deleteUserByEmail(email);
     }
 
     @RequestMapping("/basicAuth/login")

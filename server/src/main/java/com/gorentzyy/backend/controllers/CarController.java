@@ -5,6 +5,7 @@ import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.CarDto;
 import com.gorentzyy.backend.services.CarService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,9 +22,10 @@ public class CarController {
         this.carService = carService;
     }
 
-    @PostMapping("/create/{hostId}")
-    public ResponseEntity<ApiResponseObject> addNewCar(@Valid @RequestBody CarDto carDto, @PathVariable Long hostId){
-        return carService.addNewCar(carDto,hostId);
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponseObject> addNewCar(@Valid @RequestBody CarDto carDto, Authentication authentication){
+        String email = authentication.getName();
+        return carService.addNewCar(carDto,email);
     }
 
     @PutMapping("/update/{carId}")
@@ -41,8 +43,9 @@ public class CarController {
         return carService.removeCar(carId);
     }
 
-    @GetMapping("/getAll/{hostId}")
-    public ResponseEntity<ApiResponseData> getAllCarsOfSpecificHost(@PathVariable Long hostId){
-        return carService.getAllCarsForSpecificHost(hostId);
+    @GetMapping("/getAll")
+    public ResponseEntity<ApiResponseData> getAllCarsOfSpecificHost(Authentication authentication){
+        String email = authentication.getName();
+        return carService.getAllCarsForSpecificHost(email);
     }
 }

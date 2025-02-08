@@ -40,11 +40,11 @@ public class ReviewServiceImpl implements ReviewService {
     // the renter can review diff. renter's booking
     @Override
     @Transactional
-    public ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto, Long renterId, Long bookingId) {
+    public ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto, String emailId, Long bookingId) {
         try {
             // Fetch the renter and booking
-            User renter = userRepository.findById(renterId)
-                    .orElseThrow(() -> new UserNotFoundException("User with id " + renterId + " not found"));
+            User renter = userRepository.findByEmail(emailId)
+                    .orElseThrow(() -> new UserNotFoundException("User with id " + emailId + " not found"));
             Booking booking = bookingRepository.findById(bookingId)
                     .orElseThrow(() -> new BookingNotFoundException("Booking with id " + bookingId + " not found"));
 

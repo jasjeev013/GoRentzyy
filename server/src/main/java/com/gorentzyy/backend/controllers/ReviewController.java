@@ -5,6 +5,7 @@ import com.gorentzyy.backend.payloads.ReviewDto;
 import com.gorentzyy.backend.services.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +23,10 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @PostMapping("/create/{renterId}/{bookingId}")
-    public ResponseEntity<ApiResponseObject> createReview(@Valid @RequestBody ReviewDto reviewDto, @PathVariable Long renterId, @PathVariable Long bookingId){
-        return reviewService.createReview(reviewDto,renterId,bookingId);
+    @PostMapping("/create/{bookingId}")
+    public ResponseEntity<ApiResponseObject> createReview(@Valid @RequestBody ReviewDto reviewDto, Authentication authentication, @PathVariable Long bookingId){
+        String email = authentication.getName();
+        return reviewService.createReview(reviewDto,email,bookingId);
     }
 
     @PutMapping("/update/{reviewId}")

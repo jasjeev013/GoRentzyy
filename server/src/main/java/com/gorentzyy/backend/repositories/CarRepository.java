@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface CarRepository extends JpaRepository<Car,Long> {
     boolean existsByRegistrationNumber(String registrationNumber);
-    List<Car> findCarsByHostUserId(Long hostId);
+    List<Car> findCarsByHostEmail(String email);
 }

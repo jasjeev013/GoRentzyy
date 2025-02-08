@@ -41,7 +41,7 @@ public class CarServiceImpl implements CarService {
 
     @Override
     @Transactional
-    public ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto, Long hostId) {
+    public ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto, String email) {
 
         try {
             // Check if car already exists
@@ -51,14 +51,14 @@ public class CarServiceImpl implements CarService {
             }
 
             // Check if the host exists
-            User host = userRepository.findById(hostId).orElseThrow(() -> {
-                logger.error("User with ID {} not found.", hostId);
-                return new UserNotFoundException("User with ID " + hostId + " does not exist.");
+            User host = userRepository.findByEmail(email).orElseThrow(() -> {
+                logger.error("User with ID {} not found.", email);
+                return new UserNotFoundException("User with ID " + email + " does not exist.");
             });
 
             // Check if the host's role is authorized (e.g., should be "HOST")
             if (host.getRole() == AppConstants.Role.RENTER) {
-                logger.error("User with ID {} is not authorized to add cars.", hostId);
+                logger.error("User with ID {} is not authorized to add cars.", email);
                 throw new RoleNotAuthorizedException("Role Not Authorized to add cars");
             }
 
@@ -214,22 +214,22 @@ public class CarServiceImpl implements CarService {
     }
 // For RENTERS show unauthorized
     @Override
-    public ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(Long hostId) {
+    public ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(String email) {
 
         try {
             // Step 1: Validate that the host exists
-            boolean hostExists = userRepository.existsById(hostId);
+            boolean hostExists = userRepository.existsByEmail(email);
             if (!hostExists) {
-                logger.warn("User with ID {} does not exist.", hostId);
-                throw new UserNotFoundException("User with ID " + hostId + " does not exist.");
+                logger.warn("User with ID {} does not exist.", email);
+                throw new UserNotFoundException("User with ID " + email + " does not exist.");
             }
 
             // Step 2: Fetch cars for the specific host
-            List<Car> cars = carRepository.findCarsByHostUserId(hostId);
+            List<Car> cars = carRepository.findCarsByHostEmail(email);
 
             // If no cars are found, return a 204 No Content response
             if (cars.isEmpty()) {
-                logger.info("No cars found for host with ID {}", hostId);
+                logger.info("No cars found for host with ID {}", email);
                 return new ResponseEntity<>(new ApiResponseData(
                         "No cars found for this host", true, null
                 ), HttpStatus.NO_CONTENT);  // Return 204 No Content
@@ -241,7 +241,7 @@ public class CarServiceImpl implements CarService {
                     .toList();
 
             // Log successful fetching of cars
-            logger.info("Fetched {} cars for host with ID {}", carDtos.size(), hostId);
+            logger.info("Fetched {} cars for host with ID {}", carDtos.size(), email);
 
             // Step 4: Return the response with the list of car DTOs
             return new ResponseEntity<>(new ApiResponseData(
@@ -255,7 +255,7 @@ public class CarServiceImpl implements CarService {
 
         } catch (Exception ex) {
             // Log any other unexpected errors
-            logger.error("Unexpected error while fetching cars for host with ID {}: {}", hostId, ex.getMessage());
+            logger.error("Unexpected error while fetching cars for host with ID {}: {}", email, ex.getMessage());
             throw new DatabaseException("Error while fetching cars for the host. Please try again.");
         }
     }

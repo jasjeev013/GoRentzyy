@@ -39,7 +39,7 @@ public interface UserService {
      * @param userId ID of the user to delete.
      * @return ResponseEntity with status and result of the operation.
      */
-    ResponseEntity<ApiResponseObject> deleteUser(Long userId);
+    ResponseEntity<ApiResponseObject> deleteUserByEmail(String email);
 
     /**
      * Retrieves a user by their email address.

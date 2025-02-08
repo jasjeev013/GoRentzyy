@@ -31,10 +31,10 @@ public class NotificationServiceImpl implements NotificationService {
     }
 // Sent At is coming null
     @Override
-    public ResponseEntity<ApiResponseObject> addNotification(NotificationDto notificationDto, Long userId) {
+    public ResponseEntity<ApiResponseObject> addNotification(NotificationDto notificationDto, String email) {
         // Validate the user
-        User newUser = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " not found"));
+        User newUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User with ID " + email + " not found"));
 
         // Map DTO to entity
         Notification newNotification = modelMapper.map(notificationDto, Notification.class);

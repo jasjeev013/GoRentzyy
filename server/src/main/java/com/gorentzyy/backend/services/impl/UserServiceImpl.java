@@ -147,22 +147,22 @@ public class UserServiceImpl implements UserService {
 
     // Response Entity is showing code of No Content
     @Override
-    public ResponseEntity<ApiResponseObject> deleteUser(Long userId) {
+    public ResponseEntity<ApiResponseObject> deleteUserByEmail(String email) {
 
         try {
             // Log the attempt to delete the user
-            logger.info("Attempting to delete user with ID: {}", userId);
+            logger.info("Attempting to delete user with ID: {}", email);
 
             // Check if user exists by userId
-            User existingUser = userRepository.findById(userId).orElseThrow(() ->
-                    new UserNotFoundException("User with ID " + userId + " does not exist.")
+            User existingUser = userRepository.findByEmail(email).orElseThrow(() ->
+                    new UserNotFoundException("User with ID " + email + " does not exist.")
             );
 
             // Delete the user
             userRepository.delete(existingUser);
 
             // Log successful deletion
-            logger.info("User with ID {} deleted successfully.", userId);
+            logger.info("User with ID {} deleted successfully.", email);
 
             // Return a response after successful deletion
             return new ResponseEntity<>(new ApiResponseObject(
@@ -171,17 +171,17 @@ public class UserServiceImpl implements UserService {
 
         } catch (UserNotFoundException ex) {
             // Log the error for user not found
-            logger.error("User with ID {} not found for deletion.", userId);
+            logger.error("User with ID {} not found for deletion.", email);
             throw ex;  // Will be handled by the GlobalExceptionHandler
 
         } catch (DataIntegrityViolationException e) {
             // Log constraint violation errors (e.g., foreign key constraints)
-            logger.error("Error deleting user with ID {}: Data integrity violation.", userId);
+            logger.error("Error deleting user with ID {}: Data integrity violation.", email);
             throw new DatabaseException("Cannot delete user due to database constraints.");
 
         } catch (Exception e) {
             // Log unexpected errors
-            logger.error("Unexpected error while deleting user with ID {}: {}", userId, e.getMessage());
+            logger.error("Unexpected error while deleting user with ID {}: {}", email, e.getMessage());
             throw new DatabaseException("An error occurred while deleting the user.");
         }
     }

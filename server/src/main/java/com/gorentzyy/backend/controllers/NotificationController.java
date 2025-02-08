@@ -5,6 +5,7 @@ import com.gorentzyy.backend.payloads.NotificationDto;
 import com.gorentzyy.backend.services.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +23,10 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
-    @PostMapping("/create/{userId}")
-    public ResponseEntity<ApiResponseObject> addNotification(@Valid @RequestBody NotificationDto notificationDto, @PathVariable Long userId){
-        return notificationService.addNotification(notificationDto,userId);
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponseObject> addNotification(@Valid @RequestBody NotificationDto notificationDto, Authentication authentication){
+        String email = authentication.getName();
+        return notificationService.addNotification(notificationDto,email);
     }
 
     @PutMapping("/update/{notificationId}")
