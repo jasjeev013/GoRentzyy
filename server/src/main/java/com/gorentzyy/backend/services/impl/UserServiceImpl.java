@@ -82,8 +82,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
-    //Errors: If anyone puts different ID , If i remove records it sets null
     @Override
     public ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId) {
         // Check if user exists by userId
@@ -145,7 +143,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    // Response Entity is showing code of No Content
+    // Explanation: If return type: NO CONTENT then no response body should be returned
     @Override
     public ResponseEntity<ApiResponseObject> deleteUserByEmail(String email) {
 
@@ -167,7 +165,7 @@ public class UserServiceImpl implements UserService {
             // Return a response after successful deletion
             return new ResponseEntity<>(new ApiResponseObject(
                     "Deleted Successfully", true, null
-            ), HttpStatus.NO_CONTENT);
+            ), HttpStatus.OK);
 
         } catch (UserNotFoundException ex) {
             // Log the error for user not found

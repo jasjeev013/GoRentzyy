@@ -10,18 +10,21 @@ import com.gorentzyy.backend.payloads.CarDto;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.CarService;
-import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CarServiceImpl implements CarService {
@@ -40,55 +43,45 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)  // Ensures rollback on all exceptions
+    @Retryable(
+            value = {DatabaseException.class},  // Retry only for DatabaseException
+            maxAttempts = 3,  // Retry 3 times before failing
+            backoff = @Backoff(delay = 2000, multiplier = 2)  // 2 sec delay, increasing exponentially
+    )
     public ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto, String email) {
-
         try {
-            // Check if car already exists
+            // Step 1: Check if car already exists
             if (carRepository.existsByRegistrationNumber(carDto.getRegistrationNumber())) {
                 logger.warn("Car with registration number {} already exists.", carDto.getRegistrationNumber());
                 throw new CarAlreadyExistsException("A car with this registration already exists.");
             }
 
-            // Check if the host exists
+            // Step 2: Validate host
             User host = userRepository.findByEmail(email).orElseThrow(() -> {
                 logger.error("User with ID {} not found.", email);
                 return new UserNotFoundException("User with ID " + email + " does not exist.");
             });
 
-            // Check if the host's role is authorized (e.g., should be "HOST")
+            // Step 3: Ensure only hosts can add cars
             if (host.getRole() == AppConstants.Role.RENTER) {
                 logger.error("User with ID {} is not authorized to add cars.", email);
                 throw new RoleNotAuthorizedException("Role Not Authorized to add cars");
             }
 
-            // Validate the carDto (for example, check required fields)
-            if (carDto.getModel() == null || carDto.getModel().isEmpty()) {
-                throw new InvalidCarDataException("Car model cannot be empty or null.");
-            }
-            if (carDto.getRegistrationNumber() == null || carDto.getRegistrationNumber().isEmpty()) {
-                throw new InvalidCarDataException("Car registration number cannot be empty or null.");
-            }
-
-            // Map CarDto to Car entity
+            // Step 5: Map CarDto to Car entity
             Car newCar = modelMapper.map(carDto, Car.class);
-
-            // Set the host as the owner of the car (if necessary)
             newCar.setHost(host);
-            // Add the new car to the host's list of cars
             host.getCars().add(newCar);
 
+            // Step 6: Set timestamps
             LocalDateTime now = LocalDateTime.now();
             newCar.setCreatedAt(now);
             newCar.setUpdatedAt(now);
 
-            // Log the car creation process
-            logger.info("Adding new car with registration number {}", carDto.getRegistrationNumber());
-
-            // Save the new car (this also updates the host's cars list)
+            // Step 7: Save the new car
             Car savedCar = carRepository.save(newCar);
 
-            // Log the successful addition of the car
             logger.info("Car with registration number {} added successfully.", carDto.getRegistrationNumber());
 
             return new ResponseEntity<>(new ApiResponseObject(
@@ -96,16 +89,14 @@ public class CarServiceImpl implements CarService {
             ), HttpStatus.CREATED);
 
         } catch (CarAlreadyExistsException | UserNotFoundException | RoleNotAuthorizedException | InvalidCarDataException ex) {
-            // Handle specific exceptions
             logger.error("Error: {}", ex.getMessage());
-            throw ex;  // These will be handled by your GlobalExceptionHandler
+            throw ex;  // Handled by GlobalExceptionHandler
         } catch (Exception e) {
-            // Handle unexpected errors
             logger.error("Unexpected error while adding a new car: {}", e.getMessage());
             throw new DatabaseException("Error while saving the car to the database.");
         }
     }
-// Just while updation if the values are removed if changes all to none
+
     @Override
     public ResponseEntity<ApiResponseObject> updateCar(CarDto carDto, Long carId) {
         // Step 1: Check if the car exists in the database, and if not, throw a CarNotFoundException
@@ -116,17 +107,17 @@ public class CarServiceImpl implements CarService {
         // Step 2: Update the car details
         LocalDateTime now = LocalDateTime.now();
         existingCar.setUpdatedAt(now);
-        existingCar.setMake(carDto.getMake());
-        existingCar.setModel(carDto.getModel());
+        existingCar.setMake(carDto.getMake() != null ? carDto.getMake() : existingCar.getMake());
+        existingCar.setModel(carDto.getModel() != null ? carDto.getModel() : existingCar.getModel());
         existingCar.setYear(carDto.getYear());
-        existingCar.setColor(carDto.getColor());
-        existingCar.setCategory(carDto.getCategory());
+        existingCar.setColor(carDto.getColor() != null ? carDto.getColor() : existingCar.getColor());
+        existingCar.setCategory(carDto.getCategory() != null ? carDto.getCategory() : existingCar.getCategory());
         existingCar.setFuelType(carDto.getFuelType());
         existingCar.setAvailabilityStatus(carDto.getAvailabilityStatus());
         existingCar.setRentalPricePerDay(carDto.getRentalPricePerDay());
         existingCar.setRentalPricePerWeek(carDto.getRentalPricePerWeek());
         existingCar.setRentalPricePerMonth(carDto.getRentalPricePerMonth());
-        existingCar.setMaintenanceDueDate(carDto.getMaintenanceDueDate());
+        existingCar.setMaintenanceDueDate(carDto.getMaintenanceDueDate() != null ? carDto.getMaintenanceDueDate() : existingCar.getMaintenanceDueDate());
         existingCar.setSeatingCapacity(carDto.getSeatingCapacity());
 
         try {
@@ -175,7 +166,7 @@ public class CarServiceImpl implements CarService {
             throw new DatabaseException("An error occurred while retrieving the car.");
         }
     }
-// Response Entity Returning No COntent
+
     @Override
     public ResponseEntity<ApiResponseObject> removeCar(Long carId) {
         try {
@@ -199,7 +190,7 @@ public class CarServiceImpl implements CarService {
             // Return a response after successful deletion
             return new ResponseEntity<>(new ApiResponseObject(
                     "Deleted Successfully", true, null
-            ), HttpStatus.NO_CONTENT);  // Changed to 204 No Content
+            ), HttpStatus.OK);  // Changed to 204 No Content
 
         } catch (CarNotFoundException ex) {
             // Log the error when the car is not found
@@ -212,30 +203,28 @@ public class CarServiceImpl implements CarService {
             throw new DatabaseException("An error occurred while deleting the car.");
         }
     }
-// For RENTERS show unauthorized
     @Override
     public ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(String email) {
-
         try {
-            // Step 1: Validate that the host exists
-            boolean hostExists = userRepository.existsByEmail(email);
-            if (!hostExists) {
-                logger.warn("User with ID {} does not exist.", email);
-                throw new UserNotFoundException("User with ID " + email + " does not exist.");
+            // Step 1: Fetch the user and validate existence
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("User with ID " + email + " does not exist."));
+
+            // Step 2: Check if the user is authorized as a HOST
+            if (Objects.equals(user.getRole().toString(), "RENTER")) {
+                throw new RoleNotAuthorizedException("User with ID " + email + " is not authorized.");
             }
 
-            // Step 2: Fetch cars for the specific host
+            // Step 3: Fetch cars for the specific host
             List<Car> cars = carRepository.findCarsByHostEmail(email);
 
             // If no cars are found, return a 204 No Content response
             if (cars.isEmpty()) {
                 logger.info("No cars found for host with ID {}", email);
-                return new ResponseEntity<>(new ApiResponseData(
-                        "No cars found for this host", true, null
-                ), HttpStatus.NO_CONTENT);  // Return 204 No Content
+                return ResponseEntity.noContent().build();  // Return 204 No Content with NO BODY
             }
 
-            // Step 3: Map the car entities to CarDto objects
+            // Step 4: Map the car entities to CarDto objects
             List<CarDto> carDtos = cars.stream()
                     .map(car -> modelMapper.map(car, CarDto.class))
                     .toList();
@@ -243,20 +232,21 @@ public class CarServiceImpl implements CarService {
             // Log successful fetching of cars
             logger.info("Fetched {} cars for host with ID {}", carDtos.size(), email);
 
-            // Step 4: Return the response with the list of car DTOs
-            return new ResponseEntity<>(new ApiResponseData(
+            // Step 5: Return the response with the list of car DTOs
+            return ResponseEntity.ok(new ApiResponseData(
                     "All cars for the specific host found", true, Collections.singletonList(carDtos)
-            ), HttpStatus.OK);
+            ));
 
-        } catch (UserNotFoundException ex) {
-            // Log and rethrow the UserNotFoundException
+        } catch (UserNotFoundException | RoleNotAuthorizedException ex) {
+            // Log and rethrow the known exceptions
             logger.error("Error fetching cars: {}", ex.getMessage());
             throw ex;  // Will be handled by your GlobalExceptionHandler
 
         } catch (Exception ex) {
-            // Log any other unexpected errors
+            // Log unexpected errors
             logger.error("Unexpected error while fetching cars for host with ID {}: {}", email, ex.getMessage());
             throw new DatabaseException("Error while fetching cars for the host. Please try again.");
         }
     }
+
 }
