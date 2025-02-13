@@ -57,7 +57,6 @@ public class LocationServiceImpl implements LocationService {
         }
     }
 
-// Fields get empty
     @Override
     public ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto, Long locationId) {
         // Find the existing location
@@ -66,8 +65,8 @@ public class LocationServiceImpl implements LocationService {
         );
 
         // Update the existing location with new values
-        existingLocation.setAddress(locationDto.getAddress());
-        existingLocation.setName(locationDto.getName());
+        existingLocation.setAddress(locationDto.getAddress()==null?existingLocation.getAddress():locationDto.getAddress());
+        existingLocation.setName(locationDto.getName()==null?existingLocation.getName():locationDto.getName());
         existingLocation.setLatitude(locationDto.getLatitude());
         existingLocation.setLongitude(locationDto.getLongitude());
 
@@ -82,7 +81,6 @@ public class LocationServiceImpl implements LocationService {
             throw new DatabaseException("Error while updating the location.");
         }
     }
-
 
     @Override
     public ResponseEntity<ApiResponseObject> getLocation(Long locationId) {

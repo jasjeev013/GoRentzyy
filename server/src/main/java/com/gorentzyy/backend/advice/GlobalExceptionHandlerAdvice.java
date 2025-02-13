@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
@@ -151,6 +149,11 @@ public class GlobalExceptionHandlerAdvice {
     }
     @ExceptionHandler(ReviewNotFoundException.class)
     public ResponseEntity<ApiResponseObject> handleReviewNotFoundException(ReviewNotFoundException ex) {
+        return new ResponseEntity<>(new ApiResponseObject(ex.getMessage(), false, null), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BookingConflictException.class)
+    public ResponseEntity<ApiResponseObject> handleBookingConflictException(BookingConflictException ex) {
         return new ResponseEntity<>(new ApiResponseObject(ex.getMessage(), false, null), HttpStatus.NOT_FOUND);
     }
 

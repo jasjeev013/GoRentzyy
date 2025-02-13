@@ -1,5 +1,6 @@
 package com.gorentzyy.backend.payloads;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gorentzyy.backend.constants.AppConstants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,6 +33,7 @@ public class NotificationDto implements Serializable {
 
     private boolean isRead;
 
+    @JsonIgnore
     @PastOrPresent(message = "Sent date must be in the past or present")
     private LocalDateTime sentAt;
 

@@ -18,7 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -43,7 +46,7 @@ public class BookingServiceImpl implements BookingService {
         this.modelMapper = modelMapper;
     }
 
-    public double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
+    private double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
         long days = ChronoUnit.DAYS.between(startDate, endDate);
         double totalPrice;
 
@@ -61,33 +64,51 @@ public class BookingServiceImpl implements BookingService {
 
         return totalPrice;
     }
-// Make Sure booking start n end dte differ by 1-2 days
-    // Booking of one cars specifc duration cannot be booked by other
+
+    private boolean isCarAlreadyBooked(Long carId, LocalDateTime startDate, LocalDateTime endDate) {
+        List<Booking> existingBookings = bookingRepository.findByCarIdAndDateRange(carId, startDate, endDate);
+
+        return !existingBookings.isEmpty();
+    }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Retryable(
+            value = {DatabaseException.class},  // Retry only for DatabaseException
+            maxAttempts = 3,  // Retry 3 times before failing
+            backoff = @Backoff(delay = 2000, multiplier = 2)  // 2 sec delay, increasing exponentially
+    )
     public ResponseEntity<ApiResponseObject> createBooking(BookingDto bookingDto, String emailId, Long carId) {
         try {
             // Step 1: Validate car existence
-            Car car = carRepository.findById(carId).orElseThrow(() ->
-                    new CarNotFoundException("Car not found with id: " + carId)
-            );
+            Car car = carRepository.findById(carId).orElseThrow(() -> {
+                logger.error("Car with ID {} not found for booking.", carId);
+                return new CarNotFoundException("Car not found with ID: " + carId);
+            });
+
             logger.info("Car with ID {} found for booking.", carId);
 
             // Step 2: Validate renter existence
-            User renter = userRepository.findByEmail(emailId).orElseThrow(() ->
-                    new UserNotFoundException("User not found with Email id: " + emailId)
-            );
+            User renter = userRepository.findByEmail(emailId).orElseThrow(() -> {
+                logger.error("User with Email ID {} not found for booking.", emailId);
+                return new UserNotFoundException("User not found with Email ID: " + emailId);
+            });
 
-            // Check if the role is authorized (e.g., should be "HOST")
+            // Ensure only RENTERS can book a car (not hosts)
             if (renter.getRole() == AppConstants.Role.HOST) {
-                logger.error("User with ID {} is not authorized to add cars.", emailId);
-                throw new RoleNotAuthorizedException("Role Not Authorized to add cars");
+                logger.error("User with Email ID {} is not authorized to book cars.", emailId);
+                throw new RoleNotAuthorizedException("Hosts are not allowed to book cars.");
             }
 
+            logger.info("Renter with Email ID {} found for booking.", emailId);
 
-            logger.info("Renter with ID {} found for booking.", emailId);
+            // Step 3: Prevent booking conflicts
+            if (isCarAlreadyBooked(carId, bookingDto.getStartDate(), bookingDto.getEndDate())) {
+                logger.warn("Car ID {} is already booked for the selected date range.", carId);
+                throw new BookingConflictException("This car is already booked for the selected date range.");
+            }
 
-            // Step 3: Map the BookingDto to the Booking entity
+            // Step 4: Map BookingDto to Booking entity
             Booking booking = modelMapper.map(bookingDto, Booking.class);
             booking.setCar(car);
             booking.setRenter(renter);
@@ -97,35 +118,36 @@ public class BookingServiceImpl implements BookingService {
             booking.setCreatedAt(now);
             booking.setUpdatedAt(now);
 
-            // Set the total price based on the booking duration
+            // Step 5: Calculate and set the total price based on the booking duration
             booking.setTotalPrice(calculateTotalPrice(car, booking.getStartDate(), booking.getEndDate()));
             logger.info("Total price calculated for booking: {}", booking.getTotalPrice());
 
-            // Step 4: Attempt to save the booking
+            // Step 6: Save the booking
             Booking savedBooking = bookingRepository.save(booking);
 
-            // Add the booking to car and renter relationships
+            // Step 7: Associate booking with car and renter
             car.getBookings().add(savedBooking);
             renter.getBookings().add(savedBooking);
 
-            // Step 5: Return success response with booking details
+            // Step 8: Return success response with booking details
             logger.info("Booking created successfully with ID {}", savedBooking.getBookingId());
             return new ResponseEntity<>(new ApiResponseObject(
                     "Booking has been established", true, modelMapper.map(savedBooking, BookingDto.class)
             ), HttpStatus.CREATED);
 
-        } catch (CarNotFoundException | UserNotFoundException ex) {
-            // Log and rethrow specific exceptions for better clarity
+        } catch (CarNotFoundException | UserNotFoundException | RoleNotAuthorizedException | BookingConflictException ex) {
+            // Log and rethrow specific exceptions
             logger.error("Error creating booking: {}", ex.getMessage());
-            throw ex;  // These are expected exceptions that will be handled by your GlobalExceptionHandler
+            throw ex;  // These are expected exceptions handled by GlobalExceptionHandler
 
         } catch (Exception ex) {
-            // Log any other unexpected errors
+            // Log unexpected errors
             logger.error("Unexpected error while creating booking: {}", ex.getMessage());
             throw new DatabaseException("Error while saving the booking to the database.");
         }
     }
-// Booking start Date and end date cannot be changed.. Status can also be not changed
+
+    // Status is being changed
     @Override
     public ResponseEntity<ApiResponseObject> updateBooking(BookingDto bookingDto, Long bookingId) {
         try {
@@ -135,62 +157,34 @@ public class BookingServiceImpl implements BookingService {
             );
             logger.info("Booking with ID {} found for update.", bookingId);
 
-            // Step 2: Validate and update the start and end dates
-            if (bookingDto.getStartDate().isBefore(LocalDateTime.now())) {
-                throw new InvalidBookingDateException("Booking start date cannot be in the past.");
-            }
-            if (bookingDto.getEndDate().isBefore(bookingDto.getStartDate())) {
-                throw new InvalidBookingDateException("Booking end date cannot be before the start date.");
-            }
-
-            // Step 3: Only update the fields if they have changed
-            boolean isUpdated = false;
-
-            if (existingBooking.getStartDate().isBefore(bookingDto.getStartDate())) {
-                existingBooking.setStartDate(bookingDto.getStartDate());
-                isUpdated = true;
-            }
-            if (existingBooking.getEndDate().isBefore(bookingDto.getEndDate())) {
-                existingBooking.setEndDate(bookingDto.getEndDate());
-                isUpdated = true;
-            }
-            if (!existingBooking.getStatus().equals(bookingDto.getStatus())) {
+            // Step 2: Only update the status field (Keep startDate & endDate unchanged)
+            if (bookingDto.getStatus() != null) {
                 existingBooking.setStatus(bookingDto.getStatus());
-                isUpdated = true;
             }
 
-            // Update timestamp for the update
-            if (isUpdated) {
-                LocalDateTime now = LocalDateTime.now();
-                existingBooking.setUpdatedAt(now);
-            }
+            // Update the last modified timestamp
+            existingBooking.setUpdatedAt(LocalDateTime.now());
 
-            // Step 4: Save the updated booking
+            // Step 3: Save the updated booking
             Booking updatedBooking = bookingRepository.save(existingBooking);
             logger.info("Booking with ID {} successfully updated.", bookingId);
 
-            // Step 5: Return the success response
+            // Step 4: Return the success response
             return new ResponseEntity<>(new ApiResponseObject(
                     "Booking updated successfully", true, modelMapper.map(updatedBooking, BookingDto.class)
             ), HttpStatus.ACCEPTED);
 
         } catch (BookingNotFoundException ex) {
-            // Log and rethrow the exception to be handled by the global exception handler
             logger.error("Error updating booking: {}", ex.getMessage());
             throw ex;
 
-        } catch (InvalidBookingDateException ex) {
-            // Log and handle invalid date exceptions separately
-            logger.error("Invalid date error: {}", ex.getMessage());
-            throw ex;
-
         } catch (Exception ex) {
-            // Log unexpected errors
             logger.error("Unexpected error while updating booking: {}", ex.getMessage());
             throw new DatabaseException("Error while updating the booking. Please try again.");
         }
     }
-// No Content Issues Below this in all functions
+
+
     @Override
     public ResponseEntity<ApiResponseObject> getBookingById(Long bookingId) {
         try {
@@ -203,7 +197,7 @@ public class BookingServiceImpl implements BookingService {
             // Step 2: Return the successful response with the booking data
             return new ResponseEntity<>(new ApiResponseObject(
                     "Booking fetched successfully", true, modelMapper.map(existingBooking, BookingDto.class)
-            ), HttpStatus.OK);  // Use HttpStatus.OK for a successful GET request
+            ), HttpStatus.OK);
 
         } catch (BookingNotFoundException ex) {
             // Log and rethrow the exception to be handled by your global exception handler
@@ -240,7 +234,7 @@ public class BookingServiceImpl implements BookingService {
             // Step 4: Return success response
             return new ResponseEntity<>(new ApiResponseObject(
                     "Booking cancelled successfully", true, null
-            ), HttpStatus.NO_CONTENT);  // Use HttpStatus.NO_CONTENT for successful deletions
+            ), HttpStatus.OK);  // Use HttpStatus.NO_CONTENT for successful deletions
 
         } catch (BookingNotFoundException ex) {
             // Log the error and rethrow the exception for global handling

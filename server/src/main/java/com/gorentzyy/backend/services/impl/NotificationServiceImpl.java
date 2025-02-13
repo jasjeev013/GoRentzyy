@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
@@ -29,7 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
         this.modelMapper = modelMapper;
         this.notificationRepository = notificationRepository;
     }
-// Sent At is coming null
+
     @Override
     public ResponseEntity<ApiResponseObject> addNotification(NotificationDto notificationDto, String email) {
         // Validate the user
@@ -40,6 +42,9 @@ public class NotificationServiceImpl implements NotificationService {
         Notification newNotification = modelMapper.map(notificationDto, Notification.class);
         newNotification.setUser(newUser);
         newUser.getNotifications().add(newNotification); // Add notification to user's list
+
+        LocalDateTime time = LocalDateTime.now();
+        newNotification.setSentAt(time);
 
         try {
             // Save notification directly without saving user separately if no changes to the user
