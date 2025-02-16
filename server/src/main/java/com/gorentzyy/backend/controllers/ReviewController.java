@@ -5,6 +5,7 @@ import com.gorentzyy.backend.payloads.ReviewDto;
 import com.gorentzyy.backend.services.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -23,12 +24,14 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
+    @PreAuthorize("hasRole('RENTER')")
     @PostMapping("/create/{bookingId}")
     public ResponseEntity<ApiResponseObject> createReview(@Valid @RequestBody ReviewDto reviewDto, Authentication authentication, @PathVariable Long bookingId){
         String email = authentication.getName();
         return reviewService.createReview(reviewDto,email,bookingId);
     }
 
+    @PreAuthorize("hasRole('RENTER')")
     @PutMapping("/update/{reviewId}")
     public ResponseEntity<ApiResponseObject> updateReview(@Valid @RequestBody ReviewDto reviewDto,@PathVariable Long reviewId){
         return reviewService.updateReview(reviewDto,reviewId);
@@ -39,6 +42,7 @@ public class ReviewController {
         return reviewService.getReview(reviewId);
     }
 
+    @PreAuthorize("hasRole('RENTER')")
     @DeleteMapping("/delete/{reviewId}")
     public ResponseEntity<ApiResponseObject> deleteReview(@PathVariable Long reviewId){
         return reviewService.deleteReview(reviewId);

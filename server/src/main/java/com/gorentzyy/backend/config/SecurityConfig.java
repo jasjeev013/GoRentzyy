@@ -54,15 +54,39 @@ public class SecurityConfig {
                 .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
                 .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
 //                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
-                .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/api/user/get/{id}","/api/user/update/","/api/user/delete/","/api/user/get/email/").authenticated()
-                .requestMatchers("/api/car/**").authenticated()
-                .requestMatchers("/api/booking/**").authenticated()
-                .requestMatchers("/api/review/**").authenticated()
-                .requestMatchers("/api/promotion/**").authenticated()
-                .requestMatchers("/api/notification/**").authenticated()
-                .requestMatchers("/api/location/**").authenticated()
-                .requestMatchers("/api/test/**","/api/user/create","/invalidSession","/api/user/login","api/user/basicAuth/login").permitAll());
+                .authorizeHttpRequests(auth -> auth
+                        // Public routes
+                        .requestMatchers("/api/user/create", "/api/user/login", "/api/test").permitAll()
+
+                        // User routes (Authenticated)
+                        .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",
+                                "/api/user/delete").authenticated()
+
+                        // Car routes (Only for HOST)
+                        .requestMatchers("/api/car/create", "/api/car/update/{carId}",
+                                "/api/car/delete/{carId}").hasRole("HOST")
+
+                        .requestMatchers("/api/car/get/{carId}", "/api/car/getAll").authenticated()
+
+                        // Booking routes
+                        .requestMatchers("/api/booking/create/{carId}", "/api/booking/update/{bookingId}",
+                                "/api/booking/delete/{bookingId}", "/api/booking/getByRenter").hasRole("RENTER")
+                        .requestMatchers("/api/booking/get/{bookingId}").authenticated()
+                        .requestMatchers("/api/booking/getByCar/{carId}",
+                                "/api/booking/getByHost").hasRole("HOST")
+
+                        // Location routes (Only for HOST)
+                        .requestMatchers("/api/location/create/{carId}", "/api/location/update/{locationId}",
+                                "/api/location/delete/{locationId}").hasRole("HOST")
+                        .requestMatchers("/api/location/get/{locationId}").authenticated()
+
+                        // Notification, Payment, Promotion, Review (Authenticated)
+                        .requestMatchers("/api/notification/**", "/api/payment/**", "/api/promotion/**",
+                                "/api/review/**").authenticated()
+
+                        // All other requests must be authenticated
+                        .anyRequest().authenticated()
+                );
 
         http.csrf(AbstractHttpConfigurer::disable);
         http.formLogin(Customizer.withDefaults());
