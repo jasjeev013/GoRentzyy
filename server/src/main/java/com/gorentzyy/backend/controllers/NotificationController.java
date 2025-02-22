@@ -3,13 +3,12 @@ package com.gorentzyy.backend.controllers;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.NotificationDto;
 import com.gorentzyy.backend.services.NotificationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/notification")
@@ -30,7 +29,7 @@ public class NotificationController {
     }
 
     @PutMapping("/update/{notificationId}")
-    public ResponseEntity<ApiResponseObject> updateNotification(@Valid @RequestBody NotificationDto notificationDto,@PathVariable Long notificationId){
+    public ResponseEntity<ApiResponseObject> updateNotification(@Valid @RequestBody NotificationDto notificationDto, @PathVariable Long notificationId){
         return notificationService.updateNotification(notificationDto,notificationId);
     }
 

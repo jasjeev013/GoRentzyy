@@ -26,7 +26,10 @@ public class GoRentzyyUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(username).orElseThrow(() ->
                 new UsernameNotFoundException("User Details not found with user"+username));
 
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().toString()));
+        List<GrantedAuthority> authorities = List.of(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().toString())
+        );
+
         return new org.springframework.security.core.userdetails.User(user.getEmail(),user.getPassword(),authorities);
     }
 }

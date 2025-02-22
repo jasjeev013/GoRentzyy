@@ -14,13 +14,13 @@ public interface UserService {
      * @param userDto Data Transfer Object for the user to be created.
      * @return ResponseEntity with status and result.
      */
-    ResponseEntity<ApiResponseObject> createNewUser(UserDto userDto);
+    ResponseEntity<ApiResponseObject> createNewUser( UserDto userDto);
 
     /**
      * Updates the existing user.
      *
      * @param userDto Data Transfer Object for the updated user information.
-     * @param userId ID of the user to be updated.
+     * @param emailId ID of the user to be updated.
      * @return ResponseEntity with status and result.
      */
     ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId);
@@ -36,7 +36,7 @@ public interface UserService {
     /**
      * Deletes a user by their ID.
      *
-     * @param userId ID of the user to delete.
+     * @param email ID of the user to delete.
      * @return ResponseEntity with status and result of the operation.
      */
     ResponseEntity<ApiResponseObject> deleteUserByEmail(String email);

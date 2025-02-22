@@ -3,14 +3,13 @@ package com.gorentzyy.backend.controllers;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.ReviewDto;
 import com.gorentzyy.backend.services.ReviewService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/review")
@@ -33,7 +32,7 @@ public class ReviewController {
 
     @PreAuthorize("hasRole('RENTER')")
     @PutMapping("/update/{reviewId}")
-    public ResponseEntity<ApiResponseObject> updateReview(@Valid @RequestBody ReviewDto reviewDto,@PathVariable Long reviewId){
+    public ResponseEntity<ApiResponseObject> updateReview(@Valid @RequestBody ReviewDto reviewDto, @PathVariable Long reviewId){
         return reviewService.updateReview(reviewDto,reviewId);
     }
 

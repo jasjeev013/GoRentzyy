@@ -12,7 +12,6 @@ import com.gorentzyy.backend.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,16 +29,26 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
+
+//    private final Validator validator;
+
+
     public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
+//        this.validator = validator;
     }
+
+
 
     @Override
     public ResponseEntity<ApiResponseObject> createNewUser(UserDto userDto) {
         // Validate user input (check if the user already exists by email)
+//        Set<ConstraintViolation<UserDto>> violations = validator.validate(userDto,UserDto.class);
+//        if (!violations.isEmpty()) {
+//            throw new ConstraintViolationException(violations);
+//        }
         if (userRepository.existsByEmail(userDto.getEmail())) {
             logger.error("User already exists with email: {}", userDto.getEmail());
             throw new UserAlreadyExistsException("A user with this email already exists.");

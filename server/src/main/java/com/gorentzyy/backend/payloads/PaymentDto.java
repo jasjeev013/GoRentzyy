@@ -1,14 +1,14 @@
 package com.gorentzyy.backend.payloads;
 
 import com.gorentzyy.backend.constants.AppConstants;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PastOrPresent;
-import javax.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;

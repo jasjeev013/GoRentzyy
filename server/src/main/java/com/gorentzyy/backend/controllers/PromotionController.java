@@ -3,12 +3,11 @@ package com.gorentzyy.backend.controllers;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.PromotionDto;
 import com.gorentzyy.backend.services.PromotionService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/promotion")
@@ -28,7 +27,7 @@ public class PromotionController {
     }
 
     @PutMapping("/update/{promotionId}")
-    public ResponseEntity<ApiResponseObject> updatePromotion(@Valid @RequestBody PromotionDto promotionDto,@PathVariable Long promotionId){
+    public ResponseEntity<ApiResponseObject> updatePromotion(@Valid @RequestBody PromotionDto promotionDto, @PathVariable Long promotionId){
         return promotionService.updatePromotionCode(promotionDto,promotionId);
     }
 

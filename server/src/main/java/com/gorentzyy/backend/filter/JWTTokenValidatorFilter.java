@@ -19,6 +19,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.stream.Collectors;
 
 public class JWTTokenValidatorFilter extends OncePerRequestFilter {
     @Override
@@ -33,10 +36,23 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
                     if (null != secretKey){
                         Claims claims = Jwts.parser().verifyWith(secretKey)
                                 .build().parseSignedClaims(jwt).getPayload();
-                        String username = String.valueOf(claims.get("username"));
-                        String authorities = String.valueOf(claims.get("authorities"));
-                        Authentication authentication = new UsernamePasswordAuthenticationToken(username,null,
-                                AuthorityUtils.commaSeparatedStringToAuthorityList(authorities));
+
+                        // 🔥 Ensure token is not expired
+                        if (claims.getExpiration().before(new Date())) {
+                            throw new BadCredentialsException("Token expired!!");
+                        }
+                        System.out.println(claims.get("authorities") + " Validator");
+                        // ✅ Fix role prefix issue
+                        String authorities = Arrays.stream(String.valueOf(claims.get("authorities")).split(","))
+                                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                                .collect(Collectors.joining(","));
+                        System.out.println(authorities);
+                        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                                claims.get("username"),
+                                null,
+                                AuthorityUtils.commaSeparatedStringToAuthorityList(authorities)
+                        );
+                        System.out.println(authentication);
                         SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
                 }
@@ -48,7 +64,8 @@ public class JWTTokenValidatorFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return request.getServletPath().equals("/api/user/login");
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return (request.getServletPath().equals("/api/user/login") && "POST".equalsIgnoreCase(request.getMethod())) || request.getServletPath().equals("/api/user/basicAuth/login");
     }
+
 }

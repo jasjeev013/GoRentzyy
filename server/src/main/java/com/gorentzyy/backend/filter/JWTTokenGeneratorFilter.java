@@ -28,6 +28,7 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
             if (null!=env){
                 String secret = env.getProperty(AppConstants.JWT_SECRET_KEY, AppConstants.JWT_SECRET_DEFAULT_VALUE);
                 SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+                System.out.println(authentication.getAuthorities() + " Generator Filter");
                 String jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
                         .claim("username",authentication.getName())
                         .claim("authorities",authentication.getAuthorities().stream().map(
@@ -45,6 +46,6 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        return !request.getServletPath().equals("/api/user/login");
+        return !(request.getServletPath().equals("/api/user/login"));
     }
 }

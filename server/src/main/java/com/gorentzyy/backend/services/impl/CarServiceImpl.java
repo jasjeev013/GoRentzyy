@@ -98,7 +98,7 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseObject> updateCar(CarDto carDto, Long carId) {
+    public ResponseEntity<ApiResponseObject> updateCar( CarDto carDto, Long carId) {
         // Step 1: Check if the car exists in the database, and if not, throw a CarNotFoundException
         Car existingCar = carRepository.findById(carId).orElseThrow(() ->
                 new CarNotFoundException("Car with ID " + carId + " does not exist.")

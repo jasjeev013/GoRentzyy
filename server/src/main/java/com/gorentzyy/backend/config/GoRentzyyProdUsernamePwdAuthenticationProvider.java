@@ -31,6 +31,7 @@ public class GoRentzyyProdUsernamePwdAuthenticationProvider implements Authentic
         String pwd = authentication.getCredentials().toString();
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        System.out.println(userDetails.getAuthorities() + " Auth Provider");
         if (passwordEncoder.matches(pwd,userDetails.getPassword())){
             return new UsernamePasswordAuthenticationToken(username,pwd,userDetails.getAuthorities());
         }else {

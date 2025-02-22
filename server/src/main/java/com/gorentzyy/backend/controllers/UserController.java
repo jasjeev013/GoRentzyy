@@ -10,6 +10,7 @@ import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.UserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -22,12 +23,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.SecretKey;
-import javax.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 @Validated
 @RestController
 @RequestMapping("/api/user")
@@ -38,21 +37,25 @@ public class UserController {
     private final AuthenticationManager authenticationManager;
     private final Environment env;
 
+
+
     @Autowired
     public UserController(UserService userService, UserRepository userRepository, AuthenticationManager authenticationManager, Environment env) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.env = env;
+
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ApiResponseObject> createUser(@Valid @RequestBody UserDto userDto){
+    public ResponseEntity<ApiResponseObject> createUser(@Valid @RequestBody UserDto userDto) {
+        System.out.println(userDto);
         return userService.createNewUser(userDto);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ApiResponseObject> updateUser(Authentication authentication, @Valid @RequestBody UserDto userDto){
+    public ResponseEntity<ApiResponseObject> updateUser(Authentication authentication,@Valid  @RequestBody UserDto userDto){
         String email = authentication.getName();
         return userService.updateUserByEmail(userDto, email);
     }
@@ -88,13 +91,15 @@ public class UserController {
                 loginRequest.password());
 
         Authentication authenticationResponse =  authenticationManager.authenticate(authentication);
+        System.out.println(authenticationResponse + " Auth Response ");
         if (null != authenticationResponse &&  authenticationResponse.isAuthenticated()){
             if (null!=env){
                 String secret = env.getProperty(AppConstants.JWT_SECRET_KEY, AppConstants.JWT_SECRET_DEFAULT_VALUE);
                 SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+                System.out.println(authenticationResponse + " login in User Controller");
                 jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
-                        .claim("username",authentication.getName())
-                        .claim("authorities",authentication.getAuthorities().stream().map(
+                        .claim("username",authenticationResponse.getName())
+                        .claim("authorities",authenticationResponse.getAuthorities().stream().map(
                                 GrantedAuthority::getAuthority
                         ).collect(Collectors.joining(",")))
                         .issuedAt(new Date())
@@ -108,3 +113,5 @@ public class UserController {
 
 
 }
+
+
