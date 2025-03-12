@@ -22,6 +22,7 @@ public class CarController {
         this.carService = carService;
     }
 
+//    Working
     @PreAuthorize("hasRole('HOST')")
     @PostMapping("/create")
     public ResponseEntity<ApiResponseObject> addNewCar(@Valid @RequestBody CarDto carDto, Authentication authentication){

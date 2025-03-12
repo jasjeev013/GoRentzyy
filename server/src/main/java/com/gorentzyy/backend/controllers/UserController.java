@@ -48,9 +48,10 @@ public class UserController {
 
     }
 
+
+//    Working
     @PostMapping("/create")
     public ResponseEntity<ApiResponseObject> createUser(@Valid @RequestBody UserDto userDto) {
-        System.out.println(userDto);
         return userService.createNewUser(userDto);
     }
 

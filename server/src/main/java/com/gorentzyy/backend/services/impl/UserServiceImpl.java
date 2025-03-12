@@ -56,7 +56,7 @@ public class UserServiceImpl implements UserService {
 
         // Map DTO to Entity
         User newUser = modelMapper.map(userDto, User.class);
-
+        System.out.println(newUser);
         // Set the createdAt and updatedAt fields
         LocalDateTime now = LocalDateTime.now();
         newUser.setCreatedAt(now);
