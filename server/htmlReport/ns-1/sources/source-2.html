@@ -1,0 +1,356 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > CarServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.gorentzyy.backend.services.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: CarServiceImpl (com.gorentzyy.backend.services.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CarServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    63.6%
+  </span>
+  <span class="absValue">
+    (7/11)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    43.8%
+  </span>
+  <span class="absValue">
+    (42/96)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.gorentzyy.backend.services.impl;
+&nbsp;
+&nbsp;import com.gorentzyy.backend.constants.AppConstants;
+&nbsp;import com.gorentzyy.backend.exceptions.*;
+&nbsp;import com.gorentzyy.backend.models.Car;
+&nbsp;import com.gorentzyy.backend.models.User;
+&nbsp;import com.gorentzyy.backend.payloads.ApiResponseData;
+&nbsp;import com.gorentzyy.backend.payloads.ApiResponseObject;
+&nbsp;import com.gorentzyy.backend.payloads.CarDto;
+&nbsp;import com.gorentzyy.backend.repositories.CarRepository;
+&nbsp;import com.gorentzyy.backend.repositories.UserRepository;
+&nbsp;import com.gorentzyy.backend.services.CarService;
+&nbsp;import org.modelmapper.ModelMapper;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.retry.annotation.Backoff;
+&nbsp;import org.springframework.retry.annotation.Retryable;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.time.LocalDateTime;
+&nbsp;import java.util.Collections;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Objects;
+&nbsp;
+&nbsp;@Service
+&nbsp;public class CarServiceImpl implements CarService {
+&nbsp;
+<b class="fc">&nbsp;    private static final Logger logger = LoggerFactory.getLogger(CarService.class);</b>
+&nbsp;    private final UserRepository userRepository;
+&nbsp;    private final CarRepository carRepository;
+&nbsp;    private final ModelMapper modelMapper;
+&nbsp;
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    public CarServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper) {</b>
+<b class="fc">&nbsp;        this.userRepository = userRepository;</b>
+<b class="fc">&nbsp;        this.carRepository = carRepository;</b>
+<b class="fc">&nbsp;        this.modelMapper = modelMapper;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional(rollbackFor = Exception.class)  // Ensures rollback on all exceptions
+&nbsp;    @Retryable(
+&nbsp;            value = {DatabaseException.class},  // Retry only for DatabaseException
+&nbsp;            maxAttempts = 3,  // Retry 3 times before failing
+&nbsp;            backoff = @Backoff(delay = 2000, multiplier = 2)  // 2 sec delay, increasing exponentially
+&nbsp;    )
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; addNewCar(CarDto carDto, String email) {
+&nbsp;        try {
+&nbsp;            // Step 1: Check if car already exists
+<b class="fc">&nbsp;            if (carRepository.existsByRegistrationNumber(carDto.getRegistrationNumber())) {</b>
+<b class="fc">&nbsp;                logger.warn(&quot;Car with registration number {} already exists.&quot;, carDto.getRegistrationNumber());</b>
+<b class="fc">&nbsp;                throw new CarAlreadyExistsException(&quot;A car with this registration already exists.&quot;);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Step 2: Validate host
+<b class="fc">&nbsp;            User host = userRepository.findByEmail(email).orElseThrow(() -&gt; {</b>
+<b class="nc">&nbsp;                logger.error(&quot;User with ID {} not found.&quot;, email);</b>
+<b class="nc">&nbsp;                return new UserNotFoundException(&quot;User with ID &quot; + email + &quot; does not exist.&quot;);</b>
+&nbsp;            });
+&nbsp;
+&nbsp;            // Step 3: Ensure only hosts can add cars
+<b class="fc">&nbsp;            if (host.getRole() == AppConstants.Role.RENTER) {</b>
+<b class="nc">&nbsp;                logger.error(&quot;User with ID {} is not authorized to add cars.&quot;, email);</b>
+<b class="nc">&nbsp;                throw new RoleNotAuthorizedException(&quot;Role Not Authorized to add cars&quot;);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Step 5: Map CarDto to Car entity
+<b class="fc">&nbsp;            Car newCar = modelMapper.map(carDto, Car.class);</b>
+<b class="fc">&nbsp;            newCar.setHost(host);</b>
+<b class="fc">&nbsp;            host.getCars().add(newCar);</b>
+&nbsp;
+&nbsp;            // Step 6: Set timestamps
+<b class="fc">&nbsp;            LocalDateTime now = LocalDateTime.now();</b>
+<b class="fc">&nbsp;            newCar.setCreatedAt(now);</b>
+<b class="fc">&nbsp;            newCar.setUpdatedAt(now);</b>
+&nbsp;
+&nbsp;            // Step 7: Save the new car
+<b class="fc">&nbsp;            Car savedCar = carRepository.save(newCar);</b>
+&nbsp;
+<b class="fc">&nbsp;            logger.info(&quot;Car with registration number {} added successfully.&quot;, carDto.getRegistrationNumber());</b>
+&nbsp;
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="fc">&nbsp;                    &quot;The car was added successfully&quot;, true, modelMapper.map(savedCar, CarDto.class)</b>
+&nbsp;            ), HttpStatus.CREATED);
+&nbsp;
+<b class="fc">&nbsp;        } catch (CarAlreadyExistsException | UserNotFoundException | RoleNotAuthorizedException | InvalidCarDataException ex) {</b>
+<b class="fc">&nbsp;            logger.error(&quot;Error: {}&quot;, ex.getMessage());</b>
+<b class="fc">&nbsp;            throw ex;  // Handled by GlobalExceptionHandler</b>
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+<b class="nc">&nbsp;            logger.error(&quot;Unexpected error while adding a new car: {}&quot;, e.getMessage());</b>
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;Error while saving the car to the database.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; updateCar( CarDto carDto, Long carId) {
+&nbsp;        // Step 1: Check if the car exists in the database, and if not, throw a CarNotFoundException
+<b class="nc">&nbsp;        Car existingCar = carRepository.findById(carId).orElseThrow(() -&gt;</b>
+<b class="nc">&nbsp;                new CarNotFoundException(&quot;Car with ID &quot; + carId + &quot; does not exist.&quot;)</b>
+&nbsp;        );
+&nbsp;
+&nbsp;        // Step 2: Update the car details
+<b class="nc">&nbsp;        LocalDateTime now = LocalDateTime.now();</b>
+<b class="nc">&nbsp;        existingCar.setUpdatedAt(now);</b>
+<b class="nc">&nbsp;        existingCar.setMake(carDto.getMake() != null ? carDto.getMake() : existingCar.getMake());</b>
+<b class="nc">&nbsp;        existingCar.setModel(carDto.getModel() != null ? carDto.getModel() : existingCar.getModel());</b>
+<b class="nc">&nbsp;        existingCar.setYear(carDto.getYear());</b>
+<b class="nc">&nbsp;        existingCar.setColor(carDto.getColor() != null ? carDto.getColor() : existingCar.getColor());</b>
+<b class="nc">&nbsp;        existingCar.setCategory(carDto.getCategory() != null ? carDto.getCategory() : existingCar.getCategory());</b>
+<b class="nc">&nbsp;        existingCar.setFuelType(carDto.getFuelType());</b>
+<b class="nc">&nbsp;        existingCar.setAvailabilityStatus(carDto.getAvailabilityStatus());</b>
+<b class="nc">&nbsp;        existingCar.setRentalPricePerDay(carDto.getRentalPricePerDay());</b>
+<b class="nc">&nbsp;        existingCar.setRentalPricePerWeek(carDto.getRentalPricePerWeek());</b>
+<b class="nc">&nbsp;        existingCar.setRentalPricePerMonth(carDto.getRentalPricePerMonth());</b>
+<b class="nc">&nbsp;        existingCar.setMaintenanceDueDate(carDto.getMaintenanceDueDate() != null ? carDto.getMaintenanceDueDate() : existingCar.getMaintenanceDueDate());</b>
+<b class="nc">&nbsp;        existingCar.setSeatingCapacity(carDto.getSeatingCapacity());</b>
+&nbsp;
+&nbsp;        try {
+&nbsp;            // Step 3: Attempt to save the updated car details to the database
+<b class="nc">&nbsp;            Car updatedCar = carRepository.save(existingCar);</b>
+&nbsp;
+&nbsp;            // Step 4: Return the response with the updated car information
+<b class="nc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="nc">&nbsp;                    &quot;Updated Car Details Successfully&quot;, true, modelMapper.map(updatedCar, CarDto.class)</b>
+&nbsp;            ), HttpStatus.OK);
+&nbsp;
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+&nbsp;            // Step 5: Handle any database-related issues (e.g., saving to DB)
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;Error while updating car details. Please try again.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; getCarById(Long carId) {
+&nbsp;
+&nbsp;        try {
+&nbsp;            // Log the attempt to fetch the car
+<b class="fc">&nbsp;            logger.info(&quot;Attempting to fetch car with ID: {}&quot;, carId);</b>
+&nbsp;
+&nbsp;            // Check if car exists by ID, throw exception if not found
+<b class="fc">&nbsp;            Car existingCar = carRepository.findById(carId).orElseThrow(() -&gt;</b>
+<b class="fc">&nbsp;                    new CarNotFoundException(&quot;Car with ID &quot; + carId + &quot; does not exist.&quot;)</b>
+&nbsp;            );
+&nbsp;
+&nbsp;            // Log successful retrieval of the car
+<b class="fc">&nbsp;            logger.info(&quot;Car with ID {} found.&quot;, carId);</b>
+&nbsp;
+&nbsp;            // Return the response with the car data
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="fc">&nbsp;                    &quot;The car is found&quot;, true, modelMapper.map(existingCar, CarDto.class)</b>
+&nbsp;            ), HttpStatus.OK);
+&nbsp;
+<b class="fc">&nbsp;        } catch (CarNotFoundException ex) {</b>
+&nbsp;            // Log error when car not found
+<b class="fc">&nbsp;            logger.error(&quot;Car with ID {} not found.&quot;, carId);</b>
+<b class="fc">&nbsp;            throw ex;  // Will be handled by the GlobalExceptionHandler</b>
+&nbsp;
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+&nbsp;            // Log any unexpected errors
+<b class="nc">&nbsp;            logger.error(&quot;Unexpected error while fetching car with ID {}: {}&quot;, carId, e.getMessage());</b>
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;An error occurred while retrieving the car.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; removeCar(Long carId) {
+&nbsp;        try {
+&nbsp;            // Log the attempt to delete the car
+<b class="fc">&nbsp;            logger.info(&quot;Attempting to delete car with ID: {}&quot;, carId);</b>
+&nbsp;
+&nbsp;            // Check if car exists by carId, using a more appropriate exception
+<b class="fc">&nbsp;            Car existingCar = carRepository.findById(carId).orElseThrow(() -&gt;</b>
+<b class="fc">&nbsp;                    new CarNotFoundException(&quot;Car with ID &quot; + carId + &quot; does not exist.&quot;)</b>
+&nbsp;            );
+&nbsp;
+&nbsp;            // Log the successful retrieval of the car
+<b class="fc">&nbsp;            logger.info(&quot;Car with ID {} found for deletion.&quot;, carId);</b>
+&nbsp;
+&nbsp;            // Delete the car
+<b class="fc">&nbsp;            carRepository.delete(existingCar);</b>
+&nbsp;
+&nbsp;            // Log the successful deletion of the car
+<b class="fc">&nbsp;            logger.info(&quot;Car with ID {} deleted successfully.&quot;, carId);</b>
+&nbsp;
+&nbsp;            // Return a response after successful deletion
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+&nbsp;                    &quot;Deleted Successfully&quot;, true, null
+&nbsp;            ), HttpStatus.OK);  // Changed to 204 No Content
+&nbsp;
+<b class="fc">&nbsp;        } catch (CarNotFoundException ex) {</b>
+&nbsp;            // Log the error when the car is not found
+<b class="fc">&nbsp;            logger.error(&quot;Car with ID {} not found for deletion.&quot;, carId);</b>
+<b class="fc">&nbsp;            throw ex;  // Will be handled by your GlobalExceptionHandler</b>
+&nbsp;
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+&nbsp;            // Log any unexpected errors
+<b class="nc">&nbsp;            logger.error(&quot;Unexpected error while deleting car with ID {}: {}&quot;, carId, e.getMessage());</b>
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;An error occurred while deleting the car.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseData&gt; getAllCarsForSpecificHost(String email) {
+&nbsp;        try {
+&nbsp;            // Step 1: Fetch the user and validate existence
+<b class="nc">&nbsp;            User user = userRepository.findByEmail(email)</b>
+<b class="nc">&nbsp;                    .orElseThrow(() -&gt; new UserNotFoundException(&quot;User with ID &quot; + email + &quot; does not exist.&quot;));</b>
+&nbsp;
+&nbsp;            // Step 2: Check if the user is authorized as a HOST
+<b class="nc">&nbsp;            if (Objects.equals(user.getRole().toString(), &quot;RENTER&quot;)) {</b>
+<b class="nc">&nbsp;                throw new RoleNotAuthorizedException(&quot;User with ID &quot; + email + &quot; is not authorized.&quot;);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Step 3: Fetch cars for the specific host
+<b class="nc">&nbsp;            List&lt;Car&gt; cars = carRepository.findCarsByHostEmail(email);</b>
+&nbsp;
+&nbsp;            // If no cars are found, return a 204 No Content response
+<b class="nc">&nbsp;            if (cars.isEmpty()) {</b>
+<b class="nc">&nbsp;                logger.info(&quot;No cars found for host with ID {}&quot;, email);</b>
+<b class="nc">&nbsp;                return ResponseEntity.noContent().build();  // Return 204 No Content with NO BODY</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Step 4: Map the car entities to CarDto objects
+<b class="nc">&nbsp;            List&lt;CarDto&gt; carDtos = cars.stream()</b>
+<b class="nc">&nbsp;                    .map(car -&gt; modelMapper.map(car, CarDto.class))</b>
+<b class="nc">&nbsp;                    .toList();</b>
+&nbsp;
+&nbsp;            // Log successful fetching of cars
+<b class="nc">&nbsp;            logger.info(&quot;Fetched {} cars for host with ID {}&quot;, carDtos.size(), email);</b>
+&nbsp;
+&nbsp;            // Step 5: Return the response with the list of car DTOs
+<b class="nc">&nbsp;            return ResponseEntity.ok(new ApiResponseData(</b>
+<b class="nc">&nbsp;                    &quot;All cars for the specific host found&quot;, true, Collections.singletonList(carDtos)</b>
+&nbsp;            ));
+&nbsp;
+<b class="nc">&nbsp;        } catch (UserNotFoundException | RoleNotAuthorizedException ex) {</b>
+&nbsp;            // Log and rethrow the known exceptions
+<b class="nc">&nbsp;            logger.error(&quot;Error fetching cars: {}&quot;, ex.getMessage());</b>
+<b class="nc">&nbsp;            throw ex;  // Will be handled by your GlobalExceptionHandler</b>
+&nbsp;
+<b class="nc">&nbsp;        } catch (Exception ex) {</b>
+&nbsp;            // Log unexpected errors
+<b class="nc">&nbsp;            logger.error(&quot;Unexpected error while fetching cars for host with ID {}: {}&quot;, email, ex.getMessage());</b>
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;Error while fetching cars for the host. Please try again.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-03-15 01:37</div>
+</div>
+</body>
+</html>

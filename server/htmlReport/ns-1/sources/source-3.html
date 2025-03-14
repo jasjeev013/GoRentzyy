@@ -1,0 +1,220 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > LocationServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.gorentzyy.backend.services.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: LocationServiceImpl (com.gorentzyy.backend.services.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">LocationServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    88.6%
+  </span>
+  <span class="absValue">
+    (31/35)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.gorentzyy.backend.services.impl;
+&nbsp;
+&nbsp;import com.gorentzyy.backend.exceptions.CarNotFoundException;
+&nbsp;import com.gorentzyy.backend.exceptions.DatabaseException;
+&nbsp;import com.gorentzyy.backend.exceptions.LocationNotFoundException;
+&nbsp;import com.gorentzyy.backend.models.Car;
+&nbsp;import com.gorentzyy.backend.models.Location;
+&nbsp;import com.gorentzyy.backend.payloads.ApiResponseObject;
+&nbsp;import com.gorentzyy.backend.payloads.LocationDto;
+&nbsp;import com.gorentzyy.backend.repositories.CarRepository;
+&nbsp;import com.gorentzyy.backend.repositories.LocationRepository;
+&nbsp;import com.gorentzyy.backend.services.LocationService;
+&nbsp;import org.modelmapper.ModelMapper;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;
+&nbsp;@Service
+&nbsp;public class LocationServiceImpl implements LocationService {
+&nbsp;
+&nbsp;    private final CarRepository carRepository;
+&nbsp;    private final ModelMapper modelMapper;
+&nbsp;    private final LocationRepository locationRepository;
+&nbsp;
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    public LocationServiceImpl(CarRepository carRepository, ModelMapper modelMapper, LocationRepository locationRepository) {</b>
+<b class="fc">&nbsp;        this.carRepository = carRepository;</b>
+<b class="fc">&nbsp;        this.modelMapper = modelMapper;</b>
+<b class="fc">&nbsp;        this.locationRepository = locationRepository;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; addLocation(LocationDto locationDto, Long carId) {
+&nbsp;        // Check if the car exists
+<b class="fc">&nbsp;        Car car = carRepository.findById(carId).orElseThrow(() -&gt;</b>
+<b class="fc">&nbsp;                new CarNotFoundException(&quot;Car with ID &quot; + carId + &quot; does not exist.&quot;)</b>
+&nbsp;        );
+&nbsp;
+&nbsp;        // Map DTO to Entity
+<b class="fc">&nbsp;        Location newLocation = modelMapper.map(locationDto, Location.class);</b>
+<b class="fc">&nbsp;        newLocation.getCars().add(car);</b>
+<b class="fc">&nbsp;        car.getLocations().add(newLocation);  // Associating car with location</b>
+&nbsp;
+&nbsp;        try {
+&nbsp;            // Save the location and rely on cascading to save the car if configured
+<b class="fc">&nbsp;            Location savedLocation = locationRepository.save(newLocation);</b>
+&nbsp;
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="fc">&nbsp;                    &quot;The Location has been created&quot;, true, modelMapper.map(savedLocation, LocationDto.class)),</b>
+&nbsp;                    HttpStatus.CREATED); // Use CREATED (201) for new resources
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;Error while saving the location.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; updateLocation(LocationDto locationDto, Long locationId) {
+&nbsp;        // Find the existing location
+<b class="fc">&nbsp;        Location existingLocation = locationRepository.findById(locationId).orElseThrow(() -&gt;</b>
+<b class="fc">&nbsp;                new LocationNotFoundException(&quot;Location with ID &quot; + locationId + &quot; does not exist.&quot;)</b>
+&nbsp;        );
+&nbsp;
+&nbsp;        // Update the existing location with new values
+<b class="fc">&nbsp;        existingLocation.setAddress(locationDto.getAddress()==null?existingLocation.getAddress():locationDto.getAddress());</b>
+<b class="fc">&nbsp;        existingLocation.setName(locationDto.getName()==null?existingLocation.getName():locationDto.getName());</b>
+<b class="fc">&nbsp;        existingLocation.setLatitude(locationDto.getLatitude());</b>
+<b class="fc">&nbsp;        existingLocation.setLongitude(locationDto.getLongitude());</b>
+&nbsp;
+&nbsp;        try {
+&nbsp;            // Save the updated location
+<b class="fc">&nbsp;            Location updatedLocation = locationRepository.save(existingLocation);</b>
+&nbsp;
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="fc">&nbsp;                    &quot;The Location is updated&quot;, true, modelMapper.map(updatedLocation, LocationDto.class)),</b>
+&nbsp;                    HttpStatus.ACCEPTED); // Use ACCEPTED (202) for updates
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;Error while updating the location.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; getLocation(Long locationId) {
+&nbsp;        // Find the location by ID
+<b class="fc">&nbsp;        Location existingLocation = locationRepository.findById(locationId).orElseThrow(() -&gt;</b>
+<b class="fc">&nbsp;                new LocationNotFoundException(&quot;Location with ID &quot; + locationId + &quot; does not exist.&quot;)</b>
+&nbsp;        );
+&nbsp;
+<b class="fc">&nbsp;        return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="fc">&nbsp;                &quot;The Location is retrieved&quot;, true, modelMapper.map(existingLocation, LocationDto.class)),</b>
+&nbsp;                HttpStatus.OK);
+&nbsp;    }
+&nbsp;
+&nbsp;// Not able to delete the location
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; deleteLocation(Long locationId) {
+&nbsp;        // Find the location to delete
+<b class="fc">&nbsp;        Location existingLocation = locationRepository.findById(locationId).orElseThrow(() -&gt;</b>
+<b class="fc">&nbsp;                new LocationNotFoundException(&quot;Location with ID &quot; + locationId + &quot; does not exist.&quot;)</b>
+&nbsp;        );
+&nbsp;
+&nbsp;        try {
+&nbsp;            // Delete the location
+<b class="fc">&nbsp;            locationRepository.delete(existingLocation);</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+&nbsp;                    &quot;The location is deleted successfully&quot;, true, null), HttpStatus.OK);
+<b class="fc">&nbsp;        } catch (Exception e) {</b>
+<b class="fc">&nbsp;            throw new DatabaseException(&quot;Error while deleting the location.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-03-15 01:37</div>
+</div>
+</body>
+</html>

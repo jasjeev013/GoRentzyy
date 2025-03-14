@@ -1,0 +1,285 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > PaymentServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.gorentzyy.backend.services.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: PaymentServiceImpl (com.gorentzyy.backend.services.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PaymentServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (6/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    74.6%
+  </span>
+  <span class="absValue">
+    (50/67)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.gorentzyy.backend.services.impl;
+&nbsp;
+&nbsp;import com.gorentzyy.backend.constants.AppConstants;
+&nbsp;import com.gorentzyy.backend.exceptions.*;
+&nbsp;import com.gorentzyy.backend.models.Booking;
+&nbsp;import com.gorentzyy.backend.models.Payment;
+&nbsp;import com.gorentzyy.backend.payloads.ApiResponseObject;
+&nbsp;import com.gorentzyy.backend.payloads.PaymentDto;
+&nbsp;import com.gorentzyy.backend.repositories.BookingRepository;
+&nbsp;import com.gorentzyy.backend.repositories.PaymentRepository;
+&nbsp;import com.gorentzyy.backend.services.PaymentService;
+&nbsp;import org.modelmapper.ModelMapper;
+&nbsp;import org.slf4j.Logger;
+&nbsp;import org.slf4j.LoggerFactory;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.http.HttpStatus;
+&nbsp;import org.springframework.http.ResponseEntity;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;@Service
+&nbsp;public class PaymentServiceImpl implements PaymentService {
+&nbsp;
+<b class="fc">&nbsp;    private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);</b>
+&nbsp;    private final PaymentRepository paymentRepository;
+&nbsp;    private final BookingRepository bookingRepository;
+&nbsp;    private final ModelMapper modelMapper;
+&nbsp;
+&nbsp;    @Autowired
+<b class="fc">&nbsp;    public PaymentServiceImpl(PaymentRepository paymentRepository, BookingRepository bookingRepository, ModelMapper modelMapper) {</b>
+<b class="fc">&nbsp;        this.paymentRepository = paymentRepository;</b>
+<b class="fc">&nbsp;        this.bookingRepository = bookingRepository;</b>
+<b class="fc">&nbsp;        this.modelMapper = modelMapper;</b>
+&nbsp;    }
+&nbsp;// THe date should be taken on its own
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; makePayment(PaymentDto paymentDto, Long bookingId) {
+&nbsp;        try {
+&nbsp;            // Step 1: Validate if the booking exists
+<b class="fc">&nbsp;            Booking existingBooking = bookingRepository.findById(bookingId)</b>
+<b class="fc">&nbsp;                    .orElseThrow(() -&gt; new BookingNotFoundException(&quot;Booking with ID &quot; + bookingId + &quot; not found.&quot;));</b>
+&nbsp;
+<b class="fc">&nbsp;            logger.info(&quot;Booking with ID {} found.&quot;, bookingId);</b>
+&nbsp;
+&nbsp;            // Step 2: Validate payment amount (assuming positive and non-zero amounts are required)
+<b class="fc">&nbsp;            if (paymentDto.getAmount() &lt;= 0) {</b>
+<b class="nc">&nbsp;                throw new InvalidPaymentAmountException(&quot;Payment amount must be greater than zero.&quot;);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;            // Step 3: Map PaymentDto to Payment entity
+<b class="fc">&nbsp;            Payment payment = modelMapper.map(paymentDto, Payment.class);</b>
+&nbsp;
+&nbsp;            // Step 4: Link the payment to the existing booking and vice versa
+<b class="fc">&nbsp;            existingBooking.setPayment(payment);</b>
+<b class="fc">&nbsp;            payment.setBooking(existingBooking);</b>
+&nbsp;
+&nbsp;
+&nbsp;            // Step 5: Save the payment and update booking status if necessary
+<b class="fc">&nbsp;            Payment savedPayment = paymentRepository.save(payment);</b>
+&nbsp;
+&nbsp;            // Optional: If payment is successful, update the booking status
+<b class="fc">&nbsp;            existingBooking.setStatus(AppConstants.Status.CONFIRMED);  // Or appropriate status</b>
+<b class="fc">&nbsp;            bookingRepository.save(existingBooking);</b>
+&nbsp;
+&nbsp;            // Step 6: Return the success response with the saved payment details
+<b class="fc">&nbsp;            logger.info(&quot;Payment for booking with ID {} processed successfully.&quot;, bookingId);</b>
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="fc">&nbsp;                    &quot;The Payment Added Successfully&quot;, true, modelMapper.map(savedPayment, PaymentDto.class)),</b>
+&nbsp;                    HttpStatus.CREATED);
+&nbsp;
+<b class="fc">&nbsp;        } catch (BookingNotFoundException ex) {</b>
+&nbsp;            // Allow BookingNotFoundException to propagate properly
+<b class="fc">&nbsp;            throw ex;</b>
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+<b class="nc">&nbsp;            logger.error(&quot;Error processing payment for booking with ID {}: {}&quot;, bookingId, e.getMessage());</b>
+<b class="nc">&nbsp;            throw new PaymentProcessingException(&quot;Failed to process the payment due to an unexpected error.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; updatePaymentStatus(Long paymentId, PaymentDto paymentDto) {
+&nbsp;        try {
+&nbsp;            // Step 1: Check if the payment exists in the database
+<b class="fc">&nbsp;            Payment existingPayment = paymentRepository.findById(paymentId)</b>
+<b class="fc">&nbsp;                    .orElseThrow(() -&gt; new PaymentNotFoundException(&quot;Payment with ID &quot; + paymentId + &quot; not found.&quot;));</b>
+&nbsp;
+<b class="fc">&nbsp;            logger.info(&quot;Payment with ID {} found. Updating status...&quot;, paymentId);</b>
+&nbsp;
+&nbsp;            // Step 2: Validate the new payment status using the PaymentStatus enum
+<b class="fc">&nbsp;            if (paymentDto.getPaymentStatus() == null) {</b>
+<b class="nc">&nbsp;                throw new InvalidPaymentStatusException(&quot;Payment status cannot be null.&quot;);</b>
+&nbsp;            }
+&nbsp;
+&nbsp;
+&nbsp;            // Step 3: Update the payment status
+<b class="fc">&nbsp;            existingPayment.setPaymentStatus(paymentDto.getPaymentStatus());</b>
+<b class="fc">&nbsp;            existingPayment.setRefundStatus(paymentDto.getRefundStatus());</b>
+&nbsp;
+&nbsp;            // Step 4: Save the updated payment record
+<b class="fc">&nbsp;            Payment savedPayment = paymentRepository.save(existingPayment);</b>
+&nbsp;
+<b class="fc">&nbsp;            logger.info(&quot;Payment status updated successfully for Payment ID {}&quot;, paymentId);</b>
+&nbsp;
+&nbsp;            // Step 5: Return success response
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="fc">&nbsp;                    &quot;The payment has been updated successfully.&quot;, true, modelMapper.map(savedPayment, PaymentDto.class)),</b>
+&nbsp;                    HttpStatus.OK);
+&nbsp;
+<b class="fc">&nbsp;        } catch (PaymentNotFoundException ex) {</b>
+&nbsp;            // Log and rethrow the exception for centralized handling
+<b class="fc">&nbsp;            logger.error(&quot;Payment not found for ID {}: {}&quot;, paymentId, ex.getMessage());</b>
+<b class="fc">&nbsp;            throw ex;</b>
+<b class="nc">&nbsp;        } catch (InvalidPaymentStatusException ex) {</b>
+&nbsp;            // Handle invalid payment status
+<b class="nc">&nbsp;            logger.error(&quot;Invalid payment status provided for Payment ID {}: {}&quot;, paymentId, ex.getMessage());</b>
+<b class="nc">&nbsp;            throw ex;</b>
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+&nbsp;            // Log unexpected errors and throw a generic exception
+<b class="nc">&nbsp;            logger.error(&quot;Error updating payment status for Payment ID {}: {}&quot;, paymentId, e.getMessage());</b>
+<b class="nc">&nbsp;            throw new PaymentProcessingException(&quot;Failed to update payment status due to an unexpected error.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; getPayment(Long paymentId) {
+&nbsp;        try {
+&nbsp;            // Fetch the existing payment
+<b class="fc">&nbsp;            Payment existingPayment = paymentRepository.findById(paymentId)</b>
+<b class="fc">&nbsp;                    .orElseThrow(() -&gt; new PaymentNotFoundException(&quot;Payment with ID &quot; + paymentId + &quot; not found.&quot;));</b>
+&nbsp;
+&nbsp;            // Log the request (optional)
+<b class="fc">&nbsp;            logger.info(&quot;Payment with ID {} fetched successfully.&quot;, paymentId);</b>
+&nbsp;
+&nbsp;            // Return the response with payment details
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+<b class="fc">&nbsp;                    &quot;The payment is found successfully&quot;, true, modelMapper.map(existingPayment, PaymentDto.class)),</b>
+&nbsp;                    HttpStatus.OK);
+&nbsp;
+<b class="fc">&nbsp;        } catch (PaymentNotFoundException ex) {</b>
+&nbsp;            // Specific exception handling (will be caught by Global Exception Handler if you have one)
+<b class="fc">&nbsp;            logger.error(&quot;Payment not found for ID {}: {}&quot;, paymentId, ex.getMessage());</b>
+<b class="fc">&nbsp;            throw ex;  // Rethrow to be caught by the global handler</b>
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+&nbsp;            // Handle any unexpected exceptions
+<b class="nc">&nbsp;            logger.error(&quot;Error fetching payment for ID {}: {}&quot;, paymentId, e.getMessage());</b>
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;An unexpected error occurred while fetching the payment.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public ResponseEntity&lt;ApiResponseObject&gt; removePayment(Long paymentId) {
+&nbsp;        try {
+&nbsp;            // Fetch the payment by ID
+<b class="fc">&nbsp;            Payment existingPayment = paymentRepository.findById(paymentId)</b>
+<b class="fc">&nbsp;                    .orElseThrow(() -&gt; new PaymentNotFoundException(&quot;Payment with ID &quot; + paymentId + &quot; not found.&quot;));</b>
+&nbsp;
+&nbsp;            // Log the deletion attempt
+<b class="fc">&nbsp;            logger.info(&quot;Attempting to delete Payment with ID: {}&quot;, paymentId);</b>
+&nbsp;
+&nbsp;            // Delete the payment from the repository
+<b class="fc">&nbsp;            paymentRepository.delete(existingPayment);</b>
+&nbsp;
+&nbsp;            // Log successful deletion
+<b class="fc">&nbsp;            logger.info(&quot;Payment with ID {} deleted successfully.&quot;, paymentId);</b>
+&nbsp;
+&nbsp;            // Return a success response
+<b class="fc">&nbsp;            return new ResponseEntity&lt;&gt;(new ApiResponseObject(</b>
+&nbsp;                    &quot;The Payment is deleted successfully&quot;, true, null), HttpStatus.NO_CONTENT);  // Consider using 204 status for deletion
+&nbsp;
+<b class="fc">&nbsp;        } catch (PaymentNotFoundException ex) {</b>
+&nbsp;            // Handle specific PaymentNotFoundException (will be caught by your global exception handler)
+<b class="fc">&nbsp;            logger.error(&quot;Payment not found for ID {}: {}&quot;, paymentId, ex.getMessage());</b>
+<b class="fc">&nbsp;            throw ex;  // Rethrow to let the global handler handle it</b>
+<b class="nc">&nbsp;        } catch (Exception e) {</b>
+&nbsp;            // Handle any other unexpected exceptions (e.g., database issues)
+<b class="nc">&nbsp;            logger.error(&quot;Error deleting payment with ID {}: {}&quot;, paymentId, e.getMessage());</b>
+<b class="nc">&nbsp;            throw new DatabaseException(&quot;An unexpected error occurred while deleting the payment.&quot;);</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2025-03-15 01:37</div>
+</div>
+</body>
+</html>
