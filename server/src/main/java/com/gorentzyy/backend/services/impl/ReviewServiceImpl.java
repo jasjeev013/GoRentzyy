@@ -41,73 +41,50 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto, String emailId, Long bookingId) {
-        try {
-            // Fetch the renter and booking
-            User renter = userRepository.findByEmail(emailId)
-                    .orElseThrow(() -> new UserNotFoundException("User with id " + emailId + " not found"));
-            Booking booking = bookingRepository.findById(bookingId)
-                    .orElseThrow(() -> new BookingNotFoundException("Booking with id " + bookingId + " not found"));
+        // Fetch the renter and booking
+        User renter = userRepository.findByEmail(emailId)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + emailId + " not found"));
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException("Booking with ID " + bookingId + " not found"));
 
-            // Create and set up the review
-            Review review = modelMapper.map(reviewDto, Review.class);
-            LocalDateTime now = LocalDateTime.now();
-            review.setCreatedAt(now);
-            review.setReviewer(renter);
-            review.setBooking(booking);
+        // Create and set up the review
+        Review review = modelMapper.map(reviewDto, Review.class);
+        review.setCreatedAt(LocalDateTime.now());
+        review.setReviewer(renter);
+        review.setBooking(booking);
 
-            // Add the review to renter and booking
-            renter.getReviews().add(review);
-            booking.getReviews().add(review);
+        // Add the review to renter and booking
+        renter.getReviews().add(review);
+        booking.getReviews().add(review);
 
-            // Save the changes (Booking and User are saved automatically due to cascading or explicit save)
-            Review savedReview = reviewRepository.save(review);
+        // Save the review
+        Review savedReview = reviewRepository.save(review);
 
-            // Log successful creation of the review
-            logger.info("Review created successfully for Booking ID: {}", bookingId);
-
-            // Return response with the saved review
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The Review is saved successfully", true, modelMapper.map(savedReview, ReviewDto.class)
-            ), HttpStatus.CREATED);
-
-        } catch (Exception e) {
-            // Handle any unexpected errors (e.g., database issues)
-            logger.error("Error creating review for Booking ID {}: {}", bookingId, e.getMessage());
-            throw new ReviewCreationException("Failed to create the review due to an unexpected error.");
-        }
+        return new ResponseEntity<>(new ApiResponseObject(
+                "The Review is saved successfully", true, modelMapper.map(savedReview, ReviewDto.class)
+        ), HttpStatus.CREATED);
     }
+
 
 
     @Override
     @Transactional
     public ResponseEntity<ApiResponseObject> updateReview(ReviewDto reviewDto, Long reviewId) {
-        try {
-            // Find the existing review
-            Review existingReview = reviewRepository.findById(reviewId)
-                    .orElseThrow(() -> new ReviewNotFoundException("Review with id " + reviewId + " not found"));
+        Review existingReview = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException("Review with ID " + reviewId + " not found"));
 
-            // Update the review fields
-            existingReview.setComments(reviewDto.getComments());
-            existingReview.setRating(reviewDto.getRating());
+        existingReview.setComments(reviewDto.getComments());
+        existingReview.setRating(reviewDto.getRating());
 
-            // Save the updated review
-            Review updatedReview = reviewRepository.save(existingReview);
+        Review updatedReview = reviewRepository.save(existingReview);
 
-            // Log the successful review update
-            logger.info("Review with ID {} updated successfully", reviewId);
-
-            // Return response with the updated review
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "Review updated successfully", true, modelMapper.map(updatedReview, ReviewDto.class)
-            ), HttpStatus.OK);
-        } catch (Exception e) {
-            // Log any unexpected error and throw a custom exception
-            logger.error("Error updating review with ID {}: {}", reviewId, e.getMessage());
-            throw new ReviewUpdateException("Failed to update the review due to an unexpected error.");
-        }
+        return new ResponseEntity<>(new ApiResponseObject(
+                "Review updated successfully", true, modelMapper.map(updatedReview, ReviewDto.class)
+        ), HttpStatus.OK);
     }
 
-// It should show review not found
+
+    // It should show review not found
     @Override
     public ResponseEntity<ApiResponseObject> getReview(Long reviewId) {
         try {
@@ -130,27 +107,16 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
 // No Content thing
-    @Override
-    public ResponseEntity<ApiResponseObject> deleteReview(Long reviewId) {
-        try {
-            // Fetch the review to be deleted
-            Review existingReview = reviewRepository.findById(reviewId)
-                    .orElseThrow(() -> new ReviewNotFoundException("Review with id " + reviewId + " not found"));
+@Override
+public ResponseEntity<ApiResponseObject> deleteReview(Long reviewId) {
+    Review existingReview = reviewRepository.findById(reviewId)
+            .orElseThrow(() -> new ReviewNotFoundException("Review with ID " + reviewId + " not found"));
 
-            // Log the deletion
-            logger.info("Review with ID {} is being deleted", reviewId);
+    reviewRepository.delete(existingReview);
 
-            // Delete the review
-            reviewRepository.delete(existingReview);
+    return new ResponseEntity<>(new ApiResponseObject("Review deleted successfully", true, null), HttpStatus.NO_CONTENT);
+}
 
-            // Return a response with no content
-            return new ResponseEntity<>(new ApiResponseObject("Review deleted successfully", true, null), HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            // Log the exception and throw a custom exception
-            logger.error("Error deleting review with ID {}: {}", reviewId, e.getMessage());
-            throw new DatabaseException("Failed to delete the review due to an unexpected error.");
-        }
-    }
 
 
 }

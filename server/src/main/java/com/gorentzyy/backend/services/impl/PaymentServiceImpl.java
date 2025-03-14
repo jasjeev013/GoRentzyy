@@ -69,8 +69,10 @@ public class PaymentServiceImpl implements PaymentService {
                     "The Payment Added Successfully", true, modelMapper.map(savedPayment, PaymentDto.class)),
                     HttpStatus.CREATED);
 
+        } catch (BookingNotFoundException ex) {
+            // Allow BookingNotFoundException to propagate properly
+            throw ex;
         } catch (Exception e) {
-            // Log unexpected errors and rethrow as custom exception
             logger.error("Error processing payment for booking with ID {}: {}", bookingId, e.getMessage());
             throw new PaymentProcessingException("Failed to process the payment due to an unexpected error.");
         }
