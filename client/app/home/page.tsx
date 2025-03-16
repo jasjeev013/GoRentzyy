@@ -1,0 +1,24 @@
+import { Button } from '@/components/ui/button'
+import React from 'react'
+import Navbar from '../components/Navbar'
+
+const page = () => {
+  return (
+    <>
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="w-[calc(100%-18rem)] min-h-screen border-l-[1px] border-r-[1px] border-white/30 p-4">
+          {/* <div className="bg-black p-4 h-full"></div>
+          <p className="text-white">This is a centered div with 3rem space on both sides and a white border on left and right with 10% transparency.</p> */}
+
+          <Navbar />
+
+        </div>
+      </div>
+
+
+
+    </>
+  )
+}
+
+export default page
