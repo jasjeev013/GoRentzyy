@@ -46,4 +46,5 @@ Commands written
 4. Downloading shadcn:  bun x --bun shadcn@latest init
 5. Adding Shadcn components: bun x --bun shadcn@latest add button
 6. Downloading tailwind css: bun install tailwindcss @tailwindcss/postcss postcss
+7. Icons
  -->
