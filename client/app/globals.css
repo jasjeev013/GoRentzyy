@@ -124,3 +124,19 @@
   }
 }
 
+@keyframes slideDown {
+  0% {
+    transform: translateY(-100%); /* Start from above */
+    opacity: 0; /* Start invisible */
+  }
+  100% {
+    transform: translateY(0); /* End at normal position */
+    opacity: 1; /* End fully visible */
+  }
+}
+
+/* Add the animation class */
+.animate-slide-down {
+  animation: slideDown 0.5s ease-out; /* Duration and easing */
+}
+
