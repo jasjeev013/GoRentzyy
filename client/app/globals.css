@@ -42,6 +42,8 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-sky-500: var(----sky-500);
+  --color-sky-400: var(----sky-400);
 }
 
 :root {
@@ -77,6 +79,8 @@
   --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
   --sidebar-border: oklch(0.928 0.006 264.531);
   --sidebar-ring: oklch(0.707 0.022 261.325);
+  --sky-400: #38bdf8;
+  --sky-500: #0ea5e9;
 }
 
 .dark {
@@ -111,8 +115,9 @@
   --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+  --sky-400: #38bdf8;
+  --sky-500: #0ea5e9;
 }
-
 
 @layer base {
   * {
@@ -137,6 +142,67 @@
 
 /* Add the animation class */
 .animate-slide-down {
-  animation: slideDown 0.5s ease-out; /* Duration and easing */
+  animation: slideDown 0.7s ease-out; /* Duration and easing */
 }
 
+/* globals.css */
+@keyframes slide-in-left {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 1.2s ease-out;
+}
+
+/* globals.css */
+@keyframes slide-in-right {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 1.8s ease-out;
+}
+.animate-slide-in-right-one {
+  animation: slide-in-right 1.8s ease-out;
+}
+.animate-slide-in-right-two {
+  animation: slide-in-right 1.9s ease-out;
+}
+.animate-slide-in-right-three {
+  animation: slide-in-right 2.0s ease-out;
+}
+.animate-slide-in-right-four {
+  animation: slide-in-right 2.1s ease-out;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  /* Define the marquee animation */
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Add the marquee animation utility */
+  .animate-marquee {
+    animation: marquee var(--duration, 3s) linear infinite;
+  }
+}
