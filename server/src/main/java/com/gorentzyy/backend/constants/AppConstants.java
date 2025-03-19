@@ -15,4 +15,8 @@ public final class AppConstants {
     public static final String JWT_SECRET_KEY = "JWT_SECRET";
     public static final String JWT_SECRET_DEFAULT_VALUE = "jdaTEdaQWjoDnejknk54tnerkgj34vjeo";
     public static final String JWT_HEADER = "Authorization";
+    public static final String CLOUDINARY_CLOUD_NAME= "dt8ndepvi";
+    public static final String CLOUDINARY_API_KEY= "741641421483568";
+    public static final String CLOUDINARY_API_SECRET= "t-XeOS-XsWwVLninfjNazBEzHWY";
+
 }
