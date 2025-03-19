@@ -6,7 +6,7 @@ import { BackgroundBeamsWithCollision } from '../../components/ui/background-bea
 const FirstSection = () => {
   return (
     <>
-      <div className={`w-full  h-120 flex mt-5 py-5 bg-[#252A27CC] rounded-lg`}>
+      <div className={`w-full  h-150 flex mt-9 pt-15 py-5 bg-[#252A27CC] rounded-lg`}>
 
         {/* Left Div */}
         <FirstSectionLeftPart />

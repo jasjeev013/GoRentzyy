@@ -5,7 +5,7 @@ const FirstSectionRightPart = () => {
     return (
         <>
             <div className="w-3/5 p-4 mx-5 flex justify-center relative animate-slide-in-right">
-                <div className="relative h-[517px] w-[517px]">
+            <div className="relative h-[517px] w-[517px]">
                     {/* Car 4 */}
                     <img
                         src="car4.png"

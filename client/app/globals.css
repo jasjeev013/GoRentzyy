@@ -164,7 +164,7 @@
 /* globals.css */
 @keyframes slide-in-right {
   0% {
-    transform: translateX(100%);
+    transform: translateX(19%);
     opacity: 0;
   }
   100% {
@@ -172,6 +172,7 @@
     opacity: 1;
   }
 }
+
 
 .animate-slide-in-right {
   animation: slide-in-right 1.8s ease-out;
@@ -186,8 +187,9 @@
   animation: slide-in-right 2.0s ease-out;
 }
 .animate-slide-in-right-four {
-  animation: slide-in-right 2.1s ease-out;
+  animation: slide-in 2.1s ease-out;
 }
+
 
 @tailwind base;
 @tailwind components;
@@ -204,5 +206,16 @@
   /* Add the marquee animation utility */
   .animate-marquee {
     animation: marquee var(--duration, 3s) linear infinite;
+  }
+}
+
+
+@theme inline {
+  --animate-scroll: scroll var(--animation-duration, 47s) var(--animation-direction, forwards) linear infinite;
+ 
+  @keyframes scroll {
+    to {
+      transform: translate(calc(-50% - 0.5rem));
+    }
   }
 }
