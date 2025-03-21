@@ -4,6 +4,7 @@ import NavbarWrapper from '../components/NavbarWrapper'
 import FirstSection from '../components/FirstSection'
 import SecondInfiniteScrollSection from '../components/SecondInfiniteScrollSection'
 import ThirdSectionCard from '../components/ThirdSectionCard'
+import FourthFindCarSection from '../components/FourthFindCarSection'
 
 const page = () => {
   return (
@@ -18,7 +19,7 @@ const page = () => {
           <FirstSection/>
           <SecondInfiniteScrollSection/>
           <ThirdSectionCard/>
-          <div className="bg-black p-4 h-full"></div>
+          <FourthFindCarSection/>
           <div className="bg-black p-4 h-full"></div>
           <div className="bg-black p-4 h-full"></div>
           <div className="bg-black p-4 h-full"></div>

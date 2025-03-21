@@ -8,7 +8,7 @@ const FirstSectionRightPart = () => {
             <div className="relative h-[517px] w-[517px]">
                     {/* Car 4 */}
                     <img
-                        src="car4.png"
+                        src="/carImages/car4.png"
                         alt="Car 4"
                         width="384"
                         height="216"
@@ -17,7 +17,7 @@ const FirstSectionRightPart = () => {
 
                     {/* Car 3 */}
                     <img
-                        src="car3.png"
+                        src="/carImages/car3.png"
                         alt="Car 3"
                         width="430"
                         height="286"
@@ -26,7 +26,7 @@ const FirstSectionRightPart = () => {
 
                     {/* Car 2 */}
                     <img
-                        src="car2.png"
+                        src="/carImages/car2.png"
                         alt="Car 2"
                         width="517"
                         height="517"
@@ -35,7 +35,7 @@ const FirstSectionRightPart = () => {
 
                     {/* Car 1 */}
                     <img
-                        src="car1.png"
+                        src="/carImages/car1.png"
                         alt="Car 1"
                         width="496"
                         height="496"

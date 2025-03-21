@@ -23,7 +23,7 @@ const SecondInfiniteScrollSection = () => {
 
   return (
     <>
-      <div className="mt-12 h-[6rem] rounded-md flex flex-col antialiased dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden border-t border-b border-white/1 animate-slide-in-four">
+      <div className="mt-24 h-[6rem] rounded-md flex flex-col antialiased dark:bg-black dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden border-t border-b border-white/1 animate-slide-in-four">
         <InfiniteMovingCards
           items={images}
           direction="left"

@@ -50,3 +50,8 @@ Commands written
 8. 21st.dev UI components
 9. 
  -->
+
+ <!-- https://magicui.design/docs/components/scroll-progress
+ https://ui.aceternity.com/components/infinite-moving-cards
+ https://lunarui.dev/components/react/scroll-animations/sticky-scroll
+ https://ui.shadcn.com/docs/components/carousel -->
