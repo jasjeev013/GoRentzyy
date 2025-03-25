@@ -36,24 +36,24 @@ const arrOfCars = [
 
 const FourthFindCarSection = () => {
 
-    
+
     return (
         <>
             <div className=" mt-38">
-                {/* Centered Heading */}
+              
                 <h1 className="text-6xl font-bold text-center mt-12">
                     Discover Wherever You Want
                 </h1>
 
-                {/* Centered Subheading */}
+          
                 <p className="text-lg text-center mt-6 max-w-2xl mx-auto">
                     Explore a wide range of modern, well-maintained vehicles ready for your next adventure or commute.
                 </p>
 
-                {/* Two Dropdowns in One Row */}
-                <FourthSectionDropdownSection/>
+    
+                <FourthSectionDropdownSection />
 
-                {/* Carousel */}
+
                 <div className="flex items-start justify-center mt-12">
                     <Carousel
                         opts={{
