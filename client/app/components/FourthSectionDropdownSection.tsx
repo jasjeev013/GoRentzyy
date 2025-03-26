@@ -17,10 +17,32 @@ import {
     PopoverTrigger,
 } from "../../components/ui/popover"
 
-const frameworks = [
+const areas = [
     {
         value: "next.js",
         label: "Next.js",
+    },
+    {
+        value: "sveltekit",
+        label: "SvelteKit",
+    },
+    {
+        value: "nuxt.js",
+        label: "Nuxt.js",
+    },
+    {
+        value: "remix",
+        label: "Remix",
+    },
+    {
+        value: "astro",
+        label: "Astro",
+    },
+]
+const types = [
+    {
+        value: "pext.js",
+        label: "pext.js",
     },
     {
         value: "sveltekit",
@@ -47,7 +69,7 @@ const FourthSectionDropdownSection = () => {
     const [value2, setValue2] = React.useState("")
 
     return (
-        <div className="flex justify-center gap-4 mt-8">
+        <div className="flex justify-center gap-20 mt-8">
             {/* First Dropdown */}
             <Popover open={open1} onOpenChange={setOpen1}>
                 <PopoverTrigger asChild>
@@ -55,36 +77,40 @@ const FourthSectionDropdownSection = () => {
                         variant="outline"
                         role="combobox"
                         aria-expanded={open1}
-                        className="w-[200px] justify-between"
+                        className="w-80 h-10 justify-between dark:!bg-blue-500 dark:!text-black dark:hover:!bg-blue-600 !border-black-700 dark:!border-blue-700"
                     >
                         {value1
-                            ? frameworks.find((framework) => framework.value === value1)?.label
-                            : "Select framework..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            ? areas.find((areas) => areas.value === value1)?.label
+                            : "Select Area..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-70 !text-black" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                    <Command>
-                        <CommandInput placeholder="Search framework..." />
+                <PopoverContent className="w-80 p-0 !border-blue-700 !bg-blue-400">
+                    <Command >
+                        <CommandInput
+                            placeholder="Search Area..."
+
+                        />
                         <CommandList>
-                            <CommandEmpty>No framework found.</CommandEmpty>
-                            <CommandGroup>
-                                {frameworks.map((framework) => (
+                            <CommandEmpty className="!text-black dark:!text-white">No area found.</CommandEmpty>
+                            <CommandGroup className="!text-black dark:!text-white">
+                                {areas.map((areas) => (
                                     <CommandItem
-                                        key={framework.value}
-                                        value={framework.value}
+                                        key={areas.value}
+                                        value={areas.value}
                                         onSelect={(currentValue) => {
                                             setValue1(currentValue === value1 ? "" : currentValue)
                                             setOpen1(false)
                                         }}
+                                        className="dark:hover:!bg-blue-500 dark:aria-selected:!bg-blue-600 !text-black dark:!text-white"
                                     >
                                         <Check
                                             className={cn(
-                                                "mr-2 h-4 w-4",
-                                                value1 === framework.value ? "opacity-100" : "opacity-0"
+                                                "mr-2 h-4 w-4 !text-black dark:!text-white",
+                                                value1 === areas.value ? "opacity-100" : "opacity-0"
                                             )}
                                         />
-                                        {framework.label}
+                                        {areas.label}
                                     </CommandItem>
                                 ))}
                             </CommandGroup>
@@ -100,36 +126,39 @@ const FourthSectionDropdownSection = () => {
                         variant="outline"
                         role="combobox"
                         aria-expanded={open2}
-                        className="w-[200px] justify-between"
+                        className="w-80 h-10 justify-between dark:!bg-blue-500 dark:!text-black dark:hover:!bg-blue-600  dark:!border-blue-700"
                     >
                         {value2
-                            ? frameworks.find((framework) => framework.value === value2)?.label
-                            : "Select framework..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            ? types.find((types) => types.value === value2)?.label
+                            : "Select Type..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-70 !text-black" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
+                <PopoverContent className="w-80 p-0 !border-blue-700 !bg-blue-400">
                     <Command>
-                        <CommandInput placeholder="Search framework..." />
+                        <CommandInput
+                            placeholder="Search Type..."
+                        />
                         <CommandList>
-                            <CommandEmpty>No framework found.</CommandEmpty>
-                            <CommandGroup>
-                                {frameworks.map((framework) => (
+                            <CommandEmpty className="!text-black dark:!text-white"> No type found.</CommandEmpty>
+                            <CommandGroup className="!text-black dark:!text-white">
+                                {types.map((types) => (
                                     <CommandItem
-                                        key={framework.value}
-                                        value={framework.value}
+                                        key={types.value}
+                                        value={types.value}
                                         onSelect={(currentValue) => {
                                             setValue2(currentValue === value2 ? "" : currentValue)
                                             setOpen2(false)
                                         }}
+                                        className="dark:hover:!bg-blue-500 dark:aria-selected:!bg-blue-600 !text-black dark:!text-white"
                                     >
                                         <Check
                                             className={cn(
-                                                "mr-2 h-4 w-4",
-                                                value2 === framework.value ? "opacity-100" : "opacity-0"
+                                                "mr-2 h-4 w-4 !text-black dark:!text-white",
+                                                value2 === types.value ? "opacity-100" : "opacity-0"
                                             )}
                                         />
-                                        {framework.label}
+                                        {types.label}
                                     </CommandItem>
                                 ))}
                             </CommandGroup>

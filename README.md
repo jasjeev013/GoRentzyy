@@ -93,4 +93,4 @@ For any inquiries, please contact [your-email@example.com](mailto:your-email@exa
 12. Validations 
 13. Juit Tests with mockito
 14. Test Coverage reports 
-15. 
+15. Added Cloudinary Image Service

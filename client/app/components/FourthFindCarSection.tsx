@@ -40,17 +40,17 @@ const FourthFindCarSection = () => {
     return (
         <>
             <div className=" mt-38">
-              
+
                 <h1 className="text-6xl font-bold text-center mt-12">
                     Discover Wherever You Want
                 </h1>
 
-          
+
                 <p className="text-lg text-center mt-6 max-w-2xl mx-auto">
                     Explore a wide range of modern, well-maintained vehicles ready for your next adventure or commute.
                 </p>
 
-    
+
                 <FourthSectionDropdownSection />
 
 
@@ -65,7 +65,7 @@ const FourthFindCarSection = () => {
                             {arrOfCars.map(({ img, heading, subheading }, index) => (
                                 <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                                     <div className="px-1">
-                                        <Card className="bg-[#252121]">
+                                        <Card className="bg-white dark:bg-[#252121]">
                                             <CardContent className="flex flex-col aspect-square px-2">
                                                 {/* Image */}
                                                 <img
@@ -75,12 +75,12 @@ const FourthFindCarSection = () => {
                                                 />
 
                                                 {/* Heading */}
-                                                <h3 className="text-2xl text-white font-semibold mt-4 text-left">
+                                                <h3 className="text-2xl font-bold text-black dark:text-white font-semibold mt-4 text-left">
                                                     {heading}
                                                 </h3>
 
                                                 {/* Subheading */}
-                                                <p className="text-sm text-white mt-2 text-left">
+                                                <p className="text-sm text-black dark:text-white mt-2 text-left">
                                                     {subheading}
                                                 </p>
                                             </CardContent>
