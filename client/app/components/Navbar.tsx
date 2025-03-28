@@ -4,7 +4,7 @@ import React from 'react'
 const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
     return (
         <>
-            <div className={`flex items-center justify-between text-black dark:text-white animate-slide-down sticky z-50 transition-all duration-300 ${isScrolled ? 'bg-[#C8FFE1] dark:bg-[#252A27CC] dark:backdrop-blur-sm rounded-lg shadow-xl py-2 top-5 px-7 w-[calc(100%-40px)] mx-auto' : 'py-4 top-0 px-5 w-full'}`}>
+            <div className={`flex items-center justify-between text-black dark:text-white animate-slide-down sticky z-50 transition-all duration-300 ${isScrolled ? 'bg-[#C8FFE1] dark:bg-[#252A27CC] dark:backdrop-blur-sm rounded-lg shadow-xl py-2 top-5 px-7 w-[calc(100%-70px)] mx-auto' : 'py-4 mt-4 top-0 px-7 w-full'}`}>
                 {/* <img src="logo.png" alt="Logo" className="h-10" /> */}
                 <Image
                     src="/darkLogo.png"

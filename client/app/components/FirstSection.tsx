@@ -1,7 +1,6 @@
 import React from 'react'
 import FirstSectionLeftPart from './FirstSectionLeftPart'
 import FirstSectionRightPart from './FirstSectionRightPart'
-import { BackgroundBeamsWithCollision } from '../../components/ui/background-beams-with-collision'
 
 const FirstSection = () => {
   return (

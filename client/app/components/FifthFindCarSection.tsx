@@ -10,7 +10,7 @@ import {
     CarouselPrevious,
 } from "../../components/ui/carousel"
 
-import FourthSectionDropdownSection from "./FourthSectionDropdownSection";
+import FifthSectionDropdownSection from "./FourthSectionDropdownSection";
 const arrOfCars = [
     {
         img: "/discoverCarImages/car1.png",
@@ -34,12 +34,12 @@ const arrOfCars = [
     },
 ]
 
-const FourthFindCarSection = () => {
+const FifthFindCarSection = () => {
 
 
     return (
         <>
-            <div className=" mt-38">
+            <div className=" mt-20">
 
                 <h1 className="text-6xl font-bold text-center mt-12">
                     Discover Wherever You Want
@@ -51,7 +51,7 @@ const FourthFindCarSection = () => {
                 </p>
 
 
-                <FourthSectionDropdownSection />
+                <FifthSectionDropdownSection />
 
 
                 <div className="flex items-start justify-center mt-12">
@@ -99,4 +99,4 @@ const FourthFindCarSection = () => {
     )
 }
 
-export default FourthFindCarSection
+export default FifthFindCarSection

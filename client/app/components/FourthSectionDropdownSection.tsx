@@ -62,7 +62,7 @@ const types = [
     },
 ]
 
-const FourthSectionDropdownSection = () => {
+const FifthSectionDropdownSection = () => {
     const [open1, setOpen1] = React.useState(false)
     const [value1, setValue1] = React.useState("")
     const [open2, setOpen2] = React.useState(false)
@@ -170,4 +170,4 @@ const FourthSectionDropdownSection = () => {
     )
 }
 
-export default FourthSectionDropdownSection
+export default FifthSectionDropdownSection

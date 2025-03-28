@@ -5,7 +5,7 @@ import { BackgroundGradient } from '../../components/ui/background-gradient'
 const ThirdSectionCard = () => {
     return (
         <>
-            <div className="text-center mt-30">
+            <div className="text-center mt-30 mb-20">
                 <h1 className="text-6xl font-bold mb-4">With Us, Car Rentals Are Easy</h1>
                 <h4 className="text-lg text-white-600 mb-8">Seamless car sharing for hosts and renters, powerful solutions for modern mobility needs.</h4>
                 <div className="flex flex-wrap justify-center gap-13 mt-12">
