@@ -12,7 +12,6 @@ import lombok.Setter;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 
 
 @Getter
@@ -32,7 +31,7 @@ public class UserDto implements Serializable {
                 ", role=" + role +
                 ", password='" + password + '\'' +
                 ", socialLoginId='" + socialLoginId + '\'' +
-                ", profilePicture=" + Arrays.toString(profilePicture) +
+                ", profilePicture=" + profilePicture +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
@@ -67,7 +66,7 @@ public class UserDto implements Serializable {
     private String socialLoginId;
 
     @JsonIgnore
-    private byte[] profilePicture;
+    private String profilePicture;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

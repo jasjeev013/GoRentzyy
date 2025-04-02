@@ -3,7 +3,7 @@ package com.gorentzyy.backend.services;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.UserDto;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.multipart.MultipartFile;
 
 
 public interface UserService {
@@ -15,6 +15,8 @@ public interface UserService {
      * @return ResponseEntity with status and result.
      */
     ResponseEntity<ApiResponseObject> createNewUser( UserDto userDto);
+
+    ResponseEntity<ApiResponseObject> updateProfilePhoto(MultipartFile file, String emailId);
 
     /**
      * Updates the existing user.

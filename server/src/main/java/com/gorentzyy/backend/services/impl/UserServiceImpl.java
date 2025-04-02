@@ -8,6 +8,7 @@ import com.gorentzyy.backend.models.User;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.UserDto;
 import com.gorentzyy.backend.repositories.UserRepository;
+import com.gorentzyy.backend.services.CloudinaryService;
 import com.gorentzyy.backend.services.UserService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -19,8 +20,10 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -29,15 +32,18 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
+    private final CloudinaryService cloudinaryService;
+
 
 //    private final Validator validator;
 
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
 //        this.validator = validator;
+        this.cloudinaryService = cloudinaryService;
     }
 
 
@@ -92,6 +98,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public ResponseEntity<ApiResponseObject> updateProfilePhoto(MultipartFile file, String emailId) {
+        User existingUser = userRepository.findByEmail(emailId).orElseThrow(() ->
+                new UserNotFoundException("User with Email ID " + emailId + " does not exist.")
+        );
+
+        Map savedPhoto = cloudinaryService.upload(file);
+
+        existingUser.setProfilePicture((String) savedPhoto.get("url"));
+        userRepository.save(existingUser);
+
+        return new ResponseEntity<>(new ApiResponseObject(
+                "Profile photo added successfully", true, null
+        ), HttpStatus.ACCEPTED);
+    }
+
+
+    @Override
     public ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId) {
         // Check if user exists by userId
         User existingUser = userRepository.findByEmail(emailId).orElseThrow(() ->
@@ -108,7 +131,7 @@ public class UserServiceImpl implements UserService {
         try {
             // Save the updated user
             User updatedUser = userRepository.save(existingUser);
-
+            UserDto savedUserDto = modelMapper.map(updatedUser, UserDto.class);
             // Return a response with updated user information
             return new ResponseEntity<>(new ApiResponseObject(
                     "User updated successfully", true, modelMapper.map(updatedUser, UserDto.class)

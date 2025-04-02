@@ -23,7 +23,9 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     public Map upload(MultipartFile file) {
         try{
             Map data = cloudinary.uploader().upload(file.getBytes(),Map.of());
+            System.out.println(data);
             return data;
+
         }catch (IOException e){
             throw  new RuntimeException("Image Uploading Failed");
         }

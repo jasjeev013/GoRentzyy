@@ -10,6 +10,7 @@ import com.gorentzyy.backend.payloads.CarDto;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.CarService;
+import com.gorentzyy.backend.services.CloudinaryService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +21,12 @@ import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -33,13 +36,15 @@ public class CarServiceImpl implements CarService {
     private final UserRepository userRepository;
     private final CarRepository carRepository;
     private final ModelMapper modelMapper;
+    private final CloudinaryService cloudinaryService;
 
 
     @Autowired
-    public CarServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper) {
+    public CarServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper, CloudinaryService cloudinaryService) {
         this.userRepository = userRepository;
         this.carRepository = carRepository;
         this.modelMapper = modelMapper;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Override
@@ -247,6 +252,27 @@ public class CarServiceImpl implements CarService {
             logger.error("Unexpected error while fetching cars for host with ID {}: {}", email, ex.getMessage());
             throw new DatabaseException("Error while fetching cars for the host. Please try again.");
         }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> addCarPhotos(List<MultipartFile> files, Long carId) {
+        Car existingCar = carRepository.findById(carId).orElseThrow(() ->
+                new UserNotFoundException("User with Email ID " + carId + " does not exist.")
+        );
+        System.out.println(files);
+        for (MultipartFile file:files){
+            Map savedPhoto = cloudinaryService.upload(file);
+
+            String photoUrl = (String) savedPhoto.get("url");
+            if (photoUrl != null) {
+                existingCar.getPhotos().add(photoUrl);
+            } else {
+                throw new CloudinaryUploadException("Failed to upload photo.");
+            }
+            existingCar.getPhotos().add((String) savedPhoto.get("url"));
+        }
+        carRepository.save(existingCar);
+        return new ResponseEntity<>(new ApiResponseObject("Uploaded all photos",true,null),HttpStatus.ACCEPTED);
     }
 
 }

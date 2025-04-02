@@ -10,6 +10,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/car")
@@ -52,5 +55,11 @@ public class CarController {
     public ResponseEntity<ApiResponseData> getAllCarsOfSpecificHost(Authentication authentication){
         String email = authentication.getName();
         return carService.getAllCarsForSpecificHost(email);
+    }
+
+    @PostMapping("/addPhotos/{carId}")
+    public ResponseEntity<ApiResponseObject> addPhotos(@RequestParam("files") List<MultipartFile> files,@PathVariable Long carId) {
+        System.out.println(files);
+        return carService.addCarPhotos(files,carId);
     }
 }

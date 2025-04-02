@@ -99,6 +99,12 @@ public class GlobalExceptionHandlerAdvice {
     }
 
     // Handle Generic Exceptions
+    @ExceptionHandler(CloudinaryUploadException.class)
+    public ResponseEntity<ErrorResponse> handleCloudinaryUploadException(Exception ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("An unexpected error occurred.", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         logger.error("Unhandled Exception: {}", ex.getMessage());

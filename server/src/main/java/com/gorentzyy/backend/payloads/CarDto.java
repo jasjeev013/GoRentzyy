@@ -12,6 +12,8 @@ import lombok.Setter;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -40,6 +42,8 @@ public class CarDto implements Serializable {
     @NotBlank(message = "Registration number is required")
     @Size(min = 5, max = 15, message = "Registration number must be between 5 and 15 characters")
     private String registrationNumber;
+
+    private List<String> photos = new ArrayList<>();
 
     @NotNull(message = "Category is required")
     private AppConstants.Category category;

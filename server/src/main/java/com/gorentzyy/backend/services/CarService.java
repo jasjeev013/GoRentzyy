@@ -4,6 +4,9 @@ import com.gorentzyy.backend.payloads.ApiResponseData;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.CarDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface CarService {
 
@@ -12,4 +15,6 @@ public interface CarService {
     ResponseEntity<ApiResponseObject> getCarById(Long carId);
     ResponseEntity<ApiResponseObject> removeCar(Long carId);
     ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(String email);
+
+    ResponseEntity<ApiResponseObject> addCarPhotos(List<MultipartFile> files, Long carId);
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -28,6 +29,9 @@ public class Car {
 
     @Column(unique = true, nullable = false)
     private String registrationNumber;
+
+    @ElementCollection
+    private List<String> photos = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private AppConstants.Category category;

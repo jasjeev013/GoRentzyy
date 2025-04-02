@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -51,8 +52,14 @@ public class UserController {
 
 //    Working
     @PostMapping("/create")
-    public ResponseEntity<ApiResponseObject> createUser(@Valid @RequestBody UserDto userDto) {
+    public ResponseEntity<ApiResponseObject> createUser(@Valid @RequestParam("image") UserDto userDto) {
         return userService.createNewUser(userDto);
+    }
+
+    @PutMapping("/updateProfilePhoto")
+    public ResponseEntity<ApiResponseObject> updateProfilePhoto(Authentication authentication,@Valid  @RequestBody MultipartFile multipartFile){
+        String email = authentication.getName();
+        return userService.updateProfilePhoto(multipartFile, email);
     }
 
     @PutMapping("/update")

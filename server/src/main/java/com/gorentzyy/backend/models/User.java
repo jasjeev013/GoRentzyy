@@ -15,7 +15,7 @@ import java.util.List;
 @Entity
 @Table(name = "rentzyy_user")
 public class User {
-    public User(Long userId, String fullName, String email, String phoneNumber, String address, AppConstants.Role role, String password, String socialLoginId, byte[] profilePicture, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public User(Long userId, String fullName, String email, String phoneNumber, String address, AppConstants.Role role, String password, String socialLoginId, String profilePicture, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.userId = userId;
         this.fullName = fullName;
         this.email = email;
@@ -48,7 +48,7 @@ public class User {
     private String socialLoginId;
 
     @Lob
-    private byte[] profilePicture;
+    private String profilePicture;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
