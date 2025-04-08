@@ -93,4 +93,15 @@ For any inquiries, please contact [your-email@example.com](mailto:your-email@exa
 12. Validations 
 13. Juit Tests with mockito
 14. Test Coverage reports 
-15. Added Cloudinary Image Service
+15. Added Cloudinary Image Service - with multiple file at one time uploading
+16. Email Service Added
+<!-- 17. OpenAuth ID - Google - Github  -->
+<!-- 18. Cron Jobs  -->
+<!-- 19. Kafka Implementation  -->
+<!-- 20. Redis Implementation -->
+<!-- 21. Deployment at serverless OR EC2 Instance with AWS Postgres Service -->
+<!-- 22. NGRX -->
+<!-- 23. MicroServices -->
+<!-- 24. Dockerize And upload at Docker & Containersization Uploading -->
+<!-- 24. Actuator Health & AOP -->
+

@@ -25,6 +25,8 @@ public class CarDto implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long carId;
+    @NotBlank(message = "Car name is required")
+    private String name;
 
     @NotBlank(message = "Car make is required")
     private String make;

@@ -35,3 +35,6 @@ Thumbs.db
 *.swo
 *.bak
 *.tmp
+
+# All Keys
+AllSecretKeys.txt

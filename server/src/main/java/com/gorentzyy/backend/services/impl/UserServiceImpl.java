@@ -1,29 +1,45 @@
 package com.gorentzyy.backend.services.impl;
 
+import com.gorentzyy.backend.constants.AppConstants;
+import com.gorentzyy.backend.constants.EmailConstants;
 import com.gorentzyy.backend.exceptions.DatabaseException;
 import com.gorentzyy.backend.exceptions.PasswordHashingException;
 import com.gorentzyy.backend.exceptions.UserAlreadyExistsException;
 import com.gorentzyy.backend.exceptions.UserNotFoundException;
+import com.gorentzyy.backend.models.LoginRequest;
+import com.gorentzyy.backend.models.LoginResponse;
 import com.gorentzyy.backend.models.User;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.UserDto;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.CloudinaryService;
+import com.gorentzyy.backend.services.EmailService;
 import com.gorentzyy.backend.services.UserService;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,17 +49,22 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     private final CloudinaryService cloudinaryService;
-
+    private final EmailService emailService;
+    private final AuthenticationManager authenticationManager;
+    private final Environment env;
 
 //    private final Validator validator;
 
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, Environment env) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
 //        this.validator = validator;
         this.cloudinaryService = cloudinaryService;
+        this.emailService = emailService;
+        this.authenticationManager = authenticationManager;
+        this.env = env;
     }
 
 
@@ -87,6 +108,9 @@ public class UserServiceImpl implements UserService {
             // Return a successful response
             ApiResponseObject response = new ApiResponseObject(
                     "User Created Successfully", true, savedUserDto);
+
+            emailService.sendEmail(savedUser.getEmail(), EmailConstants.getNewUserCreatedSubject, EmailConstants.getNewUserCreatedBody(savedUserDto.getFullName()));
+
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (DataIntegrityViolationException | DatabaseException | ObjectOptimisticLockingFailureException e) {
             logger.error("Database integrity violation when saving user: {}", userDto.getEmail());
@@ -95,6 +119,37 @@ public class UserServiceImpl implements UserService {
             logger.error("Unexpected error during user creation for email: {}", userDto.getEmail(), e);
             throw new DatabaseException("Error while saving the user to the database.");
         }
+    }
+
+    @Override
+    public ResponseEntity<LoginResponse> loginUser(LoginRequest loginRequest) {
+        String jwt = "";
+        Authentication authentication = UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.username(),
+                loginRequest.password());
+
+        Authentication authenticationResponse =  authenticationManager.authenticate(authentication);
+        System.out.println(authenticationResponse + " Auth Response ");
+        if (null != authenticationResponse &&  authenticationResponse.isAuthenticated()){
+            if (null!=env){
+                String secret = env.getProperty(AppConstants.JWT_SECRET_KEY, AppConstants.JWT_SECRET_DEFAULT_VALUE);
+                SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+                System.out.println(authenticationResponse + " login in User Controller");
+                jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
+                        .claim("username",authenticationResponse.getName())
+                        .claim("authorities",authenticationResponse.getAuthorities().stream().map(
+                                GrantedAuthority::getAuthority
+                        ).collect(Collectors.joining(",")))
+                        .issuedAt(new Date())
+                        .expiration(new Date((new Date()).getTime() + 30000000))
+                        .signWith(secretKey).compact();
+
+                emailService.sendEmail(authenticationResponse.getName(),EmailConstants.getUserLoginSubject,EmailConstants.getUserLoginBody(authenticationResponse.getName()));
+            }
+        }
+
+
+        return ResponseEntity.status(HttpStatus.OK).header(AppConstants.JWT_HEADER,jwt)
+                .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),jwt));
     }
 
     @Override

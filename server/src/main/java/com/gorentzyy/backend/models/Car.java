@@ -21,6 +21,7 @@ public class Car {
     @ManyToOne
     @JoinColumn(name = "host_id")
     private User host;
+    private String name;
 
     private String make;
     private String model;

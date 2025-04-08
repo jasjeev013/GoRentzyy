@@ -1,6 +1,7 @@
 package com.gorentzyy.backend.services.impl;
 
 import com.gorentzyy.backend.constants.AppConstants;
+import com.gorentzyy.backend.constants.EmailConstants;
 import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.models.Booking;
 import com.gorentzyy.backend.models.Car;
@@ -12,6 +13,7 @@ import com.gorentzyy.backend.repositories.BookingRepository;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.BookingService;
+import com.gorentzyy.backend.services.EmailService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,13 +39,15 @@ public class BookingServiceImpl implements BookingService {
     private final CarRepository carRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final EmailService emailService;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository, CarRepository carRepository, UserRepository userRepository, ModelMapper modelMapper) {
+    public BookingServiceImpl(BookingRepository bookingRepository, CarRepository carRepository, UserRepository userRepository, ModelMapper modelMapper, EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.carRepository = carRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.emailService = emailService;
     }
 
     private double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
@@ -131,6 +135,11 @@ public class BookingServiceImpl implements BookingService {
 
             // Step 8: Return success response with booking details
             logger.info("Booking created successfully with ID {}", savedBooking.getBookingId());
+
+            emailService.sendEmail(renter.getEmail(),EmailConstants.bookingConfirmedOfRenterSubject(car.getName()), EmailConstants.bookingConfirmedOfRenterBody);
+            emailService.sendEmail(car.getHost().getEmail(),EmailConstants.bookingConfirmedOfSpecificCarOfHostSubject(car.getName(),renter.getFullName()),EmailConstants.bookingConfirmedOfRenterBody);
+
+
             return new ResponseEntity<>(new ApiResponseObject(
                     "Booking has been established", true, modelMapper.map(savedBooking, BookingDto.class)
             ), HttpStatus.CREATED);
