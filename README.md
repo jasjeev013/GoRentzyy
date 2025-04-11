@@ -105,3 +105,19 @@ For any inquiries, please contact [your-email@example.com](mailto:your-email@exa
 <!-- 24. Dockerize And upload at Docker & Containersization Uploading -->
 <!-- 24. Actuator Health & AOP -->
 
+
+------------
+Redis Setup: (On WSL)
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
+
+sudo apt-get update
+sudo apt-get install redis
+
+sudo service redis-server start
+
+redis-cli
+
+Yt Link: https://www.youtube.com/watch?v=2srQ-RiJHps
+

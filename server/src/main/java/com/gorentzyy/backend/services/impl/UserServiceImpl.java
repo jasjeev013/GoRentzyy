@@ -14,6 +14,7 @@ import com.gorentzyy.backend.payloads.UserDto;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.CloudinaryService;
 import com.gorentzyy.backend.services.EmailService;
+import com.gorentzyy.backend.services.RedisService;
 import com.gorentzyy.backend.services.UserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -51,12 +52,13 @@ public class UserServiceImpl implements UserService {
     private final CloudinaryService cloudinaryService;
     private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
+    private final RedisService redisService;
     private final Environment env;
 
 //    private final Validator validator;
 
 
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, Environment env) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, Environment env) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
@@ -64,6 +66,7 @@ public class UserServiceImpl implements UserService {
         this.cloudinaryService = cloudinaryService;
         this.emailService = emailService;
         this.authenticationManager = authenticationManager;
+        this.redisService = redisService;
         this.env = env;
     }
 
@@ -131,6 +134,7 @@ public class UserServiceImpl implements UserService {
         System.out.println(authenticationResponse + " Auth Response ");
         if (null != authenticationResponse &&  authenticationResponse.isAuthenticated()){
             if (null!=env){
+                System.out.println(AppConstants.JWT_SECRET_DEFAULT_VALUE);
                 String secret = env.getProperty(AppConstants.JWT_SECRET_KEY, AppConstants.JWT_SECRET_DEFAULT_VALUE);
                 SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
                 System.out.println(authenticationResponse + " login in User Controller");
@@ -276,6 +280,10 @@ public class UserServiceImpl implements UserService {
 
 
         try {
+            UserDto cachedUser = redisService.get(email,UserDto.class);
+            if (cachedUser!=null) return new ResponseEntity<>(new ApiResponseObject(
+                    "The user is found", true, cachedUser
+            ), HttpStatus.OK);
             // Log the incoming request to fetch the user by email
             logger.info("Attempting to retrieve user with email: {}", email);
 
@@ -286,10 +294,11 @@ public class UserServiceImpl implements UserService {
 
             // Log the successful retrieval of the user
             logger.info("User with email {} found.", email);
-
+            UserDto userDto = modelMapper.map(existingUser, UserDto.class);
+            if (null!=existingUser) redisService.set(email,userDto,1200L);
             // Return a response with the user information
             return new ResponseEntity<>(new ApiResponseObject(
-                    "The user is found", true, modelMapper.map(existingUser, UserDto.class)
+                    "The user is found", true, userDto
             ), HttpStatus.OK);
 
         } catch (UserNotFoundException ex) {

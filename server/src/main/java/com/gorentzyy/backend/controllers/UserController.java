@@ -54,7 +54,7 @@ public class UserController {
         return userService.updateUserByEmail(userDto, email);
     }
 
-    @GetMapping("/get")
+    @GetMapping("/getU")
     public ResponseEntity<ApiResponseObject> getUser(Authentication authentication) {
         String email = authentication.getName();  // Extract email
         return userService.getUserByEmail(email);

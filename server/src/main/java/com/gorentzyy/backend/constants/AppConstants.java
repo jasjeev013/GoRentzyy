@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Value;
 
 public final class AppConstants {
 
+
+
     public enum Status {CONFIRMED, CANCELED, MODIFIED}
     public enum Category {ECONOMY, LUXURY, SUV, OTHER}
     public enum FuelType {PETROL, DIESEL, ELECTRIC, CNG, OTHER}
