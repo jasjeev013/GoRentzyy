@@ -58,7 +58,7 @@ public class SecurityConfig {
 //                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
                 .authorizeHttpRequests(auth -> auth
                         // Public routes
-                        .requestMatchers("/api/user/create", "/api/user/login", "/api/test","/api/cloudinary/upload","/api/test/email").permitAll()
+                        .requestMatchers("/api/user/create", "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
 
                         // User routes (Authenticated)
                         .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",

@@ -1,6 +1,6 @@
 package com.gorentzyy.backend.filter;
 
-import com.gorentzyy.backend.constants.AppConstants;
+import com.gorentzyy.backend.constants.SecretConstants;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
@@ -31,7 +31,7 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
         if (null!=authentication){
             Environment env = getEnvironment();
             if (null!=env){
-                String secret = env.getProperty(AppConstants.JWT_SECRET_KEY, AppConstants.JWT_SECRET_DEFAULT_VALUE);
+                String secret = env.getProperty(SecretConstants.JWT_SECRET_KEY, SecretConstants.JWT_SECRET_DEFAULT_VALUE);
                 SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
                 System.out.println(authentication.getAuthorities() + " Generator Filter");
                 String jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
@@ -43,7 +43,7 @@ public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
                         .expiration(new Date((new Date()).getTime() + 30000000))
                         .signWith(secretKey).compact();
 
-                response.setHeader(AppConstants.JWT_HEADER,jwt);
+                response.setHeader(SecretConstants.JWT_HEADER,jwt);
             }
         }
         filterChain.doFilter(request,response);

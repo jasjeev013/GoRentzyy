@@ -1,7 +1,7 @@
 package com.gorentzyy.backend.services.impl;
 
-import com.gorentzyy.backend.constants.AppConstants;
 import com.gorentzyy.backend.constants.EmailConstants;
+import com.gorentzyy.backend.constants.SecretConstants;
 import com.gorentzyy.backend.exceptions.DatabaseException;
 import com.gorentzyy.backend.exceptions.PasswordHashingException;
 import com.gorentzyy.backend.exceptions.UserAlreadyExistsException;
@@ -37,9 +37,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -134,8 +137,8 @@ public class UserServiceImpl implements UserService {
         System.out.println(authenticationResponse + " Auth Response ");
         if (null != authenticationResponse &&  authenticationResponse.isAuthenticated()){
             if (null!=env){
-                System.out.println(AppConstants.JWT_SECRET_DEFAULT_VALUE);
-                String secret = env.getProperty(AppConstants.JWT_SECRET_KEY, AppConstants.JWT_SECRET_DEFAULT_VALUE);
+                System.out.println(SecretConstants.JWT_SECRET_DEFAULT_VALUE);
+                String secret = env.getProperty(SecretConstants.JWT_SECRET_KEY, SecretConstants.JWT_SECRET_DEFAULT_VALUE);
                 SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
                 System.out.println(authenticationResponse + " login in User Controller");
                 jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
@@ -152,7 +155,7 @@ public class UserServiceImpl implements UserService {
         }
 
 
-        return ResponseEntity.status(HttpStatus.OK).header(AppConstants.JWT_HEADER,jwt)
+        return ResponseEntity.status(HttpStatus.OK).header(SecretConstants.JWT_HEADER,jwt)
                 .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),jwt));
     }
 
@@ -277,39 +280,53 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ApiResponseObject> getUserByEmail(String email) {
-
+        logger.info("Fetching user by email: {}", email);
 
         try {
-            UserDto cachedUser = redisService.get(email,UserDto.class);
-            if (cachedUser!=null) return new ResponseEntity<>(new ApiResponseObject(
-                    "The user is found", true, cachedUser
-            ), HttpStatus.OK);
-            // Log the incoming request to fetch the user by email
-            logger.info("Attempting to retrieve user with email: {}", email);
+            // 1. First try to get from cache
+            if (redisService != null) {
+                Optional<UserDto> cachedUser = redisService.get(email, UserDto.class);
+                if (cachedUser.isPresent()) {
+                    logger.debug("User found in cache for email: {}", email);
+                    return ResponseEntity.ok(
+                            new ApiResponseObject("User found in cache", true, cachedUser.get())
+                    );
+                }
+            }
 
-            // Check if the user exists by email
-            User existingUser = userRepository.findByEmail(email).orElseThrow(() ->
-                    new UserNotFoundException("User with email: " + email + " does not exist.")
+            // 2. If not in cache, fetch from database
+            logger.debug("User not in cache, querying database for email: {}", email);
+            User existingUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("User with email: " + email + " not found"));
+
+            // 3. Map to DTO and cache it
+            UserDto userDto = modelMapper.map(existingUser, UserDto.class);
+
+            if (redisService != null) {
+                try {
+                    // Cache asynchronously to not block the response
+                    CompletableFuture.runAsync(() -> {
+                        redisService.set(email, userDto, Duration.ofMinutes(10));
+                        logger.debug("Cached user data for email: {}", email);
+                    });
+                } catch (Exception e) {
+                    logger.error("Failed to cache user data for email: {}", email, e);
+                    // Don't fail the request if caching fails
+                }
+            }
+
+            // 4. Return response
+            return ResponseEntity.ok(
+                    new ApiResponseObject("User found successfully", true, userDto)
             );
 
-            // Log the successful retrieval of the user
-            logger.info("User with email {} found.", email);
-            UserDto userDto = modelMapper.map(existingUser, UserDto.class);
-            if (null!=existingUser) redisService.set(email,userDto,1200L);
-            // Return a response with the user information
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The user is found", true, userDto
-            ), HttpStatus.OK);
-
         } catch (UserNotFoundException ex) {
-            // Log the error when user is not found
-            logger.error("User with email {} not found.", email);
-            throw ex;  // Will be handled by your GlobalExceptionHandler
+            logger.error("User not found for email: {}", email);
+            throw ex; // Let GlobalExceptionHandler handle it
 
         } catch (Exception e) {
-            // Log any unexpected errors
-            logger.error("Unexpected error while fetching user with email {}: {}", email, e.getMessage());
-            throw new DatabaseException("An error occurred while retrieving the user.");
+            logger.error("Unexpected error fetching user by email {}: {}", email, e.getMessage(), e);
+            throw new DatabaseException("Failed to retrieve user data");
         }
     }
 }

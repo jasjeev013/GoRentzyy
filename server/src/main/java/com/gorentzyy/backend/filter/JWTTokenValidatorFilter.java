@@ -1,6 +1,6 @@
 package com.gorentzyy.backend.filter;
 
-import com.gorentzyy.backend.constants.AppConstants;
+import com.gorentzyy.backend.constants.SecretConstants;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -26,12 +26,12 @@ import java.util.stream.Collectors;
 public class JWTTokenValidatorFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String jwt = request.getHeader(AppConstants.JWT_HEADER);
+        String jwt = request.getHeader(SecretConstants.JWT_HEADER);
         if (null != jwt){
             try {
                 Environment env = getEnvironment();
                 if (null!=env) {
-                    String secret = env.getProperty(AppConstants.JWT_SECRET_KEY, AppConstants.JWT_SECRET_DEFAULT_VALUE);
+                    String secret = env.getProperty(SecretConstants.JWT_SECRET_KEY, SecretConstants.JWT_SECRET_DEFAULT_VALUE);
                     SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
                     if (null != secretKey){
                         Claims claims = Jwts.parser().verifyWith(secretKey)
