@@ -98,7 +98,7 @@ For any inquiries, please contact [your-email@example.com](mailto:your-email@exa
 <!-- 17. OpenAuth ID - Google - Github  -->
 <!-- 18. Cron Jobs  -->
 <!-- 19. Kafka Implementation  -->
-<!-- 20. Redis Implementation -->
+20. Redis Implementation
 <!-- 21. Deployment at serverless OR EC2 Instance with AWS Postgres Service -->
 <!-- 22. NGRX -->
 <!-- 23. MicroServices -->
@@ -120,4 +120,24 @@ sudo service redis-server start
 redis-cli
 
 Yt Link: https://www.youtube.com/watch?v=2srQ-RiJHps
+
+--------------------------
+REDIS CACHED API ROUTES 
+
+getUserById(Long userId)
+
+getUserByEmail(String email)
+
+getBookingById(Long bookingId)
+
+getBookingsByRenter(String emailId)
+
+getBookingsByCar(Long carId)
+
+getBookingsByHost(String emailId)
+
+getCarById(Long carId)
+
+getAllCarsForSpecificHost(String email)
+
 

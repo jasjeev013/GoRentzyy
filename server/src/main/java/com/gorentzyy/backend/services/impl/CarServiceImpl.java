@@ -11,6 +11,7 @@ import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.CarService;
 import com.gorentzyy.backend.services.CloudinaryService;
+import com.gorentzyy.backend.services.RedisService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,11 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CarServiceImpl implements CarService {
@@ -38,13 +38,16 @@ public class CarServiceImpl implements CarService {
     private final ModelMapper modelMapper;
     private final CloudinaryService cloudinaryService;
 
+    private final RedisService redisService;
+
 
     @Autowired
-    public CarServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper, CloudinaryService cloudinaryService) {
+    public CarServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper, CloudinaryService cloudinaryService, RedisService redisService) {
         this.userRepository = userRepository;
         this.carRepository = carRepository;
         this.modelMapper = modelMapper;
         this.cloudinaryService = cloudinaryService;
+        this.redisService = redisService;
     }
 
     @Override
@@ -144,6 +147,16 @@ public class CarServiceImpl implements CarService {
     public ResponseEntity<ApiResponseObject> getCarById(Long carId) {
 
         try {
+
+            if (redisService != null) {
+                Optional<CarDto> cachedCar = redisService.get(String.valueOf(carId), CarDto.class);
+                if (cachedCar.isPresent()) {
+                    logger.debug("User found in cache for carId: {}", carId);
+                    return ResponseEntity.ok(
+                            new ApiResponseObject("User found in cache", true, cachedCar.get())
+                    );
+                }
+            }
             // Log the attempt to fetch the car
             logger.info("Attempting to fetch car with ID: {}", carId);
 
@@ -155,9 +168,23 @@ public class CarServiceImpl implements CarService {
             // Log successful retrieval of the car
             logger.info("Car with ID {} found.", carId);
 
+            CarDto existingCarDto = modelMapper.map(existingCar, CarDto.class);
+
+            if (redisService != null) {
+                try {
+                    // Cache asynchronously to not block the response
+                    CompletableFuture.runAsync(() -> {
+                        redisService.set(String.valueOf(carId), existingCarDto, Duration.ofMinutes(10));
+                        logger.debug("Cached user data for userId: {}", carId);
+                    });
+                } catch (Exception e) {
+                    logger.error("Failed to cache user data for carId: {}", carId, e);
+                    // Don't fail the request if caching fails
+                }
+            }
             // Return the response with the car data
             return new ResponseEntity<>(new ApiResponseObject(
-                    "The car is found", true, modelMapper.map(existingCar, CarDto.class)
+                    "The car is found", true,existingCarDto
             ), HttpStatus.OK);
 
         } catch (CarNotFoundException ex) {
@@ -211,6 +238,16 @@ public class CarServiceImpl implements CarService {
     @Override
     public ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(String email) {
         try {
+
+            if (redisService != null) {
+                Optional<List<CarDto>> cachedCars = redisService.getList(email +"SpecificHost", CarDto.class);
+                if (cachedCars.isPresent()) {
+                    logger.debug("Bookings found in cache for email Id: {}", email);
+                    return ResponseEntity.ok(
+                            new ApiResponseData("Bookings found in cache", true, Collections.singletonList(cachedCars))
+                    );
+                }
+            }
             // Step 1: Fetch the user and validate existence
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UserNotFoundException("User with ID " + email + " does not exist."));
@@ -233,6 +270,19 @@ public class CarServiceImpl implements CarService {
             List<CarDto> carDtos = cars.stream()
                     .map(car -> modelMapper.map(car, CarDto.class))
                     .toList();
+
+            if (null!= redisService) {
+                try {
+                    // Cache asynchronously to not block the response
+                    CompletableFuture.runAsync(() -> {
+                        redisService.setList(email + "SpecificHost", carDtos, Duration.ofMinutes(10));
+                        logger.debug("Cached user data for email Id: {}", email);
+                    });
+                } catch (Exception e) {
+                    logger.error("Failed to cache user data for email Id: {}", email, e);
+                    // Don't fail the request if caching fails
+                }
+            }
 
             // Log successful fetching of cars
             logger.info("Fetched {} cars for host with ID {}", carDtos.size(), email);

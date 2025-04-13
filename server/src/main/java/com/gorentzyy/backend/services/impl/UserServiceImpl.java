@@ -204,7 +204,7 @@ public class UserServiceImpl implements UserService {
             throw new DatabaseException("An unexpected error occurred while updating the user.");
         }
     }
-
+    // Redis Enabled
     @Override
     public ResponseEntity<ApiResponseObject> getUserById(Long userId) {
 
@@ -212,6 +212,16 @@ public class UserServiceImpl implements UserService {
         logger.info("Fetching user with ID: {}", userId);
 
         try {
+
+            if (redisService != null) {
+                Optional<UserDto> cachedUser = redisService.get(String.valueOf(userId), UserDto.class);
+                if (cachedUser.isPresent()) {
+                    logger.debug("User found in cache for userId: {}", userId);
+                    return ResponseEntity.ok(
+                            new ApiResponseObject("User found in cache", true, cachedUser.get())
+                    );
+                }
+            }
             // Check if the user exists by userId
             User existingUser = userRepository.findById(userId).orElseThrow(() ->
                     new UserNotFoundException("User with ID " + userId + " does not exist.")
@@ -220,9 +230,23 @@ public class UserServiceImpl implements UserService {
             // Log the successful user retrieval
             logger.info("User with ID {} found.", userId);
 
+            UserDto exisitingUserDto = modelMapper.map(existingUser, UserDto.class);
+            if (redisService != null) {
+                try {
+                    // Cache asynchronously to not block the response
+                    CompletableFuture.runAsync(() -> {
+                        redisService.set(String.valueOf(userId), exisitingUserDto, Duration.ofMinutes(10));
+                        logger.debug("Cached user data for userId: {}", userId);
+                    });
+                } catch (Exception e) {
+                    logger.error("Failed to cache user data for userId: {}", userId, e);
+                    // Don't fail the request if caching fails
+                }
+            }
+
             // Return a response with user information
             return new ResponseEntity<>(new ApiResponseObject(
-                    "The user is found", true, modelMapper.map(existingUser, UserDto.class)
+                    "The user is found", true, exisitingUserDto
             ), HttpStatus.OK);
 
         } catch (UserNotFoundException ex) {
@@ -237,7 +261,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    // Explanation: If return type: NO CONTENT then no response body should be returned
+
     @Override
     public ResponseEntity<ApiResponseObject> deleteUserByEmail(String email) {
 
@@ -277,7 +301,7 @@ public class UserServiceImpl implements UserService {
             throw new DatabaseException("An error occurred while deleting the user.");
         }
     }
-
+    // Redis Enabled
     @Override
     public ResponseEntity<ApiResponseObject> getUserByEmail(String email) {
         logger.info("Fetching user by email: {}", email);

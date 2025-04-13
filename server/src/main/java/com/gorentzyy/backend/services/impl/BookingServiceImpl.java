@@ -14,6 +14,7 @@ import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.BookingService;
 import com.gorentzyy.backend.services.EmailService;
+import com.gorentzyy.backend.services.RedisService;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +26,13 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class BookingServiceImpl implements BookingService {
@@ -40,14 +44,16 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final EmailService emailService;
+    private final RedisService redisService;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository, CarRepository carRepository, UserRepository userRepository, ModelMapper modelMapper, EmailService emailService) {
+    public BookingServiceImpl(BookingRepository bookingRepository, CarRepository carRepository, UserRepository userRepository, ModelMapper modelMapper, EmailService emailService, RedisService redisService) {
         this.bookingRepository = bookingRepository;
         this.carRepository = carRepository;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.emailService = emailService;
+        this.redisService = redisService;
     }
 
     private double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
@@ -197,15 +203,38 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public ResponseEntity<ApiResponseObject> getBookingById(Long bookingId) {
         try {
+
+            if (redisService != null) {
+                Optional<BookingDto> cachedBookings = redisService.get(String.valueOf(bookingId), BookingDto.class);
+                if (cachedBookings.isPresent()) {
+                    logger.debug("Booking found in cache for bookingId: {}", bookingId);
+                    return ResponseEntity.ok(
+                            new ApiResponseObject("Booking found in cache", true, cachedBookings.get())
+                    );
+                }
+            }
             // Step 1: Check if the booking exists by ID
             Booking existingBooking = bookingRepository.findById(bookingId).orElseThrow(() ->
                     new BookingNotFoundException("Booking with ID " + bookingId + " does not exist.")
             );
             logger.info("Booking with ID {} fetched successfully.", bookingId);
 
+            BookingDto exisitingBookingDto = modelMapper.map(existingBooking, BookingDto.class);
+            if (null!= redisService) {
+                try {
+                    // Cache asynchronously to not block the response
+                    CompletableFuture.runAsync(() -> {
+                        redisService.set(String.valueOf(bookingId), exisitingBookingDto, Duration.ofMinutes(10));
+                        logger.debug("Cached user data for userId: {}", bookingId);
+                    });
+                } catch (Exception e) {
+                    logger.error("Failed to cache user data for userId: {}", bookingId, e);
+                    // Don't fail the request if caching fails
+                }
+            }
             // Step 2: Return the successful response with the booking data
             return new ResponseEntity<>(new ApiResponseObject(
-                    "Booking fetched successfully", true, modelMapper.map(existingBooking, BookingDto.class)
+                    "Booking fetched successfully", true, exisitingBookingDto
             ), HttpStatus.OK);
 
         } catch (BookingNotFoundException ex) {
@@ -265,6 +294,16 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public ResponseEntity<ApiResponseData> getBookingsByRenter(String emailId) {
         try {
+
+            if (redisService != null) {
+                Optional<List<BookingDto>> cachedBooking = redisService.getList(emailId +"renter", BookingDto.class);
+                if (cachedBooking.isPresent()) {
+                    logger.debug("Bookings found in cache for email: {}", emailId);
+                    return ResponseEntity.ok(
+                            new ApiResponseData("Bookings found in cache", true, Collections.singletonList(cachedBooking))
+                    );
+                }
+            }
             // Step 1: Check if the renter exists
             User renter = userRepository.findByEmail(emailId).orElseThrow(() ->
                     new UserNotFoundException("User not found with id: " + emailId)
@@ -286,6 +325,19 @@ public class BookingServiceImpl implements BookingService {
                     .map(booking -> modelMapper.map(booking, BookingDto.class))
                     .toList();
 
+            if (null!= redisService) {
+                try {
+                    // Cache asynchronously to not block the response
+                    CompletableFuture.runAsync(() -> {
+                        redisService.setList(emailId +"renter", bookingDtos, Duration.ofMinutes(10));
+                        logger.debug("Cached user data for email Id: {}", emailId);
+                    });
+                } catch (Exception e) {
+                    logger.error("Failed to cache user data for email: {}", emailId, e);
+                    // Don't fail the request if caching fails
+                }
+            }
+
             // Step 4: Return the response with the list of bookings
             return new ResponseEntity<>(new ApiResponseData(
                     "All bookings fetched successfully", true, Collections.singletonList(bookingDtos)
@@ -306,6 +358,16 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public ResponseEntity<ApiResponseData> getBookingsByCar(Long carId) {
         try {
+
+            if (redisService != null) {
+                Optional<List<BookingDto>> cachedBooking = redisService.getList(carId +"car", BookingDto.class);
+                if (cachedBooking.isPresent()) {
+                    logger.debug("Bookings found in cache for car Id: {}", carId);
+                    return ResponseEntity.ok(
+                            new ApiResponseData("Bookings found in cache", true, Collections.singletonList(cachedBooking))
+                    );
+                }
+            }
             // Step 1: Validate if the car exists
             Car car = carRepository.findById(carId).orElseThrow(() ->
                     new CarNotFoundException("Car not found with id: " + carId)
@@ -327,6 +389,19 @@ public class BookingServiceImpl implements BookingService {
                     .map(booking -> modelMapper.map(booking, BookingDto.class))
                     .toList();
 
+            if (null!= redisService) {
+                try {
+                    // Cache asynchronously to not block the response
+                    CompletableFuture.runAsync(() -> {
+                        redisService.setList(carId + "car", bookingDtos, Duration.ofMinutes(10));
+                        logger.debug("Cached user data for car Id: {}", carId);
+                    });
+                } catch (Exception e) {
+                    logger.error("Failed to cache user data for car Id: {}", carId, e);
+                    // Don't fail the request if caching fails
+                }
+            }
+
             // Step 4: Return the list of booking DTOs with success message
             return new ResponseEntity<>(new ApiResponseData(
                     "All bookings fetched successfully", true, Collections.singletonList(bookingDtos)
@@ -347,6 +422,17 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public ResponseEntity<ApiResponseData> getBookingsByHost(String emailId) {
         try {
+
+
+            if (redisService != null) {
+                Optional<List<BookingDto>> cachedBooking = redisService.getList(emailId +"host", BookingDto.class);
+                if (cachedBooking.isPresent()) {
+                    logger.debug("Bookings found in cache for email Id: {}", emailId);
+                    return ResponseEntity.ok(
+                            new ApiResponseData("Bookings found in cache", true, Collections.singletonList(cachedBooking))
+                    );
+                }
+            }
             // Step 1: Validate that the host exists
             User host = userRepository.findByEmail(emailId).orElseThrow(() ->
                     new UserNotFoundException("User not found with Email id: " + emailId)
@@ -367,6 +453,19 @@ public class BookingServiceImpl implements BookingService {
             List<BookingDto> bookingDtos = bookings.stream()
                     .map(booking -> modelMapper.map(booking, BookingDto.class))
                     .toList();
+
+            if (null!= redisService) {
+                try {
+                    // Cache asynchronously to not block the response
+                    CompletableFuture.runAsync(() -> {
+                        redisService.setList(emailId + "car", bookingDtos, Duration.ofMinutes(10));
+                        logger.debug("Cached user data for email Id: {}", emailId);
+                    });
+                } catch (Exception e) {
+                    logger.error("Failed to cache user data for email Id: {}", emailId, e);
+                    // Don't fail the request if caching fails
+                }
+            }
 
             // Step 4: Return the response with the list of bookings
             return new ResponseEntity<>(new ApiResponseData(
