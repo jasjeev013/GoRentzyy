@@ -23,7 +23,7 @@ const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
                 <div className="space-x-16 px-10">
                     <a href="/home" className=" hover:text-gray-400">Home</a>
                     <a href="/rent" className=" hover:text-gray-400">Rent a Car</a>
-                    <a href="/services" className=" hover:text-gray-400">Services</a>
+                    <a href="/fleet" className=" hover:text-gray-400">Fleet</a>
                     <a href="/works" className=" hover:text-gray-400">How it works</a>
                     <a href="/login" className=" hover:text-gray-400">Login</a>
                 </div>

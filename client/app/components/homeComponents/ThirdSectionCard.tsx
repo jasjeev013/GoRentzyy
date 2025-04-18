@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
-import { BackgroundGradient } from '../../components/ui/background-gradient'
+import { BackgroundGradient } from '../../../components/ui/background-gradient'
 
 const ThirdSectionCard = () => {
     return (

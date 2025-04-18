@@ -1,14 +1,14 @@
 import React from 'react'
-import Navbar from '../components/Navbar'
-import NavbarWrapper from '../components/NavbarWrapper'
-import FirstSection from '../components/FirstSection'
-import SecondInfiniteScrollSection from '../components/SecondInfiniteScrollSection'
-import ThirdSectionCard from '../components/ThirdSectionCard'
-import FifthFindCarSection from '../components/FifthFindCarSection'
-import FourCarDetailsSection from '../components/FourCarDetailsSection'
-import SixthReviewSection from '../components/SixthReviewSection'
-import SevenFAQSection from '../components/SevenFAQSection'
-import EightFooterSection from '../components/EightFooterSection'
+import Navbar from '../components/navbarComponents/Navbar'
+import NavbarWrapper from '../components/navbarComponents/NavbarWrapper'
+import FirstSection from '../components/homeComponents/FirstSection'
+import SecondInfiniteScrollSection from '../components/homeComponents/SecondInfiniteScrollSection'
+import ThirdSectionCard from '../components/homeComponents/ThirdSectionCard'
+import FifthFindCarSection from '../components/homeComponents/FifthFindCarSection'
+import FourCarDetailsSection from '../components/homeComponents/FourCarDetailsSection'
+import SixthReviewSection from '../components/homeComponents/SixthReviewSection'
+import SevenFAQSection from '../components/homeComponents/SevenFAQSection'
+import EightFooterSection from '../components/homeComponents/EightFooterSection'
 
 
 const page = () => {
@@ -16,12 +16,11 @@ const page = () => {
     <>
 
       <div className="w-full min-h-screen flex items-center justify-center">
-        <div className="w-[calc(100%-18rem)] min-h-screen border-l-[1px] border-r-[1px] border-white/30 ">
+        <div className="w-[calc(100%-18rem)] min-h-screen  ">
           {/* <div className="bg-black p-4 h-full"></div>
           <p className="text-white">This is a centered div with 3rem space on both sides and a white border on left and right with 10% transparency.</p> */}
 
 
-          <NavbarWrapper />
           <FirstSection />
           <SecondInfiniteScrollSection />
           <ThirdSectionCard />
