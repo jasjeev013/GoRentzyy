@@ -12,20 +12,20 @@ import {
 } from "../../../@/components/ui/dropdown-menu"
 
 const DropdownMenuC = () => {
-    const [position, setPosition] = useState("bottom")
+    const [position, setPosition] = useState("Delhi")
     return (
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className='w-full'>Open</Button>
+                    <Button variant="outline" className='w-full'>{position}</Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                    <DropdownMenuLabel>Panel Position</DropdownMenuLabel>
+                <DropdownMenuContent className="w-70">
+                    <DropdownMenuLabel>Choose Location</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
-                        <DropdownMenuRadioItem value="top">Top</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="bottom">Bottom</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="right">Right</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="Delhi">Delhi</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="Banglore">Banglore</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="Hyderabad">Hyderabad</DropdownMenuRadioItem>
                     </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
             </DropdownMenu>

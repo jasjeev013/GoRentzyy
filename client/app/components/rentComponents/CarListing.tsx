@@ -1,8 +1,10 @@
 import React from 'react'
 import { useState } from 'react';
-import { FiGrid, FiList} from 'react-icons/fi';
-import { FaGasPump,  FaSuitcaseRolling, FaUserFriends } from 'react-icons/fa';
+import { FiGrid, FiList } from 'react-icons/fi';
+import { FaGasPump, FaSuitcaseRolling, FaUserFriends } from 'react-icons/fa';
 import { GiGearStickPattern } from 'react-icons/gi';
+import Car from './Car'; // Adjust the path if the Car component is in a different directory
+
 const CarListing = () => {
     const [gridView, setGridView] = useState(true);
 
@@ -10,7 +12,55 @@ const CarListing = () => {
         {
             id: 1,
             name: "Maruti Swift",
-            image: "/cars/swift.jpg",
+            image: "https://zoomcar-assets.zoomcar.com/713948/HostCarImage/RackMultipart20240721-30-1761pgdf93bc06c-fc4d-4b96-9d75-078e095332cd.jpg",
+            segment: "Economy",
+            plans: [
+                { km: 120, price: 1499 },
+                { km: 300, price: 1999 },
+                { km: "Unlimited", price: 2499 }
+            ],
+            transmission: "Manual",
+            fuel: "Petrol",
+            seats: 5,
+            luggage: 2,
+            available: true
+        },
+        {
+            id: 2,
+            name: "Maruti Swift",
+            image: "https://zoomcar-assets.zoomcar.com/820902/HostCarImage/RackMultipart20241117-32-m3te5y1c250dc0-1a49-416e-89bf-bfff74ace3f9.jpg",
+            segment: "Economy",
+            plans: [
+                { km: 120, price: 1499 },
+                { km: 300, price: 1999 },
+                { km: "Unlimited", price: 2499 }
+            ],
+            transmission: "Manual",
+            fuel: "Petrol",
+            seats: 5,
+            luggage: 2,
+            available: true
+        },
+        {
+            id: 3,
+            name: "Maruti Swift",
+            image: "https://zoomcar-assets.zoomcar.com/734351/HostCarImage/mini_magick20241205-3999-yaei192a2634ad-7241-43de-bc06-5db507bd38b7.jpeg",
+            segment: "Economy",
+            plans: [
+                { km: 120, price: 1499 },
+                { km: 300, price: 1999 },
+                { km: "Unlimited", price: 2499 }
+            ],
+            transmission: "Manual",
+            fuel: "Petrol",
+            seats: 5,
+            luggage: 2,
+            available: true
+        },
+        {
+            id: 4,
+            name: "Maruti Swift",
+            image: "https://zoomcar-assets.zoomcar.com/774243/HostCarImage/mini_magick20241205-3999-3jt9lye11e0499-5b30-4a63-b306-2b663f8aa666.jpeg",
             segment: "Economy",
             plans: [
                 { km: 120, price: 1499 },
@@ -28,12 +78,14 @@ const CarListing = () => {
 
     return (
         <>
+
             <div className="w-full md:w-3/4">
+
                 {/* Sorting Options */}
-                <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex justify-between items-center">
+                <div className=" p-4 rounded-lg shadow-sm mb-6 flex justify-between items-center">
                     <div className="flex items-center">
                         <span className="mr-2">Sort by:</span>
-                        <select className="p-2 border rounded-lg">
+                        <select className="p-2 bg-black border rounded-lg">
                             <option>Price: Low to High</option>
                             <option>Price: High to Low</option>
                         </select>
@@ -57,55 +109,21 @@ const CarListing = () => {
                 {/* Car Cards */}
                 <div className={`${gridView ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'flex flex-col'} gap-6`}>
                     {cars.map(car => (
-                        <div key={car.id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition">
-                            <div className="relative">
-                                <img src={car.image} alt={car.name} className="w-full h-48 object-cover" />
-                                <span className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded">
-                                    {car.segment}
-                                </span>
-                                {!car.available && (
-                                    <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                                        Sold Out
-                                    </span>
-                                )}
-                            </div>
 
-                            <div className="p-4">
-                                <h3 className="font-bold text-lg">{car.name}</h3>
+                        <Car
+                            key={car.id}
+                            id={car.id}
+                            image={car.image}
+                            name={car.name}
+                            segment={car.segment}
+                            available={car.available}
+                            plans={car.plans}
+                            transmission = {car.transmission}
+                            fuel = {car.fuel}
+                            luggage = {car.luggage}
+                            seats = {car.seats}
 
-                                {/* Pricing Plans */}
-                                <div className="flex justify-between my-4">
-                                    {car.plans.map((plan, i) => (
-                                        <div key={i} className="text-center">
-                                            <p className="text-xs text-gray-500">{plan.km}km/day</p>
-                                            <p className="font-bold">₹{plan.price}</p>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Car Features */}
-                                <div className="flex justify-between text-sm text-gray-600 mb-4">
-                                    <div className="flex items-center">
-                                        <GiGearStickPattern className="mr-1" /> {car.transmission}
-                                    </div>
-                                    <div className="flex items-center">
-                                        <FaGasPump className="mr-1" /> {car.fuel}
-                                    </div>
-                                    <div className="flex items-center">
-                                        <FaSuitcaseRolling className="mr-1" /> {car.luggage}
-                                    </div>
-                                    <div className="flex items-center">
-                                        <FaUserFriends className="mr-1" /> {car.seats}
-                                    </div>
-                                </div>
-
-                                <p className="text-xs text-gray-500 mb-3">Extra km charges: ₹7/km</p>
-
-                                <button className="w-full border border-purple-600 text-purple-600 py-2 rounded-lg hover:bg-purple-50 transition">
-                                    View Details
-                                </button>
-                            </div>
-                        </div>
+                        />
                     ))}
                 </div>
             </div>
