@@ -48,13 +48,19 @@ public class CarDto implements Serializable {
     private List<String> photos = new ArrayList<>();
 
     @NotNull(message = "Category is required")
-    private AppConstants.Category category;
+    private AppConstants.CarCategory carCategory;
 
     @NotNull(message = "Fuel type is required")
     private AppConstants.FuelType fuelType;
 
+    @NotNull(message = "Transmission Mode is required")
+    private AppConstants.TransmissionMode transmissionMode;
+
     @Min(value = 1, message = "Seating capacity must be at least 1")
     private int seatingCapacity;
+
+    @Min(value = 1, message = "Luggage capacity must be at least 1")
+    private int luggageCapacity;;
 
     @Positive(message = "Rental price per day must be positive")
     private double rentalPricePerDay;

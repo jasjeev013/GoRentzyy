@@ -1,16 +1,18 @@
 import React from 'react'
 import { FaGasPump, FaSuitcaseRolling, FaUserFriends } from 'react-icons/fa';
 import { GiGearStickPattern } from 'react-icons/gi';
-const Car = ({id,image,name,segment,available,plans,transmission,fuel,luggage,seats}) => {
+const Car = ({ carId, photos, name, category, availabilityStatus,rentalPricePerDay,rentalPricePerWeek,rentalPricePerMonth, transmissionMode, fuelType, luggageCapacity, seatingCapacity }) => {
+    console.log(photos[0])
     return (
         <>
-            <div key={id} className="bg-[#180D0D] rounded-lg shadow-sm overflow-hidden hover:shadow-md transition">
+            <div key={carId} className="bg-[#180D0D] rounded-lg shadow-sm overflow-hidden hover:shadow-md transition">
                 <div className="relative">
-                    <img src={image} alt={name} className="w-full h-48 object-cover" />
+                   
+                    <img src={photos[0]} alt={name} className="w-full h-48 object-cover" />
                     <span className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded">
-                        {segment}
+                        {category}
                     </span>
-                    {!available && (
+                    {!availabilityStatus && (
                         <span className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
                             Sold Out
                         </span>
@@ -22,27 +24,35 @@ const Car = ({id,image,name,segment,available,plans,transmission,fuel,luggage,se
 
                     {/* Pricing Plans */}
                     <div className="flex justify-between my-4">
-                        {plans.map((plan, i) => (
-                            <div key={i} className="text-center">
-                                <p className="text-xs text-gray-500">{plan.km}km/day</p>
-                                <p className="font-bold">₹{plan.price}</p>
-                            </div>
-                        ))}
+
+                        <div  className="text-center">
+                            <p className="font-bold">₹{rentalPricePerDay}</p>
+                            <p className="text-xs text-gray-500">Per Day</p>
+                        </div>
+                        <div  className="text-center">
+                            <p className="font-bold">₹{rentalPricePerWeek}</p>
+                            <p className="text-xs text-gray-500">Per Week</p>
+                        </div>
+                        <div  className="text-center">
+                            <p className="font-bold">₹{rentalPricePerMonth}</p>
+                            <p className="text-xs text-gray-500">Per Month</p>
+                        </div>
+
                     </div>
 
                     {/* Car Features */}
                     <div className="flex justify-between text-sm text-gray-600 mb-4">
                         <div className="flex items-center">
-                            <GiGearStickPattern className="mr-1" /> {transmission}
+                            <GiGearStickPattern className="mr-1" /> {transmissionMode}
                         </div>
                         <div className="flex items-center">
-                            <FaGasPump className="mr-1" /> {fuel}
+                            <FaGasPump className="mr-1" /> {fuelType}
                         </div>
                         <div className="flex items-center">
-                            <FaSuitcaseRolling className="mr-1" /> {luggage}
+                            <FaSuitcaseRolling className="mr-1" /> {luggageCapacity}
                         </div>
                         <div className="flex items-center">
-                            <FaUserFriends className="mr-1" /> {seats}
+                            <FaUserFriends className="mr-1" /> {seatingCapacity}
                         </div>
                     </div>
 

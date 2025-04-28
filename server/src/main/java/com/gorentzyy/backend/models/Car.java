@@ -35,12 +35,16 @@ public class Car {
     private List<String> photos = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    private AppConstants.Category category;
+    private AppConstants.CarCategory carCategory;
 
     @Enumerated(EnumType.STRING)
     private AppConstants.FuelType fuelType;
 
+    @Enumerated(EnumType.STRING)
+    private AppConstants.TransmissionMode transmissionMode;
+
     private int seatingCapacity;
+    private int luggageCapacity;
 
     // Base rental prices
     private double rentalPricePerDay;     // Price for daily rentals

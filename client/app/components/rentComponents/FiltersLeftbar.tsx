@@ -17,44 +17,54 @@ interface SelectedFilters {
   addon: string[];
 }
 
-const FiltersLeftbar = () => {
+interface Filters {
+  category: string[];
+  fuelType: string[];
+  transmission: string[];
+  luggage: string[];
+  minPrice: number;
+  maxPrice: number;
+  minYear: number;
+  maxYear: number;
+  seatingCapacity: number;
+}
+
+interface FiltersLeftbarProps {
+  onFilterChange: (filters: Filters) => void;
+  currentFilters: Filters;
+}
+
+const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps) => {
   const [showMoreSegments, setShowMoreSegments] = useState(false);
-  const [selectedFilters, setSelectedFilters] = useState<SelectedFilters>({
-    segment: [],
-    fuelType: [],
-    transmission: [],
-    luggage: [],
-    rating: [],
-    addon: []
-  });
 
-  const [distance, setDistance] = useState([50]);
-  const [priceRange, setPriceRange] = useState([0, 10000]);
-  const [seatingCapacity, setSeatingCapacity] = useState([5]);
-  const [yearRange, setYearRange] = useState([2018, 2023]);
+  const handleFilterChange = (filterType: keyof Filters, value: any) => {
+    onFilterChange({
+      ...currentFilters,
+      [filterType]: value
+    });
+  };
 
-  const toggleFilter = (category: FilterCategory, value: string) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      [category]: prev[category].includes(value)
-        ? prev[category].filter(item => item !== value)
-        : [...prev[category], value]
-    }));
+  const toggleArrayFilter = (filterType: keyof Filters, value: string) => {
+    const currentValues = currentFilters[filterType] as string[];
+    const newValues = currentValues.includes(value)
+      ? currentValues.filter(item => item !== value)
+      : [...currentValues, value];
+    
+    handleFilterChange(filterType, newValues);
   };
 
   const clearAllFilters = () => {
-    setSelectedFilters({
-      segment: [],
+    onFilterChange({
+      category: [],
       fuelType: [],
       transmission: [],
       luggage: [],
-      rating: [],
-      addon: []
+      minPrice: 0,
+      maxPrice: 10000,
+      minYear: 2000,
+      maxYear: 2023,
+      seatingCapacity: 5,
     });
-    setDistance([50]);
-    setPriceRange([0, 10000]);
-    setSeatingCapacity([5]);
-    setYearRange([2018, 2023]);
   };
 
   return (
@@ -73,49 +83,19 @@ const FiltersLeftbar = () => {
         </Button>
       </div>
 
-      {/* Segment Filter */}
+      {/* Category Filter */}
       <div className="mb-6">
-        <h3 className="font-semibold mb-3">Segment</h3>
-        {['Subscription', 'Super Economy', 'Economy', 'Compact'].map(segment => (
-          <div key={segment} className="flex items-center space-x-2 mb-2">
+        <h3 className="font-semibold mb-3">Category</h3>
+        {['Luxury', 'Economy', 'SUV', 'Other'].map(category => (
+          <div key={category} className="flex items-center space-x-2 mb-2">
             <Checkbox
-              id={`segment-${segment}`}
-              checked={selectedFilters.segment.includes(segment)}
-              onCheckedChange={() => toggleFilter('segment', segment)}
+              id={`category-${category}`}
+              checked={currentFilters.category.includes(category)}
+              onCheckedChange={() => toggleArrayFilter('category', category)}
             />
-            <Label htmlFor={`segment-${segment}`}>{segment}</Label>
+            <Label htmlFor={`category-${category}`}>{category}</Label>
           </div>
         ))}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-primary hover:text-primary mt-2 pl-0"
-          onClick={() => setShowMoreSegments(!showMoreSegments)}
-        >
-          {showMoreSegments ? (
-            <FiChevronUp className="mr-1" />
-          ) : (
-            <FiChevronDown className="mr-1" />
-          )}
-          View {showMoreSegments ? 'Less' : 'More'}
-        </Button>
-      </div>
-
-      {/* Distance Filter */}
-      <div className="mb-6">
-        <h3 className="font-semibold mb-3">Distance (km)</h3>
-        <Slider
-          value={distance}
-          onValueChange={setDistance}
-          min={0}
-          max={100}
-          step={1}
-        />
-        <div className="flex justify-between text-sm text-muted-foreground mt-2">
-          <span>0 km</span>
-          <span>{distance[0]} km</span>
-          <span>100 km</span>
-        </div>
       </div>
 
       {/* Price Range */}
@@ -124,21 +104,24 @@ const FiltersLeftbar = () => {
         <div className="flex items-center gap-2 mb-3">
           <Input
             type="number"
-            value={priceRange[0]}
-            onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+            value={currentFilters.minPrice}
+            onChange={(e) => handleFilterChange('minPrice', Number(e.target.value))}
             className="w-full"
           />
           <span className="text-muted-foreground">to</span>
           <Input
             type="number"
-            value={priceRange[1]}
-            onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+            value={currentFilters.maxPrice}
+            onChange={(e) => handleFilterChange('maxPrice', Number(e.target.value))}
             className="w-full"
           />
         </div>
         <Slider
-          value={priceRange}
-          onValueChange={setPriceRange}
+          value={[currentFilters.minPrice, currentFilters.maxPrice]}
+          onValueChange={(value) => {
+            handleFilterChange('minPrice', value[0]);
+            handleFilterChange('maxPrice', value[1]);
+          }}
           min={0}
           max={10000}
           step={100}
@@ -146,82 +129,55 @@ const FiltersLeftbar = () => {
         />
       </div>
 
-      {/* Fuel Type */}
-      <div className="mb-6">
+     {/* Fuel Type */}
+     <div className="mb-6">
         <h3 className="font-semibold mb-3">Fuel Type</h3>
-        {['CNG', 'Petrol', 'Diesel', 'Electric'].map(fuel => (
+        {['CNG', 'Petrol', 'Diesel', 'Electric', 'Other'].map(fuel => (
           <div key={fuel} className="flex items-center space-x-2 mb-2">
             <Checkbox
               id={`fuel-${fuel}`}
-              checked={selectedFilters.fuelType.includes(fuel)}
-              onCheckedChange={() => toggleFilter('fuelType', fuel)}
+              checked={currentFilters.fuelType.includes(fuel)}
+              onCheckedChange={() => toggleArrayFilter('fuelType', fuel)}
             />
             <Label htmlFor={`fuel-${fuel}`}>{fuel}</Label>
           </div>
         ))}
       </div>
 
-      {/* Transmission */}
-      <div className="mb-6">
+    
+
+     {/* Transmission */}
+     <div className="mb-6">
         <h3 className="font-semibold mb-3">Transmission</h3>
         {['Manual', 'Automatic', 'IMT'].map(transmission => (
           <div key={transmission} className="flex items-center space-x-2 mb-2">
             <Checkbox
               id={`transmission-${transmission}`}
-              checked={selectedFilters.transmission.includes(transmission)}
-              onCheckedChange={() => toggleFilter('transmission', transmission)}
+              checked={currentFilters.transmission.includes(transmission)}
+              onCheckedChange={() => toggleArrayFilter('transmission', transmission)}
             />
             <Label htmlFor={`transmission-${transmission}`}>{transmission}</Label>
           </div>
         ))}
       </div>
-
-      {/* Seating Capacity */}
-      <div className="mb-6">
+     {/* Seating Capacity */}
+     <div className="mb-6">
         <h3 className="font-semibold mb-3">Seating Capacity</h3>
         <Slider
-          value={seatingCapacity}
-          onValueChange={setSeatingCapacity}
+          value={[currentFilters.seatingCapacity]}
+          onValueChange={(value) => handleFilterChange('seatingCapacity', value[0])}
           min={2}
-          max={8}
+          max={12}
           step={1}
         />
         <div className="flex justify-between text-sm text-muted-foreground mt-2">
           <span>2 seats</span>
-          <span>{seatingCapacity[0]} seats</span>
-          <span>8 seats</span>
+          <span>{currentFilters.seatingCapacity} seats</span>
+          <span>12 seats</span>
         </div>
       </div>
 
-      {/* Luggage Capacity */}
-      <div className="mb-6">
-        <h3 className="font-semibold mb-3">Luggage Capacity</h3>
-        {['Small (1-2 bags)', 'Medium (3-4 bags)', 'Large (5+ bags)'].map(size => (
-          <div key={size} className="flex items-center space-x-2 mb-2">
-            <Checkbox
-              id={`luggage-${size}`}
-              checked={selectedFilters.luggage.includes(size)}
-              onCheckedChange={() => toggleFilter('luggage', size)}
-            />
-            <Label htmlFor={`luggage-${size}`}>{size}</Label>
-          </div>
-        ))}
-      </div>
-
-      {/* User Rating */}
-      <div className="mb-6">
-        <h3 className="font-semibold mb-3">User Rating</h3>
-        {['4.5+', '4.0+', '3.5+', '3.0+'].map(rating => (
-          <div key={rating} className="flex items-center space-x-2 mb-2">
-            <Checkbox
-              id={`rating-${rating}`}
-              checked={selectedFilters.rating.includes(rating)}
-              onCheckedChange={() => toggleFilter('rating', rating)}
-            />
-            <Label htmlFor={`rating-${rating}`}>{rating} ★</Label>
-          </div>
-        ))}
-      </div>
+      
 
       {/* Model Year */}
       <div className="mb-6">
@@ -229,46 +185,32 @@ const FiltersLeftbar = () => {
         <div className="flex items-center gap-2 mb-3">
           <Input
             type="number"
-            value={yearRange[0]}
-            onChange={(e) => setYearRange([Number(e.target.value), yearRange[1]])}
+            value={currentFilters.minYear}
+            onChange={(e) => handleFilterChange('minYear', Number(e.target.value))}
             className="w-full"
           />
           <span className="text-muted-foreground">to</span>
           <Input
             type="number"
-            value={yearRange[1]}
-            onChange={(e) => setYearRange([yearRange[0], Number(e.target.value)])}
+            value={currentFilters.maxYear}
+            onChange={(e) => handleFilterChange('maxYear', Number(e.target.value))}
             className="w-full"
           />
         </div>
         <Slider
-          value={yearRange}
-          onValueChange={setYearRange}
+          value={[currentFilters.minYear, currentFilters.maxYear]}
+          onValueChange={(value) => {
+            handleFilterChange('minYear', value[0]);
+            handleFilterChange('maxYear', value[1]);
+          }}
           min={2000}
           max={2023}
           step={1}
           minStepsBetweenThumbs={1}
         />
       </div>
+   
 
-      {/* Add-ons */}
-      <div className="mb-6">
-        <h3 className="font-semibold mb-3">Add-ons</h3>
-        {['Active Fastag', 'GoRentzyy Assured', 'Guest Favourite', 'Comfy Pro Max'].map(addon => (
-          <div key={addon} className="flex items-center space-x-2 mb-2">
-            <Checkbox
-              id={`addon-${addon}`}
-              checked={selectedFilters.addon.includes(addon)}
-              onCheckedChange={() => toggleFilter('addon', addon)}
-            />
-            <Label htmlFor={`addon-${addon}`}>{addon}</Label>
-          </div>
-        ))}
-      </div>
-
-      <Button className="w-full mt-4">
-        Apply Filters
-      </Button>
     </div>
   );
 };

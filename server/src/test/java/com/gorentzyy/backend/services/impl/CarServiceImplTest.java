@@ -9,7 +9,6 @@ import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.CarDto;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
-import com.gorentzyy.backend.services.impl.CarServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,7 +52,7 @@ class CarServiceImplTest {
         carDto.setYear(2020);
         carDto.setColor("Blue");
         carDto.setRegistrationNumber("ABC123");
-        carDto.setCategory(AppConstants.Category.ECONOMY);
+        carDto.setCarCategory(AppConstants.CarCategory.ECONOMY);
         carDto.setFuelType(AppConstants.FuelType.PETROL);
         carDto.setSeatingCapacity(5);
         carDto.setRentalPricePerDay(50);
@@ -74,7 +73,7 @@ class CarServiceImplTest {
         car.setYear(2020);
         car.setColor("Blue");
         car.setRegistrationNumber("ABC123");
-        car.setCategory(AppConstants.Category.ECONOMY);
+        car.setCarCategory(AppConstants.CarCategory.ECONOMY);
         car.setFuelType(AppConstants.FuelType.PETROL);
         car.setSeatingCapacity(5);
         car.setRentalPricePerDay(50);

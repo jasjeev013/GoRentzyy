@@ -9,6 +9,9 @@ const page = () => {
                 <div className="w-[calc(100%-18rem)] min-h-screen  ">
                     <SearchBarSection />
                     <MainSection />
+
+                    {/* luggague capacity
+                    distance User Rating addons */}
                 </div>
             </div>
         </>
