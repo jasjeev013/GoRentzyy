@@ -5,7 +5,6 @@ public final class AppConstants {
     public enum Status {CONFIRMED, CANCELED, MODIFIED}
     public enum CarCategory {SEDAN, COUPE, HATCHBACK, CONVERTIBLE, WAGON, SUV, CROSSOVER, PICKUP_TRUCK, MINIVAN}
     public enum CarType {ECONOMY,LUXURY,SPORTS,SUPERCAR,ELECTRIC,HYBRID,OFF_ROAD}
-
     public enum FuelType {PETROL, DIESEL, ELECTRIC, CNG, OTHER}
     public enum AvailabilityStatus {AVAILABLE, RESERVED, UNDER_MAINTENANCE}
     public enum Type {BOOKING_CONFIRMATION, PAYMENT_ALERT, REMINDER, OTHER}

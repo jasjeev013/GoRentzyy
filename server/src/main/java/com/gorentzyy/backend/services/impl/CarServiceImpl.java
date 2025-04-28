@@ -120,6 +120,7 @@ public class CarServiceImpl implements CarService {
         existingCar.setYear(carDto.getYear());
         existingCar.setColor(carDto.getColor() != null ? carDto.getColor() : existingCar.getColor());
         existingCar.setCarCategory(carDto.getCarCategory() != null ? carDto.getCarCategory() : existingCar.getCarCategory());
+        existingCar.setCarType(carDto.getCarType() != null ? carDto.getCarType() : existingCar.getCarType());
         existingCar.setFuelType(carDto.getFuelType());
         existingCar.setTransmissionMode(carDto.getTransmissionMode());
         existingCar.setAvailabilityStatus(carDto.getAvailabilityStatus());

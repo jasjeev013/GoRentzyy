@@ -38,6 +38,9 @@ public class Car {
     private AppConstants.CarCategory carCategory;
 
     @Enumerated(EnumType.STRING)
+    private AppConstants.CarType carType;
+
+    @Enumerated(EnumType.STRING)
     private AppConstants.FuelType fuelType;
 
     @Enumerated(EnumType.STRING)

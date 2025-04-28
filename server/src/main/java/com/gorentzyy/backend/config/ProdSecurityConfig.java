@@ -7,11 +7,14 @@ import com.gorentzyy.backend.filter.JWTTokenValidatorFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -49,20 +52,43 @@ public class ProdSecurityConfig {
         http
                 .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                 .sessionManagement(smc -> smc.invalidSessionUrl("/invalidSession").maximumSessions(3).maxSessionsPreventsLogin(true)) //.expiredUrl()
+                .sessionManagement(smc -> smc.invalidSessionUrl("/invalidSession").maximumSessions(300).maxSessionsPreventsLogin(true))
                 .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
                 .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
-                .requiresChannel(rcc -> rcc.anyRequest().requiresSecure()) // Only HTTP
-                .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/api/user/get/{id}","/api/user/update/","/api/user/delete/","/api/user/get/email/").authenticated()
-                .requestMatchers("/api/car/**").authenticated()
-                .requestMatchers("/api/booking/**").authenticated()
-                .requestMatchers("/api/review/**").authenticated()
-                .requestMatchers("/api/promotion/**").authenticated()
-                .requestMatchers("/api/notification/**").authenticated()
-                .requestMatchers("/api/location/**").authenticated()
-                .requestMatchers("/api/test/**","/api/user/create","/invalidSession","/api/user/login","api/user/basicAuth/login").permitAll());
+//                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
+                .authorizeHttpRequests(auth -> auth
+                        // Public routes
+                        .requestMatchers("/api/user/create", "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
 
+                        // User routes (Authenticated)
+                        .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",
+                                "/api/user/delete").authenticated()
+
+                        // Car routes (Only for HOST)
+                        .requestMatchers("/api/car/create", "/api/car/update/{carId}",
+                                "/api/car/delete/{carId}").hasRole("HOST")
+
+                        .requestMatchers("/api/car/get/{carId}", "/api/car/getAll").authenticated()
+
+                        // Booking routes
+                        .requestMatchers("/api/booking/create/{carId}", "/api/booking/update/{bookingId}",
+                                "/api/booking/delete/{bookingId}", "/api/booking/getByRenter").hasRole("RENTER")
+                        .requestMatchers("/api/booking/get/{bookingId}").authenticated()
+                        .requestMatchers("/api/booking/getByCar/{carId}",
+                                "/api/booking/getByHost").hasRole("HOST")
+
+                        // Location routes (Only for HOST)
+                        .requestMatchers("/api/location/create/{carId}", "/api/location/update/{locationId}",
+                                "/api/location/delete/{locationId}").hasRole("HOST")
+                        .requestMatchers("/api/location/get/{locationId}").authenticated()
+
+                        // Notification, Payment, Promotion, Review (Authenticated)
+                        .requestMatchers("/api/notification/**", "/api/payment/**", "/api/promotion/**",
+                                "/api/review/**").authenticated()
+
+                        // All other requests must be authenticated
+                        .anyRequest().authenticated()
+                );
 //        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 //                .requestMatchers("/api/host/**").hasRole("HOST")
 //                .requestMatchers("/api/renter/**").hasRole("RENTER")
@@ -86,5 +112,13 @@ public class ProdSecurityConfig {
     public PasswordEncoder passwordEncoder(){
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
+    @Bean
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder){
+        GoRentzyyProdUsernamePwdAuthenticationProvider authenticationProvider =
+                new GoRentzyyProdUsernamePwdAuthenticationProvider(userDetailsService,passwordEncoder);
 
+        ProviderManager providerManager = new ProviderManager(authenticationProvider);
+        providerManager.setEraseCredentialsAfterAuthentication(false);
+        return providerManager;
+    }
 }

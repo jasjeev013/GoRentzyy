@@ -21,6 +21,7 @@ import io.jsonwebtoken.security.Keys;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -54,13 +55,14 @@ public class UserServiceImpl implements UserService {
 
     private final CloudinaryService cloudinaryService;
     private final EmailService emailService;
+
     private final AuthenticationManager authenticationManager;
     private final RedisService redisService;
     private final Environment env;
 
-//    private final Validator validator;
 
 
+ @Autowired
     public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, Environment env) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
@@ -260,8 +262,6 @@ public class UserServiceImpl implements UserService {
             throw new DatabaseException("An error occurred while retrieving the user.");
         }
     }
-
-
     @Override
     public ResponseEntity<ApiResponseObject> deleteUserByEmail(String email) {
 
@@ -311,6 +311,7 @@ public class UserServiceImpl implements UserService {
             if (redisService != null) {
                 Optional<UserDto> cachedUser = redisService.get(email, UserDto.class);
                 if (cachedUser.isPresent()) {
+                    System.out.println("\n\n\n\n Redis Chal Gya \n\n\n\n");
                     logger.debug("User found in cache for email: {}", email);
                     return ResponseEntity.ok(
                             new ApiResponseObject("User found in cache", true, cachedUser.get())

@@ -50,6 +50,9 @@ public class CarDto implements Serializable {
     @NotNull(message = "Category is required")
     private AppConstants.CarCategory carCategory;
 
+    @NotNull(message = "Type is required")
+    private AppConstants.CarType carType;
+
     @NotNull(message = "Fuel type is required")
     private AppConstants.FuelType fuelType;
 

@@ -52,7 +52,8 @@ class CarServiceImplTest {
         carDto.setYear(2020);
         carDto.setColor("Blue");
         carDto.setRegistrationNumber("ABC123");
-        carDto.setCarCategory(AppConstants.CarCategory.ECONOMY);
+        carDto.setCarCategory(AppConstants.CarCategory.SUV);
+        carDto.setCarType(AppConstants.CarType.ECONOMY);
         carDto.setFuelType(AppConstants.FuelType.PETROL);
         carDto.setSeatingCapacity(5);
         carDto.setRentalPricePerDay(50);
@@ -73,7 +74,8 @@ class CarServiceImplTest {
         car.setYear(2020);
         car.setColor("Blue");
         car.setRegistrationNumber("ABC123");
-        car.setCarCategory(AppConstants.CarCategory.ECONOMY);
+        carDto.setCarCategory(AppConstants.CarCategory.SUV);
+        carDto.setCarType(AppConstants.CarType.ECONOMY);
         car.setFuelType(AppConstants.FuelType.PETROL);
         car.setSeatingCapacity(5);
         car.setRentalPricePerDay(50);
