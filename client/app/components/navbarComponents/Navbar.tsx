@@ -2,6 +2,7 @@ import Image from 'next/image';
 import React from 'react'
 
 const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
+    
     return (
         <>
             <div className={`flex items-center justify-between text-black dark:text-white animate-slide-down sticky z-50 transition-all duration-300 ${isScrolled ? 'bg-[#C8FFE1] dark:bg-[#252A27CC] dark:backdrop-blur-sm rounded-lg shadow-xl py-2 top-5 px-7 w-[calc(100%-70px)] mx-auto' : 'py-4 mt-4 top-0 px-7 w-full'}`}>
@@ -25,8 +26,10 @@ const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
                     <a href="/rent" className=" hover:text-gray-400">Rent a Car</a>
                     <a href="/fleet" className=" hover:text-gray-400">Fleet</a>
                     <a href="/works" className=" hover:text-gray-400">How it works</a>
-                    <a href="/login" className=" hover:text-gray-400">Login</a>
+                    <a href="/login" className=" hover:text-gray-400" >Login</a>
                 </div>
+
+                    
             </div>
         </>
     )

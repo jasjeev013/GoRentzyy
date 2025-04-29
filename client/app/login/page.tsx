@@ -1,10 +1,16 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import LoginComponent from "../components/loginComponents/LoginComponent";
+
 import React from 'react'
 
 const page = () => {
+  const router = useRouter()
   return (
-    <div>
-      This is our login page
-    </div>
+    <LoginComponent
+      onClose={() => router.back()}
+    />
   )
 }
 
