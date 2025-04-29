@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react'
-import { Button } from "../../../@/components/ui/button"
+import { Button } from "../../../components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
     DropdownMenuRadioItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "../../../@/components/ui/dropdown-menu"
+} from "../../../components/ui/dropdown-menu"
 
 const DropdownMenuC = () => {
     const [position, setPosition] = useState("Delhi")

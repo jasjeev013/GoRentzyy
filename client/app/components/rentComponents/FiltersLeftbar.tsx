@@ -1,24 +1,14 @@
 import React, { useState } from 'react';
 import { FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Slider } from '../../../@/components/ui/slider';
-import { Checkbox } from '../../../@/components/ui/checkbox';
-import { Label } from '../../../@/components/ui/label';
-import { Button } from '../../../@/components/ui/button';
-import { Input } from '../../../@/components/ui/input';
-
-type FilterCategory = 'segment' | 'fuelType' | 'transmission' | 'luggage' | 'rating' | 'addon';
-
-interface SelectedFilters {
-  segment: string[];
-  fuelType: string[];
-  transmission: string[];
-  luggage: string[];
-  rating: string[];
-  addon: string[];
-}
+import { Slider } from '../../../components/ui/slider';
+import { Checkbox } from '../../../components/ui/checkbox';
+import { Label } from '../../../components/ui/label';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
 
 interface Filters {
-  category: string[];
+  carCategory: string[];
+  carType: string[];
   fuelType: string[];
   transmission: string[];
   luggage: string[];
@@ -55,7 +45,8 @@ const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps)
 
   const clearAllFilters = () => {
     onFilterChange({
-      category: [],
+      carCategory: [],
+      carType: [],
       fuelType: [],
       transmission: [],
       luggage: [],
@@ -83,17 +74,32 @@ const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps)
         </Button>
       </div>
 
-      {/* Category Filter */}
+      {/* Car Category Filter */}
       <div className="mb-6">
-        <h3 className="font-semibold mb-3">Category</h3>
-        {['Luxury', 'Economy', 'SUV', 'Other'].map(category => (
+        <h3 className="font-semibold mb-3">Car Category</h3>
+        {['SEDAN', 'HATCHBACK', 'SUV', 'MINIVAN'].map(category => (
           <div key={category} className="flex items-center space-x-2 mb-2">
             <Checkbox
               id={`category-${category}`}
-              checked={currentFilters.category.includes(category)}
-              onCheckedChange={() => toggleArrayFilter('category', category)}
+              checked={currentFilters.carCategory.includes(category)}
+              onCheckedChange={() => toggleArrayFilter('carCategory', category)}
             />
             <Label htmlFor={`category-${category}`}>{category}</Label>
+          </div>
+        ))}
+      </div>
+
+      {/* Car Type Filter */}
+      <div className="mb-6">
+        <h3 className="font-semibold mb-3">Car Type</h3>
+        {['ECONOMY', 'LUXURY', 'ELECTRIC', 'HYBRID'].map(type => (
+          <div key={type} className="flex items-center space-x-2 mb-2">
+            <Checkbox
+              id={`type-${type}`}
+              checked={currentFilters.carType.includes(type)}
+              onCheckedChange={() => toggleArrayFilter('carType', type)}
+            />
+            <Label htmlFor={`type-${type}`}>{type}</Label>
           </div>
         ))}
       </div>
@@ -129,10 +135,10 @@ const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps)
         />
       </div>
 
-     {/* Fuel Type */}
-     <div className="mb-6">
+      {/* Fuel Type */}
+      <div className="mb-6">
         <h3 className="font-semibold mb-3">Fuel Type</h3>
-        {['CNG', 'Petrol', 'Diesel', 'Electric', 'Other'].map(fuel => (
+        {['PETROL', 'DIESEL', 'ELECTRIC', 'CNG'].map(fuel => (
           <div key={fuel} className="flex items-center space-x-2 mb-2">
             <Checkbox
               id={`fuel-${fuel}`}
@@ -144,12 +150,10 @@ const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps)
         ))}
       </div>
 
-    
-
-     {/* Transmission */}
-     <div className="mb-6">
+      {/* Transmission */}
+      <div className="mb-6">
         <h3 className="font-semibold mb-3">Transmission</h3>
-        {['Manual', 'Automatic', 'IMT'].map(transmission => (
+        {['MANUAL', 'AUTOMATIC', 'IMT'].map(transmission => (
           <div key={transmission} className="flex items-center space-x-2 mb-2">
             <Checkbox
               id={`transmission-${transmission}`}
@@ -160,8 +164,9 @@ const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps)
           </div>
         ))}
       </div>
-     {/* Seating Capacity */}
-     <div className="mb-6">
+
+      {/* Seating Capacity */}
+      <div className="mb-6">
         <h3 className="font-semibold mb-3">Seating Capacity</h3>
         <Slider
           value={[currentFilters.seatingCapacity]}
@@ -176,8 +181,6 @@ const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps)
           <span>12 seats</span>
         </div>
       </div>
-
-      
 
       {/* Model Year */}
       <div className="mb-6">
@@ -209,8 +212,6 @@ const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps)
           minStepsBetweenThumbs={1}
         />
       </div>
-   
-
     </div>
   );
 };

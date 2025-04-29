@@ -3,6 +3,48 @@ import { useState, useMemo } from 'react';
 import CarListing from './CarListing';
 import FiltersLeftbar from './FiltersLeftbar';
 
+enum CarCategory {
+  SEDAN = "SEDAN",
+  COUPE = "COUPE",
+  HATCHBACK = "HATCHBACK",
+  CONVERTIBLE = "CONVERTIBLE",
+  WAGON = "WAGON",
+  SUV = "SUV",
+  CROSSOVER = "CROSSOVER",
+  PICKUP_TRUCK = "PICKUP_TRUCK",
+  MINIVAN = "MINIVAN"
+}
+
+enum CarType {
+  ECONOMY = "ECONOMY",
+  LUXURY = "LUXURY",
+  SPORTS = "SPORTS",
+  SUPERCAR = "SUPERCAR",
+  ELECTRIC = "ELECTRIC",
+  HYBRID = "HYBRID",
+  OFF_ROAD = "OFF_ROAD"
+}
+
+enum FuelType {
+  PETROL = "PETROL",
+  DIESEL = "DIESEL",
+  ELECTRIC = "ELECTRIC",
+  CNG = "CNG",
+  OTHER = "OTHER"
+}
+
+enum AvailabilityStatus {
+  AVAILABLE = "AVAILABLE",
+  RESERVED = "RESERVED",
+  UNDER_MAINTENANCE = "UNDER_MAINTENANCE"
+}
+
+enum TransmissionMode {
+  MANUAL = "MANUAL",
+  AUTOMATIC = "AUTOMATIC",
+  IMT = "IMT"
+}
+
 const MainSection = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOption, setSortOption] = useState('price-low');
@@ -21,15 +63,16 @@ const MainSection = () => {
                 "https://assets.autochase.in/cars/37693cfc748049e45d87b8c7d8b9aacd/73c2357eeaf24f.jpg",
                 "https://images.hindustantimes.com/auto/img/2021/08/26/414x233/Screenshot_2021-08-26_at_10.57.26_AM_1629955798890_1629955806869.png"
             ],
-            "category": "ECONOMY",
-            "fuelType": "PETROL",
-            "transmissionMode": "MANUAL",
+            "carCategory": CarCategory.HATCHBACK,
+            "carType": CarType.ECONOMY,
+            "fuelType": FuelType.PETROL,
+            "transmissionMode": TransmissionMode.MANUAL,
             "seatingCapacity": 5,
             "luggageCapacity": 2,
             "rentalPricePerDay": 1100.0,
             "rentalPricePerWeek": 6700.0,
             "rentalPricePerMonth": 24000.0,
-            "availabilityStatus": "AVAILABLE",
+            "availabilityStatus": AvailabilityStatus.AVAILABLE,
             "maintenanceDueDate": "2025-05-10T09:00:00"
         },
         {
@@ -45,15 +88,16 @@ const MainSection = () => {
                 "https://imgd.aeplcdn.com/1920x1080/n/cw/ec/143275/city-hybrid-ehev-interior-dashboard.jpeg?isig=0&q=80&q=80",
                 "https://images.news18.com/ibnlive/uploads/2023/03/honda-city-1.jpg"
             ],
-            "category": "SEDAN",
-            "fuelType": "PETROL",
-            "transmissionMode": "AUTOMATIC",
+            "carCategory": CarCategory.SEDAN,
+            "carType": CarType.ECONOMY,
+            "fuelType": FuelType.PETROL,
+            "transmissionMode": TransmissionMode.AUTOMATIC,
             "seatingCapacity": 5,
             "luggageCapacity": 3,
             "rentalPricePerDay": 1800.0,
             "rentalPricePerWeek": 11000.0,
             "rentalPricePerMonth": 39000.0,
-            "availabilityStatus": "UNAVAILABLE",
+            "availabilityStatus": AvailabilityStatus.RESERVED,
             "maintenanceDueDate": "2025-06-01T14:00:00"
         },
         {
@@ -69,15 +113,16 @@ const MainSection = () => {
                 "https://akm-img-a-in.tosshub.com/indiatoday/images/bodyeditor/202011/2020_Toyota_Innova_Crysta_face-x675.jpg?tGxZhtdWl.3YvbBDPRThL4l4eirdqQNg?size=750:*",
                 "https://stimg.cardekho.com/images/carinteriorimages/930x620/Toyota/Innova-Crysta/8105/1606215327927/interior-image-211.jpg?impolicy=resize&imwidth=420"
             ],
-            "category": "SUV",
-            "fuelType": "DIESEL",
-            "transmissionMode": "MANUAL",
+            "carCategory": CarCategory.MINIVAN,
+            "carType": CarType.ECONOMY,
+            "fuelType": FuelType.DIESEL,
+            "transmissionMode": TransmissionMode.MANUAL,
             "seatingCapacity": 7,
             "luggageCapacity": 4,
             "rentalPricePerDay": 2500.0,
             "rentalPricePerWeek": 15000.0,
             "rentalPricePerMonth": 52000.0,
-            "availabilityStatus": "AVAILABLE",
+            "availabilityStatus": AvailabilityStatus.AVAILABLE,
             "maintenanceDueDate": "2025-04-20T11:30:00"
         },
         {
@@ -93,15 +138,16 @@ const MainSection = () => {
                 "https://www.mahindrafirstchoice.com/_next/image?url=https%3A%2F%2Fmedia.mahindrafirstchoice.com%2Flive_web_images%2Fusedcarsimg%2Fmfc%2F598%2F593019%2Fcover_image-20231121165905.jpg&w=1200&q=75",
                 "https://www.team-bhp.com/carpics/2022-tata-tiago-cng/l/exterior/2022-tata-tiago-cng-03.jpg"
             ],
-            "category": "ECONOMY",
-            "fuelType": "CNG",
-            "transmissionMode": "MANUAL",
+            "carCategory": CarCategory.HATCHBACK,
+            "carType": CarType.ECONOMY,
+            "fuelType": FuelType.CNG,
+            "transmissionMode": TransmissionMode.MANUAL,
             "seatingCapacity": 5,
             "luggageCapacity": 2,
             "rentalPricePerDay": 1000.0,
             "rentalPricePerWeek": 6000.0,
             "rentalPricePerMonth": 22000.0,
-            "availabilityStatus": "AVAILABLE",
+            "availabilityStatus": AvailabilityStatus.AVAILABLE,
             "maintenanceDueDate": "2025-07-01T10:00:00"
         },
         {
@@ -117,15 +163,16 @@ const MainSection = () => {
                 "https://stimg.cardekho.com/images/carexteriorimages/930x620/Mahindra/XUV300/7239/1669701927953/headlight-43.jpg",
                 "https://media.cars24.com/hello-ar/dev/uploads/6700c0297be5411b5b67a85c/d8f2e45a-d9d5-4872-bdd6-fdee860bfa22/slot/Dashboard.jpg?w=794&format=auto"
             ],
-            "category": "SUV",
-            "fuelType": "DIESEL",
-            "transmissionMode": "AUTOMATIC",
+            "carCategory": CarCategory.SUV,
+            "carType": CarType.ECONOMY,
+            "fuelType": FuelType.DIESEL,
+            "transmissionMode": TransmissionMode.AUTOMATIC,
             "seatingCapacity": 5,
             "luggageCapacity": 3,
             "rentalPricePerDay": 2100.0,
             "rentalPricePerWeek": 12500.0,
             "rentalPricePerMonth": 45000.0,
-            "availabilityStatus": "AVAILABLE",
+            "availabilityStatus": AvailabilityStatus.AVAILABLE,
             "maintenanceDueDate": "2025-06-15T08:30:00"
         },
         {
@@ -141,21 +188,24 @@ const MainSection = () => {
                 "https://rushlane.com/wp-content/uploads/2021/09/2022-kia-seltos-facelift-sportage-inspired-4-600x338.jpg",
                 "https://images.hindustantimes.com/auto/img/2021/05/22/1600x900/1_1618378393206_1621668189975.jpg"
             ],
-            "category": "SUV",
-            "fuelType": "PETROL",
-            "transmissionMode": "MANUAL",
+            "carCategory": CarCategory.SUV,
+            "carType": CarType.ECONOMY,
+            "fuelType": FuelType.PETROL,
+            "transmissionMode": TransmissionMode.MANUAL,
             "seatingCapacity": 5,
             "luggageCapacity": 4,
             "rentalPricePerDay": 2300.0,
             "rentalPricePerWeek": 14000.0,
             "rentalPricePerMonth": 48000.0,
-            "availabilityStatus": "UNAVAILABLE",
+            "availabilityStatus": AvailabilityStatus.RESERVED,
             "maintenanceDueDate": "2025-04-30T12:00:00"
         }
     ]
+    
     // State for filters
     const [filters, setFilters] = useState({
-        category: [] as string[],
+        carCategory: [] as string[],
+        carType: [] as string[],
         fuelType: [] as string[],
         transmission: [] as string[],
         luggage: [] as string[],
@@ -178,10 +228,17 @@ const MainSection = () => {
                 car.model.toLowerCase().includes(term)
             );
         }
-        // Category filter
-        if (filters.category.length > 0) {
+        // Car Category filter
+        if (filters.carCategory.length > 0) {
             result = result.filter(car =>
-                filters.category.includes(car.category)
+                filters.carCategory.includes(car.carCategory)
+            );
+        }
+
+        // Car Type filter
+        if (filters.carType.length > 0) {
+            result = result.filter(car =>
+                filters.carType.includes(car.carType)
             );
         }
 
@@ -228,12 +285,7 @@ const MainSection = () => {
         }
 
         return result;
-
-
-    
-
     }, [cars, searchTerm, filters, sortOption]);
-
 
     return (
         <div className="min-h-screen">
@@ -271,4 +323,4 @@ const MainSection = () => {
     );
 }
 
-export default MainSection
+export default MainSection;

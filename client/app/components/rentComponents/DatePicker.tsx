@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { Calendar as CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import {Popover, PopoverTrigger, PopoverContent } from '../../../@/components/ui/popover';
-import { Button } from '../../../@/components/ui/button';
-import { Calendar } from "../../../@/components/ui/calendar"
+import {Popover, PopoverTrigger, PopoverContent } from '../../../components/ui/popover';
+import { Button } from '../../../components/ui/button';
+import { Calendar } from "../../../components/ui/calendar"
 import { cn } from '../../../lib/utils';
 const DatePicker = ({whichDate}) => {
     const [date, setDate] = useState<Date>()

@@ -3,12 +3,11 @@ import React from 'react'
 import { FiCalendar, FiClock, FiMapPin } from 'react-icons/fi';
 import DatePicker from './DatePicker';
 import DropdownMenuC from './DropdownMenuC';
-import { Button } from '../../../@/components/ui/button';
+import { Button } from '../../../components/ui/button';
 
 const SearchBarSection = () => {
 
     return (
-
 
         <>
             <div className=" text-white p-6">
