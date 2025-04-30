@@ -1,0 +1,10 @@
+.git
+.gitignore
+target
+*.iml
+.idea
+*.jar
+*.war
+*.ear
+.DS_Store
+docker-compose.yml
