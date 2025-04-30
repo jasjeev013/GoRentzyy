@@ -2,48 +2,8 @@
 import { useState, useMemo } from 'react';
 import CarListing from './CarListing';
 import FiltersLeftbar from './FiltersLeftbar';
-
-enum CarCategory {
-  SEDAN = "SEDAN",
-  COUPE = "COUPE",
-  HATCHBACK = "HATCHBACK",
-  CONVERTIBLE = "CONVERTIBLE",
-  WAGON = "WAGON",
-  SUV = "SUV",
-  CROSSOVER = "CROSSOVER",
-  PICKUP_TRUCK = "PICKUP_TRUCK",
-  MINIVAN = "MINIVAN"
-}
-
-enum CarType {
-  ECONOMY = "ECONOMY",
-  LUXURY = "LUXURY",
-  SPORTS = "SPORTS",
-  SUPERCAR = "SUPERCAR",
-  ELECTRIC = "ELECTRIC",
-  HYBRID = "HYBRID",
-  OFF_ROAD = "OFF_ROAD"
-}
-
-enum FuelType {
-  PETROL = "PETROL",
-  DIESEL = "DIESEL",
-  ELECTRIC = "ELECTRIC",
-  CNG = "CNG",
-  OTHER = "OTHER"
-}
-
-enum AvailabilityStatus {
-  AVAILABLE = "AVAILABLE",
-  RESERVED = "RESERVED",
-  UNDER_MAINTENANCE = "UNDER_MAINTENANCE"
-}
-
-enum TransmissionMode {
-  MANUAL = "MANUAL",
-  AUTOMATIC = "AUTOMATIC",
-  IMT = "IMT"
-}
+// Update the import path below if your carTypes file is located elsewhere
+import { CarCategory, CarType, FuelType, TransmissionMode, AvailabilityStatus } from '../../types/index';
 
 const MainSection = () => {
     const [searchTerm, setSearchTerm] = useState('');

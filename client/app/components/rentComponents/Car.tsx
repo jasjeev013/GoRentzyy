@@ -1,23 +1,10 @@
+import { redirect } from 'next/navigation';
 import React from 'react'
 import { FaGasPump, FaSuitcaseRolling, FaUserFriends } from 'react-icons/fa';
 import { GiGearStickPattern } from 'react-icons/gi';
+import { CarProps } from '../../types';
 
-interface CarProps {
-    carId: number;
-    photos: string[];
-    name: string;
-    carCategory: string;
-    carType: string;
-    availabilityStatus: string;
-    rentalPricePerDay: number;
-    rentalPricePerWeek: number;
-    rentalPricePerMonth: number;
-    transmissionMode: string;
-    fuelType: string;
-    luggageCapacity: number;
-    seatingCapacity: number;
-    gridView: boolean; // Added gridView prop
-}
+
 
 const Car = ({
     carId,
@@ -92,7 +79,7 @@ const Car = ({
 
                 <p className="text-xs text-gray-500 mb-3">Extra km charges: ₹7/km</p>
 
-                <button className="w-full border border-purple-600 text-purple-600 py-2 rounded-lg hover:bg-purple-50 transition">
+                <button onClick={() => redirect(`/rent/${carId}`)}  className="w-full border border-purple-600 text-purple-600 py-2 rounded-lg hover:bg-purple-50 transition">
                     View Details
                 </button>
             </div>

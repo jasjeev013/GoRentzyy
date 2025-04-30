@@ -2,12 +2,9 @@ import React from 'react'
 import { useState } from 'react';
 import { FiGrid, FiList } from 'react-icons/fi';
 import Car from './Car';
+import { CarListingProps } from '../../types';
 
-interface CarListingProps {
-    cars: any[];
-    sortOption: string;
-    onSortChange: (option: string) => void;
-}
+
 
 const CarListing = ({ cars, sortOption, onSortChange }: CarListingProps) => {
     const [gridView, setGridView] = useState(true);
