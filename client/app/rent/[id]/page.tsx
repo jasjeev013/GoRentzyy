@@ -50,23 +50,23 @@ const page = () => {
     <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{car.name}</h1>
-        
+
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Section (3/5 width) */}
           <div className="lg:w-3/5">
             <CarImageGallery photos={car.photos} />
             <CarSpecifications car={car} />
           </div>
-          
+
           {/* Right Section (2/5 width) */}
           <div className="lg:w-2/5 space-y-6">
-            <BookingDetails 
+            <BookingDetails
               pricePerDay={car.rentalPricePerDay}
               carType={car.carType}
               location={car.location}
             />
             <PickupOptions />
-            <BookingSummary 
+            <BookingSummary
               basePrice={car.rentalPricePerDay}
               luggageCapacity={car.luggageCapacity}
             />

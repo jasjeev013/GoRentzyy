@@ -1,5 +1,5 @@
 import React from 'react';
-import { Car, CarSpecificationsProps } from '../../types';
+import { CarSpecificationsProps } from '../../types';
 
 
 

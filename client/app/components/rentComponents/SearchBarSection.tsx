@@ -1,6 +1,6 @@
 "use client";
 import React from 'react'
-import { FiCalendar, FiClock, FiMapPin } from 'react-icons/fi';
+import { FiMapPin } from 'react-icons/fi';
 import DatePicker from './DatePicker';
 import DropdownMenuC from './DropdownMenuC';
 import { Button } from '../../../components/ui/button';

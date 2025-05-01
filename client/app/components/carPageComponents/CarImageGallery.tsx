@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import Image from 'next/image';
+
 
 interface CarImageGalleryProps {
   photos: string[];
@@ -15,6 +15,8 @@ const CarImageGallery = ({ photos }: CarImageGalleryProps) => {
         <img
           src={mainImage}
           alt="Main car image"
+          height={400}
+          width={800} 
           // fill
           className="object-cover"
           // priority
@@ -28,7 +30,7 @@ const CarImageGallery = ({ photos }: CarImageGalleryProps) => {
             className={`relative h-20 rounded-md overflow-hidden ${mainImage === photo ? 'ring-2 ring-blue-500' : ''}`}
           >
             <img
-              src="https://gaadiwaadi.com/wp-content/uploads/2020/10/2020-Hyundai-i20-N-Line-3.jpg"
+              src={photo}
               alt={`Car thumbnail ${index + 1}`}
               // fill
               className="object-cover"

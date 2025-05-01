@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FiFilter, FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import React from 'react';
+import { FiFilter,  } from 'react-icons/fi';
 import { Slider } from '../../../components/ui/slider';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { Label } from '../../../components/ui/label';
@@ -25,7 +25,7 @@ interface FiltersLeftbarProps {
 }
 
 const FiltersLeftbar = ({ onFilterChange, currentFilters }: FiltersLeftbarProps) => {
-  const [showMoreSegments, setShowMoreSegments] = useState(false);
+
 
   const handleFilterChange = (filterType: keyof Filters, value: any) => {
     onFilterChange({

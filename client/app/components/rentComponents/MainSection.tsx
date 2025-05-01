@@ -8,7 +8,7 @@ import { CarCategory, CarType, FuelType, TransmissionMode, AvailabilityStatus } 
 const MainSection = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOption, setSortOption] = useState('price-low');
-    let cars = [
+    const cars = [
         {
             "carId": 1,
             "name": "Hyundai i20 2021",

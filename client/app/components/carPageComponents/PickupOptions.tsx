@@ -11,7 +11,7 @@ const PickupOptions = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="home" id="home" />
-            <Label htmlFor="home">From renter's home</Label>
+            <Label htmlFor="home">{`From renter's home`}</Label>
           </div>
           <span className="text-sm text-gray-600 dark:text-gray-300">₹0</span>
         </div>

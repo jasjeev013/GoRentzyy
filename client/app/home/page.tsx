@@ -1,6 +1,5 @@
 import React from 'react'
-import Navbar from '../components/navbarComponents/Navbar'
-import NavbarWrapper from '../components/navbarComponents/NavbarWrapper'
+
 import FirstSection from '../components/homeComponents/FirstSection'
 import SecondInfiniteScrollSection from '../components/homeComponents/SecondInfiniteScrollSection'
 import ThirdSectionCard from '../components/homeComponents/ThirdSectionCard'
