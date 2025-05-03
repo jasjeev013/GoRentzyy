@@ -123,7 +123,7 @@ https://developers.google.com/oauthplayground/#step1
 &oauthAuthEndpointValue=https%3A%2F%2Faccounts.google.com%2Fo%2Foauth2%2Fv2%2Fauth
 &oauthTokenEndpointValue=https%3A%2F%2Foauth2.googleapis.com%2Ftoken
 &oauthClientId=651678101300-s8ae5sk9i4plqkvpmodag85gn3g1j1ek.apps.googleusercontent.com
-&oauthClientSecret=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&includeCredentials=checked
+&oauthClientSecret=&includeCredentials=checked
 &accessTokenType=bearer
 &autoRefreshToken=unchecked&accessType=offline
 &prompt=consent
