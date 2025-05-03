@@ -101,14 +101,14 @@ public class OAuthController {
 
 
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new LoginResponse("User successfully registered",jwt));
+                        .body(new LoginResponse("User successfully registered",jwt,"ROLE_RENTER"));
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new LoginResponse("User Not registered",""));
+                    .body(new LoginResponse("User Not registered","",""));
 
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new LoginResponse("Internal Server Error",""));
+                    .body(new LoginResponse("Internal Server Error","",""));
         }
     }
  }

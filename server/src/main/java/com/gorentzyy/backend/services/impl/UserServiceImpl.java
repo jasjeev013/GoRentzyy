@@ -132,23 +132,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<LoginResponse> loginUser(LoginRequest loginRequest) {
         String jwt = "";
+        String role = "";
         Authentication authentication = UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.username(),
                 loginRequest.password());
 
         Authentication authenticationResponse =  authenticationManager.authenticate(authentication);
-        System.out.println(authenticationResponse + " Auth Response ");
         if (null != authenticationResponse &&  authenticationResponse.isAuthenticated()){
             if (null!=env){
                 String secret = env.getProperty(SecretConstants.JWT_SECRET_KEY, SecretConstants.JWT_SECRET_DEFAULT_VALUE);
                 SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-                System.out.println(authenticationResponse.getName() + "\n" + authenticationResponse.getAuthorities().stream().map(
+                 role = authenticationResponse.getAuthorities().stream().map(
                         GrantedAuthority::getAuthority
-                ).collect(Collectors.joining(",")) );
+                ).collect(Collectors.joining(","));
+                System.out.println(authenticationResponse.getName() + "\n" + role);
                 jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
                         .claim("username",authenticationResponse.getName())
-                        .claim("authorities",authenticationResponse.getAuthorities().stream().map(
-                                GrantedAuthority::getAuthority
-                        ).collect(Collectors.joining(",")))
+                        .claim("authorities", role)
                         .issuedAt(new Date())
                         .expiration(new Date((new Date()).getTime() + 30000000))
                         .signWith(secretKey).compact();
@@ -159,7 +158,7 @@ public class UserServiceImpl implements UserService {
 
 
         return ResponseEntity.status(HttpStatus.OK).header(SecretConstants.JWT_HEADER,jwt)
-                .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),jwt));
+                .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),jwt,role));
     }
 
     @Override
