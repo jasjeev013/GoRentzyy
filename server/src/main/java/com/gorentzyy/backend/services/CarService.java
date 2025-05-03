@@ -15,6 +15,7 @@ public interface CarService {
     ResponseEntity<ApiResponseObject> getCarById(Long carId);
     ResponseEntity<ApiResponseObject> removeCar(Long carId);
     ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(String email);
+    ResponseEntity<ApiResponseData> getAllCars();
 
     ResponseEntity<ApiResponseObject> addCarPhotos(List<MultipartFile> files, Long carId);
 }

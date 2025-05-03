@@ -139,10 +139,11 @@ public class UserServiceImpl implements UserService {
         System.out.println(authenticationResponse + " Auth Response ");
         if (null != authenticationResponse &&  authenticationResponse.isAuthenticated()){
             if (null!=env){
-                System.out.println(SecretConstants.JWT_SECRET_DEFAULT_VALUE);
                 String secret = env.getProperty(SecretConstants.JWT_SECRET_KEY, SecretConstants.JWT_SECRET_DEFAULT_VALUE);
                 SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-                System.out.println(authenticationResponse + " login in User Controller");
+                System.out.println(authenticationResponse.getName() + "\n" + authenticationResponse.getAuthorities().stream().map(
+                        GrantedAuthority::getAuthority
+                ).collect(Collectors.joining(",")) );
                 jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
                         .claim("username",authenticationResponse.getName())
                         .claim("authorities",authenticationResponse.getAuthorities().stream().map(

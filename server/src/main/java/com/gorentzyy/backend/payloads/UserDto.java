@@ -20,22 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class UserDto implements Serializable {
 
-    @Override
-    public String toString() {
-        return "UserDto{" +
-                "userId=" + userId +
-                ", fullName='" + fullName + '\'' +
-                ", email='" + email + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", address='" + address + '\'' +
-                ", role=" + role +
-                ", password='" + password + '\'' +
-                ", socialLoginId='" + socialLoginId + '\'' +
-                ", profilePicture=" + profilePicture +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
-    }
+
 
     @Serial
     private static final long serialVersionUID = 1L;

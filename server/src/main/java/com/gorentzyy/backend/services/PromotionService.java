@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 
 public interface PromotionService {
 
-    ResponseEntity<ApiResponseObject> addPromotionCode(PromotionDto promotionDto,Long bookingId);
+    ResponseEntity<ApiResponseObject> addPromotionCode(PromotionDto promotionDto,Long carId);
     ResponseEntity<ApiResponseObject> updatePromotionCode(PromotionDto promotionDto,Long promotionId);
     ResponseEntity<ApiResponseObject> getPromotionCode(Long promotionId);
     ResponseEntity<ApiResponseObject> deletePromotionCode(Long promotionId);

@@ -20,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -69,7 +68,7 @@ class PromotionServiceImplTest {
         // Sample Booking Entity
         booking = new Booking();
         booking.setBookingId(1L);
-        booking.setPromotions(new ArrayList<>());
+//        booking.setPromotions(new ArrayList<>());
     }
 
     // ✅ Test successful promotion addition

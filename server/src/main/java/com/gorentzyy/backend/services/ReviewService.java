@@ -5,7 +5,7 @@ import com.gorentzyy.backend.payloads.ReviewDto;
 import org.springframework.http.ResponseEntity;
 
 public interface ReviewService {
-    ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto,String email,Long bookingId);
+    ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto,String email,Long carId);
     ResponseEntity<ApiResponseObject> updateReview(ReviewDto reviewDto,Long reviewId);
     ResponseEntity<ApiResponseObject> getReview(Long reviewId);
     ResponseEntity<ApiResponseObject> deleteReview(Long reviewId);

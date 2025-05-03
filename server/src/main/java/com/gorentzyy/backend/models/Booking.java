@@ -2,13 +2,11 @@ package com.gorentzyy.backend.models;
 
 
 import com.gorentzyy.backend.constants.AppConstants.Status;
-
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 
 
@@ -44,11 +42,7 @@ public class Booking {
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     private Payment payment;
 
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)
-    private List<Review> reviews;
 
-    @ManyToMany(mappedBy = "bookings")
-    private List<Promotion> promotions;
 
 
 }

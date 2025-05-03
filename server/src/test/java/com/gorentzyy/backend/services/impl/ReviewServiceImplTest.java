@@ -55,12 +55,12 @@ class ReviewServiceImplTest {
 
         booking = new Booking();
         booking.setBookingId(1L);
-        booking.setReviews(new ArrayList<>());
+//        booking.setReviews(new ArrayList<>());
 
         review = new Review();
         review.setReviewId(1L);
         review.setReviewer(renter);
-        review.setBooking(booking);
+//        review.setBooking(booking);
         review.setRating(4);
         review.setComments("Great experience");
         review.setCreatedAt(LocalDateTime.now());

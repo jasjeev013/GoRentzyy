@@ -21,6 +21,7 @@ public class Car {
     @ManyToOne
     @JoinColumn(name = "host_id")
     private User host;
+
     private String name;
 
     private String make;
@@ -50,9 +51,9 @@ public class Car {
     private int luggageCapacity;
 
     // Base rental prices
-    private double rentalPricePerDay;     // Price for daily rentals
-    private double rentalPricePerWeek;    // Optional: Discounted weekly price
-    private double rentalPricePerMonth;   // Optional: Discounted monthly price
+    private double rentalPricePerDay;
+    private double rentalPricePerWeek;
+    private double rentalPricePerMonth;
 
     @Enumerated(EnumType.STRING)
     private AppConstants.AvailabilityStatus availabilityStatus;
@@ -61,8 +62,21 @@ public class Car {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private String insurance;
+    private String roadSideAssistance;
+    private String fuelPolicy;
+    private String features;
+    private String importantPoints;
+
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL)
     private List<Booking> bookings;
+
+
+    @OneToMany(mappedBy = "car", cascade = CascadeType.ALL)
+    private List<Review> reviews;
+
+    @ManyToMany(mappedBy = "cars")
+    private List<Promotion> promotions;
 
     @ManyToMany
     @JoinTable(

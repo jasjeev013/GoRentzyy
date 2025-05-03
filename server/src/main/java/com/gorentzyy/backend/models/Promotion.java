@@ -26,10 +26,10 @@ public class Promotion {
 
     @ManyToMany
     @JoinTable(
-            name = "promotion_booking",
+            name = "promotion_car",
             joinColumns = @JoinColumn(name = "promotion_id"),
-            inverseJoinColumns = @JoinColumn(name = "booking_id")
+            inverseJoinColumns = @JoinColumn(name = "car_id")
     )
-    private List<Booking> bookings = new ArrayList<>();
+    private List<Car> cars = new ArrayList<>();
 }
 

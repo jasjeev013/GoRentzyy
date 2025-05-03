@@ -34,7 +34,7 @@ public class ProdSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("https://your-production-domain.com"));
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
@@ -58,7 +58,7 @@ public class ProdSecurityConfig {
 //                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
                 .authorizeHttpRequests(auth -> auth
                         // Public routes
-                        .requestMatchers("/api/user/create","/api/google/callback", "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
+                        .requestMatchers("/api/user/create","/api/car/getAll","/api/google/callback", "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
 
                         // User routes (Authenticated)
                         .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",
@@ -68,7 +68,7 @@ public class ProdSecurityConfig {
                         .requestMatchers("/api/car/create", "/api/car/update/{carId}",
                                 "/api/car/delete/{carId}").hasRole("HOST")
 
-                        .requestMatchers("/api/car/get/{carId}", "/api/car/getAll").authenticated()
+                        .requestMatchers("/api/car/get/{carId}", "/api/car/getAllSpecific").authenticated()
 
                         // Booking routes
                         .requestMatchers("/api/booking/create/{carId}", "/api/booking/update/{bookingId}",

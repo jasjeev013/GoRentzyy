@@ -307,6 +307,18 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
+    public ResponseEntity<ApiResponseData> getAllCars() {
+        List<Car> cars = carRepository.findAll();
+
+        List<CarDto> carDtos = cars.stream()
+                .map(car -> modelMapper.map(car, CarDto.class))
+                .toList();
+        return ResponseEntity.ok(new ApiResponseData(
+                "All cars found", true, Collections.singletonList(carDtos)
+        ));
+    }
+
+    @Override
     public ResponseEntity<ApiResponseObject> addCarPhotos(List<MultipartFile> files, Long carId) {
         Car existingCar = carRepository.findById(carId).orElseThrow(() ->
                 new UserNotFoundException("User with Email ID " + carId + " does not exist.")

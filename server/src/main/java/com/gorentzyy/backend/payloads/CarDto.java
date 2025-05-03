@@ -1,7 +1,6 @@
 package com.gorentzyy.backend.payloads;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gorentzyy.backend.constants.AppConstants;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -23,6 +22,8 @@ public class CarDto implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
+    private UserDto host;
 
     private Long carId;
     @NotBlank(message = "Car name is required")
@@ -80,11 +81,20 @@ public class CarDto implements Serializable {
     @FutureOrPresent(message = "Maintenance due date must be in the present or future")
     private LocalDateTime maintenanceDueDate;
 
-    @JsonIgnore
+
     private LocalDateTime createdAt;
 
-    @JsonIgnore
+
     private LocalDateTime updatedAt;
+
+    private String insurance;
+    private String roadSideAssistance;
+    private String fuelPolicy;
+    private String features;
+    private String importantPoints;
+
+    private List<LocationDto> locations;
+    private List<ReviewDto> reviews;
 
     /*
     private User host;

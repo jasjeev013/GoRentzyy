@@ -51,10 +51,15 @@ public class CarController {
         return carService.removeCar(carId);
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("/getAllSpecific")
     public ResponseEntity<ApiResponseData> getAllCarsOfSpecificHost(Authentication authentication){
         String email = authentication.getName();
         return carService.getAllCarsForSpecificHost(email);
+    }
+    @GetMapping("/getAll")
+    public ResponseEntity<ApiResponseData> getAllCars(){
+
+        return carService.getAllCars();
     }
 
     @PostMapping("/addPhotos/{carId}")

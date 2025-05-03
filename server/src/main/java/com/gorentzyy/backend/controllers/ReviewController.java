@@ -23,11 +23,11 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @PreAuthorize("hasRole('RENTER')")
-    @PostMapping("/create/{bookingId}")
-    public ResponseEntity<ApiResponseObject> createReview(@Valid @RequestBody ReviewDto reviewDto, Authentication authentication, @PathVariable Long bookingId){
+    @PreAuthorize("hasRole('ROLE_RENTER')")
+    @PostMapping("/create/{carId}")
+    public ResponseEntity<ApiResponseObject> createReview(@Valid @RequestBody ReviewDto reviewDto, Authentication authentication, @PathVariable Long carId){
         String email = authentication.getName();
-        return reviewService.createReview(reviewDto,email,bookingId);
+        return reviewService.createReview(reviewDto,email,carId);
     }
 
     @PreAuthorize("hasRole('RENTER')")

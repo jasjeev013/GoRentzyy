@@ -1,12 +1,14 @@
 package com.gorentzyy.backend.services.impl;
 
-import com.gorentzyy.backend.exceptions.*;
-import com.gorentzyy.backend.models.Booking;
+import com.gorentzyy.backend.exceptions.CarNotFoundException;
+import com.gorentzyy.backend.exceptions.ReviewNotFoundException;
+import com.gorentzyy.backend.exceptions.UserNotFoundException;
+import com.gorentzyy.backend.models.Car;
 import com.gorentzyy.backend.models.Review;
 import com.gorentzyy.backend.models.User;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.ReviewDto;
-import com.gorentzyy.backend.repositories.BookingRepository;
+import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.ReviewRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.ReviewService;
@@ -25,40 +27,40 @@ import java.time.LocalDateTime;
 public class ReviewServiceImpl implements ReviewService {
     private static final Logger logger = LoggerFactory.getLogger(ReviewService.class);
     private final UserRepository userRepository;
-    private final BookingRepository bookingRepository;
+    private final CarRepository carRepository;
     private final ModelMapper modelMapper;
     private final ReviewRepository reviewRepository;
 
 
     @Autowired
-    public ReviewServiceImpl(UserRepository userRepository, BookingRepository bookingRepository, ModelMapper modelMapper, ReviewRepository reviewRepository) {
+    public ReviewServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
-        this.bookingRepository = bookingRepository;
+        this.carRepository = carRepository;
         this.modelMapper = modelMapper;
         this.reviewRepository = reviewRepository;
     }
-    // the renter can review diff. renter's booking
     @Override
     @Transactional
-    public ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto, String emailId, Long bookingId) {
+    public ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto, String emailId, Long carId) {
         // Fetch the renter and booking
         User renter = userRepository.findByEmail(emailId)
                 .orElseThrow(() -> new UserNotFoundException("User with email " + emailId + " not found"));
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new BookingNotFoundException("Booking with ID " + bookingId + " not found"));
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new CarNotFoundException("Car with ID " + carId + " not found"));
 
         // Create and set up the review
         Review review = modelMapper.map(reviewDto, Review.class);
         review.setCreatedAt(LocalDateTime.now());
         review.setReviewer(renter);
-        review.setBooking(booking);
+        review.setCar(car);
 
         // Add the review to renter and booking
         renter.getReviews().add(review);
-        booking.getReviews().add(review);
+        car.getReviews().add(review);
 
         // Save the review
         Review savedReview = reviewRepository.save(review);
+        carRepository.save(car);
 
         return new ResponseEntity<>(new ApiResponseObject(
                 "The Review is saved successfully", true, modelMapper.map(savedReview, ReviewDto.class)

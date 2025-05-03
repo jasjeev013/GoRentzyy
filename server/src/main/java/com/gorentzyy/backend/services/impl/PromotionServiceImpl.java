@@ -4,11 +4,11 @@ import com.gorentzyy.backend.exceptions.BookingNotFoundException;
 import com.gorentzyy.backend.exceptions.DatabaseException;
 import com.gorentzyy.backend.exceptions.PromotionCodeAlreadyExistsException;
 import com.gorentzyy.backend.exceptions.PromotionNotFoundException;
-import com.gorentzyy.backend.models.Booking;
+import com.gorentzyy.backend.models.Car;
 import com.gorentzyy.backend.models.Promotion;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.PromotionDto;
-import com.gorentzyy.backend.repositories.BookingRepository;
+import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.PromotionRepository;
 import com.gorentzyy.backend.services.PromotionService;
 import org.modelmapper.ModelMapper;
@@ -22,35 +22,35 @@ import org.springframework.stereotype.Service;
 public class PromotionServiceImpl implements PromotionService {
 
     private final ModelMapper modelMapper;
-    private final BookingRepository bookingRepository;
+    private final CarRepository carRepository;
     private final PromotionRepository promotionRepository;
 
     @Autowired
-    public PromotionServiceImpl(ModelMapper modelMapper, BookingRepository bookingRepository, PromotionRepository promotionRepository) {
+    public PromotionServiceImpl(ModelMapper modelMapper, CarRepository carRepository, PromotionRepository promotionRepository) {
         this.modelMapper = modelMapper;
-        this.bookingRepository = bookingRepository;
+        this.carRepository = carRepository;
         this.promotionRepository = promotionRepository;
     }
 
     @Override
-    public ResponseEntity<ApiResponseObject> addPromotionCode(PromotionDto promotionDto, Long bookingId) {
+    public ResponseEntity<ApiResponseObject> addPromotionCode(PromotionDto promotionDto, Long carId) {
         // Check if the promotion code already exists
         if (promotionRepository.existsByCode(promotionDto.getCode())) {
             throw new PromotionCodeAlreadyExistsException("A promotion with this code already exists.");
         }
 
         // Check if the booking exists
-        Booking existingBooking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new BookingNotFoundException("Booking not found with ID " + bookingId));
+        Car existingCar = carRepository.findById(carId)
+                .orElseThrow(() -> new BookingNotFoundException("Car not found with ID " + carId));
 
         // Map DTO to Entity
         Promotion newPromotion = modelMapper.map(promotionDto, Promotion.class);
-        newPromotion.getBookings().add(existingBooking);
-        existingBooking.getPromotions().add(newPromotion);
+//        newPromotion.getBookings().add(existingBooking);
+//        existingBooking.getPromotions().add(newPromotion);
 
         try {
             // Save promotion to the database
-            bookingRepository.save(existingBooking);
+            carRepository.save(existingCar);
             Promotion savedPromotion = promotionRepository.save(newPromotion);
 
             return new ResponseEntity<>(new ApiResponseObject(

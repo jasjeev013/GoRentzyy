@@ -21,9 +21,9 @@ public class PromotionController {
         this.promotionService = promotionService;
     }
 
-    @PostMapping("/create/{bookingId}")
-    public ResponseEntity<ApiResponseObject> addPromotionCode(@Valid @RequestBody PromotionDto promotionDto, @PathVariable Long bookingId){
-        return promotionService.addPromotionCode(promotionDto,bookingId);
+    @PostMapping("/create/{carId}")
+    public ResponseEntity<ApiResponseObject> addPromotionCode(@Valid @RequestBody PromotionDto promotionDto, @PathVariable Long carId){
+        return promotionService.addPromotionCode(promotionDto,carId);
     }
 
     @PutMapping("/update/{promotionId}")

@@ -16,8 +16,8 @@ public class Review {
     private Long reviewId;
 
     @ManyToOne
-    @JoinColumn(name = "booking_id")
-    private Booking booking;
+    @JoinColumn(name = "car_id")
+    private Car car;
 
     @ManyToOne
     @JoinColumn(name = "reviewer_id")
