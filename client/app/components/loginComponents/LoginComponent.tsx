@@ -4,45 +4,46 @@ import { X, ArrowRight } from 'lucide-react';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
 import { Label } from '../../../components/ui/label';
-import { signIn } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { redirect, useRouter } from 'next/navigation';
+import { useAuth } from '../../../hooks/useAuth';
 
 
 const LoginComponent = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  const router = useRouter()
+  const { login } = useAuth();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setIsLoading(true);
-    // Simulate loading
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
-    // Handle actual login logic here
-    console.log('Logging in with:', email, password);
-  };
 
-  const socialLogin = async (provider: 'google' | 'github') => {
-    setIsLoading(true);
-    await signIn(provider);
+    const result = await login(username, password);
+
     setIsLoading(false);
+
+    if (result.success) {
+      router.push('/'); // Redirect to home after successful login
+    } else {
+      setError(result.error);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Animated background */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-md"
         onClick={() => router.back()}
       />
-      
+
       {/* Floating particles background */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(20)].map((_, i) => (
@@ -89,10 +90,10 @@ const LoginComponent = () => {
         >
           <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </motion.button>
-        
+
         {/* Header */}
         <div className="text-center mb-8">
-          <motion.h2 
+          <motion.h2
             initial={{ y: -20 }}
             animate={{ y: 0 }}
             className="text-3xl font-bold text-gray-800 dark:text-white mb-2"
@@ -109,37 +110,37 @@ const LoginComponent = () => {
             </button>
           </p>
         </div>
-        
+
         {/* Form */}
-        <motion.form 
+        <motion.form
           onSubmit={handleSubmit}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="space-y-6"
         >
           <div className="space-y-3">
-            <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">
-              Email
+            <Label htmlFor="username" className="text-gray-700 dark:text-gray-300">
+              Username
             </Label>
             <motion.div whileHover={{ scale: 1.01 }}>
               <Input
-                id="email"
-                type="email"
+                id="username"
+                type="text"
                 placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
                 required
               />
             </motion.div>
           </div>
-          
+
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">
                 Password
               </Label>
-              <button 
+              <button
                 type="button"
                 className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
               >
@@ -158,10 +159,18 @@ const LoginComponent = () => {
               />
             </motion.div>
           </div>
-          
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-500 text-sm"
+            >
+              {error}
+            </motion.div>
+          )}
           <motion.div whileHover={{ scale: 1.01 }}>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
               disabled={isLoading}
             >
@@ -179,7 +188,7 @@ const LoginComponent = () => {
             </Button>
           </motion.div>
         </motion.form>
-        
+
         {/* Divider */}
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
@@ -191,7 +200,7 @@ const LoginComponent = () => {
             </span>
           </div>
         </div>
-        
+
         {/* Social login buttons */}
         <div className="flex flex-col space-y-3">
           <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
@@ -210,7 +219,7 @@ const LoginComponent = () => {
               Google
             </Button>
           </motion.div>
-          
+
           <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
             <Button
               variant="outline"

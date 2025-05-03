@@ -1,12 +1,14 @@
 import { api } from '../config';
 
+interface LoginResponse {
+  status: string;
+  jwtToken: string;
+  role: string;
+}
+
 export const authService = {
-  login: async (email: string, password: string) => {
-    const response = await api.post('/auth/login', { email, password });
+  login: async (username: string, password: string): Promise<LoginResponse> => {
+    const response = await api.post('/api/user/login', { username, password });
     return response.data;
   },
-  register: async (userData: { name: string; email: string; password: string }) => {
-    const response = await api.post('/auth/register', userData);
-    return response.data;
-  }
 };

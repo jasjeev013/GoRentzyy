@@ -1,34 +1,33 @@
+import { authService } from '../app/api/auth/services';
 import { useAuthStore } from '../stores/authStore';
-import { login as apiLogin, register as apiRegister } from '../app/api/auth';
+
 
 export const useAuth = () => {
-  const { token, user, isAuthenticated, login, logout } = useAuthStore();
+  const { token, role, isAuthenticated, login, logout } = useAuthStore();
 
-  const handleLogin = async (email: string, password: string) => {
+  const handleLogin = async (username: string, password: string) => {
     try {
-      const response = await apiLogin({ email, password });
-      login(response.token, response.user);
-      return { success: true };
+      const response = await authService.login(username, password);
+  
+      console.log('Login response:', response); // Log the response for debugging
+      if (response.status === 'OK') {
+        login(response.jwtToken, response.role);
+        return { success: true };
+      }
+      return { success: false, error: 'Login failed' };
     } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Login failed' };
-    }
-  };
-
-  const handleRegister = async (name: string, email: string, password: string) => {
-    try {
-      await apiRegister({ name, email, password });
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.response?.data?.message || 'Registration failed' };
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Login failed' 
+      };
     }
   };
 
   return {
     token,
-    user,
+    role,
     isAuthenticated,
     login: handleLogin,
-    register: handleRegister,
     logout,
   };
 };

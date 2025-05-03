@@ -39,3 +39,5 @@ Thumbs.db
 # All Keys
 AllSecretKeys.txt
 SecretConstants.java
+
+*.env.local
