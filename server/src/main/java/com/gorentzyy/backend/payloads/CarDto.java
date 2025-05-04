@@ -93,7 +93,7 @@ public class CarDto implements Serializable {
     private String features;
     private String importantPoints;
 
-    private List<LocationDto> locations;
+    private LocationDto location;
     private List<ReviewDto> reviews;
 
     /*

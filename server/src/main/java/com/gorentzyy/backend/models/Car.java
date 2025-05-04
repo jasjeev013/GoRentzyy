@@ -78,13 +78,13 @@ public class Car {
     @ManyToMany(mappedBy = "cars")
     private List<Promotion> promotions;
 
-    @ManyToMany
+    @OneToOne
     @JoinTable(
             name = "car_location",
             joinColumns = @JoinColumn(name = "car_id"),
             inverseJoinColumns = @JoinColumn(name = "location_id")
     )
-    private List<Location> locations;
+    private Location location;
 
 
 }

@@ -42,8 +42,8 @@ public class LocationServiceImpl implements LocationService {
 
         // Map DTO to Entity
         Location newLocation = modelMapper.map(locationDto, Location.class);
-        newLocation.getCars().add(car);
-        car.getLocations().add(newLocation);  // Associating car with location
+        newLocation.setCar(car);
+        car.setLocation(newLocation);  // Associating car with location
 
         try {
             // Save the location and rely on cascading to save the car if configured
@@ -66,7 +66,7 @@ public class LocationServiceImpl implements LocationService {
 
         // Update the existing location with new values
         existingLocation.setAddress(locationDto.getAddress()==null?existingLocation.getAddress():locationDto.getAddress());
-        existingLocation.setName(locationDto.getName()==null?existingLocation.getName():locationDto.getName());
+        existingLocation.setCity(locationDto.getCity()==null?existingLocation.getCity():locationDto.getCity());
         existingLocation.setLatitude(locationDto.getLatitude());
         existingLocation.setLongitude(locationDto.getLongitude());
 

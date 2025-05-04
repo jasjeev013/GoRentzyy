@@ -1,50 +1,39 @@
 package com.gorentzyy.backend.filter;
 
-import com.gorentzyy.backend.constants.SecretConstants;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.gorentzyy.backend.utils.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.core.env.Environment;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import java.util.stream.Collectors;
-
+@Component
 public class JWTTokenGeneratorFilter extends OncePerRequestFilter {
 
+    private final JwtUtils jwtUtils;
 
-
-
+    @Autowired
+    public JWTTokenGeneratorFilter(JwtUtils jwtUtils) {
+        this.jwtUtils = jwtUtils;
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (null!=authentication){
-            Environment env = getEnvironment();
-            if (null!=env){
-                String secret = env.getProperty(SecretConstants.JWT_SECRET_KEY, SecretConstants.JWT_SECRET_DEFAULT_VALUE);
-                SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-                System.out.println(authentication.getAuthorities() + " Generator Filter");
-                String jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
-                        .claim("username",authentication.getName())
-                        .claim("authorities",authentication.getAuthorities().stream().map(
-                                GrantedAuthority::getAuthority
-                        ).collect(Collectors.joining(",")))
-                        .issuedAt(new Date())
-                        .expiration(new Date((new Date()).getTime() + 30000000))
-                        .signWith(secretKey).compact();
-
-                response.setHeader(SecretConstants.JWT_HEADER,jwt);
-            }
+            String role = authentication.getAuthorities().stream().map(
+                    GrantedAuthority::getAuthority
+            ).collect(Collectors.joining(","));
+            String jwt = jwtUtils.createToken(authentication.getName(),role);
+            response.setHeader(jwtUtils.getJwtHeader(),jwt);
         }
         filterChain.doFilter(request,response);
     }

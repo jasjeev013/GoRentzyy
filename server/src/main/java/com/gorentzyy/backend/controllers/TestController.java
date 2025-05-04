@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/test")
 public class TestController {
 
-    private EmailService emailService;
+    private final EmailService emailService;
 
     public TestController(EmailService emailService) {
         this.emailService = emailService;

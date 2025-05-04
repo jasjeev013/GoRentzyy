@@ -31,6 +31,14 @@ import java.util.List;
 @Profile("prod")
 public class ProdSecurityConfig {
 
+    private final JWTTokenGeneratorFilter jwtTokenGeneratorFilter;
+    private final JWTTokenValidatorFilter jwtTokenValidatorFilter;
+
+    public ProdSecurityConfig(JWTTokenGeneratorFilter jwtTokenGeneratorFilter, JWTTokenValidatorFilter jwtTokenValidatorFilter) {
+        this.jwtTokenGeneratorFilter = jwtTokenGeneratorFilter;
+        this.jwtTokenValidatorFilter = jwtTokenValidatorFilter;
+    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -53,8 +61,8 @@ public class ProdSecurityConfig {
                 .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(smc -> smc.invalidSessionUrl("/invalidSession").maximumSessions(300).maxSessionsPreventsLogin(true))
-                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
-                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(jwtTokenGeneratorFilter, BasicAuthenticationFilter.class)
+                .addFilterBefore(jwtTokenValidatorFilter, BasicAuthenticationFilter.class)
 //                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
                 .authorizeHttpRequests(auth -> auth
                         // Public routes

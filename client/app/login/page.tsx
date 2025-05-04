@@ -13,9 +13,9 @@ const page = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/');
-    }
+    // if (isAuthenticated) {
+    //   router.push('/');
+    // }
   }, [isAuthenticated, router]);
 
   return <LoginComponent />;

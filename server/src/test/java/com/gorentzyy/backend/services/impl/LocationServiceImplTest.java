@@ -9,7 +9,6 @@ import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.LocationDto;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.LocationRepository;
-import com.gorentzyy.backend.services.impl.LocationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,20 +45,20 @@ class LocationServiceImplTest {
     @BeforeEach
     void setUp() {
         car = new Car();
-        car.setLocations(new ArrayList<>());
+        car.setLocation(location);
 
         locationDto = new LocationDto();
-        locationDto.setName("Test Location");
+        locationDto.setCity("Test Location");
         locationDto.setAddress("123 Test Street");
         locationDto.setLatitude(40.7128);
         locationDto.setLongitude(-74.0060);
 
         location = new Location();
-        location.setName("Test Location");
+        location.setCity("Test Location");
         location.setAddress("123 Test Street");
         location.setLatitude(40.7128);
         location.setLongitude(-74.0060);
-        location.setCars(new ArrayList<>());
+        location.setCar(car);
 
     }
 

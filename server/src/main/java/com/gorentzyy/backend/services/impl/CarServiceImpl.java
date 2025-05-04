@@ -317,6 +317,38 @@ public class CarServiceImpl implements CarService {
                 "All cars found", true, Collections.singletonList(carDtos)
         ));
     }
+    @Override
+    public ResponseEntity<ApiResponseData> getAllCarsForSpecificCity(String city) {
+        List<Car> cars = carRepository.findCarsByLocation_City(city);
+        List<CarDto> carDtos = cars.stream()
+                .map(car -> modelMapper.map(car, CarDto.class))
+                .toList();
+        return ResponseEntity.ok(new ApiResponseData(
+                "All cars found", true, Collections.singletonList(carDtos)
+        ));
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseData> getAllCarsForMakeAndModel(String make,String model) {
+        List<Car> cars = carRepository.findCarsByMakeAndModel(make,model);
+        List<CarDto> carDtos = cars.stream()
+                .map(car -> modelMapper.map(car, CarDto.class))
+                .toList();
+        return ResponseEntity.ok(new ApiResponseData(
+                "All cars found", true, Collections.singletonList(carDtos)
+        ));
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseData> getAllCarsForSpecificCityWithNotHavingStartDateANdEndDate(String city, LocalDateTime startDate, LocalDateTime endDate) {
+        List<Car> cars = carRepository.findAvailableCarsInCityBetweenDates(city,startDate,endDate);
+        List<CarDto> carDtos = cars.stream()
+                .map(car -> modelMapper.map(car, CarDto.class))
+                .toList();
+        return ResponseEntity.ok(new ApiResponseData(
+                "All cars found", true, Collections.singletonList(carDtos)
+        ));
+    }
 
     @Override
     public ResponseEntity<ApiResponseObject> addCarPhotos(List<MultipartFile> files, Long carId) {

@@ -6,6 +6,7 @@ import com.gorentzyy.backend.payloads.CarDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface CarService {
@@ -16,6 +17,8 @@ public interface CarService {
     ResponseEntity<ApiResponseObject> removeCar(Long carId);
     ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(String email);
     ResponseEntity<ApiResponseData> getAllCars();
-
+    ResponseEntity<ApiResponseData> getAllCarsForSpecificCity(String city);
+    ResponseEntity<ApiResponseData> getAllCarsForMakeAndModel(String make,String model);
+    ResponseEntity<ApiResponseData> getAllCarsForSpecificCityWithNotHavingStartDateANdEndDate(String city, LocalDateTime startDate, LocalDateTime endDate);
     ResponseEntity<ApiResponseObject> addCarPhotos(List<MultipartFile> files, Long carId);
 }

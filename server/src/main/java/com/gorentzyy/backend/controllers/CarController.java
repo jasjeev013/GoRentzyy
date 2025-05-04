@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -60,6 +61,20 @@ public class CarController {
     public ResponseEntity<ApiResponseData> getAllCars(){
 
         return carService.getAllCars();
+    }
+
+    @GetMapping("/getByC")
+    public ResponseEntity<ApiResponseData> getAllCarsForSpecificCity(@RequestParam String city){
+        return carService.getAllCarsForSpecificCity(city);
+    }
+
+    @GetMapping("/getByMM")
+    public ResponseEntity<ApiResponseData> getAllCarsForSpecificMakeAndModel(@RequestParam String make,@RequestParam String model){
+        return carService.getAllCarsForMakeAndModel(make,model);
+    }
+    @GetMapping("/getByCT")
+    public ResponseEntity<ApiResponseData> getAllCarsForSpecificCityAndTimeline(@RequestParam String city, @RequestParam LocalDateTime startDate,LocalDateTime endDate){
+        return carService.getAllCarsForSpecificCityWithNotHavingStartDateANdEndDate(city,startDate,endDate);
     }
 
     @PostMapping("/addPhotos/{carId}")

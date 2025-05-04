@@ -1,7 +1,6 @@
 package com.gorentzyy.backend.services.impl;
 
 import com.gorentzyy.backend.constants.EmailConstants;
-import com.gorentzyy.backend.constants.SecretConstants;
 import com.gorentzyy.backend.exceptions.DatabaseException;
 import com.gorentzyy.backend.exceptions.PasswordHashingException;
 import com.gorentzyy.backend.exceptions.UserAlreadyExistsException;
@@ -16,13 +15,11 @@ import com.gorentzyy.backend.services.CloudinaryService;
 import com.gorentzyy.backend.services.EmailService;
 import com.gorentzyy.backend.services.RedisService;
 import com.gorentzyy.backend.services.UserService;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.gorentzyy.backend.utils.JwtUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,11 +33,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -58,21 +52,20 @@ public class UserServiceImpl implements UserService {
 
     private final AuthenticationManager authenticationManager;
     private final RedisService redisService;
-    private final Environment env;
+    private final JwtUtils jwtUtils;
 
 
 
  @Autowired
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, Environment env) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, JwtUtils jwtUtils) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
-//        this.validator = validator;
         this.cloudinaryService = cloudinaryService;
         this.emailService = emailService;
         this.authenticationManager = authenticationManager;
         this.redisService = redisService;
-        this.env = env;
+        this.jwtUtils = jwtUtils;
     }
 
 
@@ -138,26 +131,15 @@ public class UserServiceImpl implements UserService {
 
         Authentication authenticationResponse =  authenticationManager.authenticate(authentication);
         if (null != authenticationResponse &&  authenticationResponse.isAuthenticated()){
-            if (null!=env){
-                String secret = env.getProperty(SecretConstants.JWT_SECRET_KEY, SecretConstants.JWT_SECRET_DEFAULT_VALUE);
-                SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
                  role = authenticationResponse.getAuthorities().stream().map(
                         GrantedAuthority::getAuthority
                 ).collect(Collectors.joining(","));
-                System.out.println(authenticationResponse.getName() + "\n" + role);
-                jwt = Jwts.builder().issuer("GoRentzyy").subject("JWT Token")
-                        .claim("username",authenticationResponse.getName())
-                        .claim("authorities", role)
-                        .issuedAt(new Date())
-                        .expiration(new Date((new Date()).getTime() + 30000000))
-                        .signWith(secretKey).compact();
+                jwt = jwtUtils.createToken(authentication.getName(),role);
 
                 emailService.sendEmail(authenticationResponse.getName(),EmailConstants.getUserLoginSubject,EmailConstants.getUserLoginBody(authenticationResponse.getName()));
-            }
         }
-
-
-        return ResponseEntity.status(HttpStatus.OK).header(SecretConstants.JWT_HEADER,jwt)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),jwt,role));
     }
 

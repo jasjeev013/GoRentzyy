@@ -24,7 +24,7 @@ public class LocationDto implements Serializable {
     private Long locationId;
 
     @NotBlank(message = "Location name is required")
-    private String name;
+    private String city;
 
     @NotBlank(message = "Address is required")
     private String address;
