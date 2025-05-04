@@ -14,7 +14,7 @@ const page = () => {
   return (
     <>
 
-      <div className="w-full min-h-screen flex items-center justify-center">
+      <div className="w-full  min-h-screen flex items-center justify-center">
         <div className="w-[calc(100%-18rem)] min-h-screen  ">
           {/* <div className="bg-black p-4 h-full"></div>
           <p className="text-white">This is a centered div with 3rem space on both sides and a white border on left and right with 10% transparency.</p> */}

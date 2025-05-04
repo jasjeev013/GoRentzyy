@@ -8,10 +8,7 @@ const page = () => {
   
   return (
     <>
-      <CreateAccountComponent
-  
-
-      />
+      <CreateAccountComponent/>
     </>
   )
 }

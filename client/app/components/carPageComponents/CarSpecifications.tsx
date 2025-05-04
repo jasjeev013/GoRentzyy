@@ -5,7 +5,7 @@ import { CarSpecificationsProps } from '../../types';
 
 const CarSpecifications = ({ car }: CarSpecificationsProps) => {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-[#DDC9C9] dark:bg-[#252A27CC] rounded-lg shadow-md p-6">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Car Details</h2>
       
       <div className="grid grid-cols-2 gap-4 mb-6">

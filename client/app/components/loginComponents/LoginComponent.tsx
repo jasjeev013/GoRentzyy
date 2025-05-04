@@ -27,20 +27,25 @@ const LoginComponent = () => {
     setIsLoading(false);
 
     if (result.success) {
-      router.push('/'); // Redirect to home after successful login
+      router.push('/');
     } else {
       setError(result.error);
     }
   };
 
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Animated background */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+      {/* Background elements rendered first */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-md"
+        className="absolute inset-0 bg-gradient-to-br  from-black-500/10 via-grey-500/10 to-zinc-500/10 backdrop-blur-md"
         onClick={() => router.back()}
       />
 
@@ -57,13 +62,14 @@ const LoginComponent = () => {
               opacity: 0
             }}
             animate={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
+              x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0,
+              y: typeof window !== 'undefined' ? Math.random() * window.innerHeight : 0,
               opacity: [0, 0.3, 0],
               transition: {
                 duration: Math.random() * 10 + 10,
                 repeat: Infinity,
-                repeatType: "reverse"
+                repeatType: "reverse",
+                delay: 0.3 // Start after initial fade-in
               }
             }}
             style={{
@@ -74,12 +80,18 @@ const LoginComponent = () => {
         ))}
       </div>
 
+
       {/* Login popup */}
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 z-10 mx-4 border border-gray-200 dark:border-gray-700"
+        transition={{
+          delay: 0.2, // Slight delay after background appears
+          type: "spring",
+          stiffness: 300,
+          damping: 20
+        }}
+        className="relative w-full max-w-md bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-8 z-10 mx-4 border border-gray-200 dark:border-gray-700"
       >
         {/* Close button */}
         <motion.button
@@ -94,13 +106,19 @@ const LoginComponent = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <motion.h2
-            initial={{ y: -20 }}
-            animate={{ y: 0 }}
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
             className="text-3xl font-bold text-gray-800 dark:text-white mb-2"
           >
             Welcome Back
           </motion.h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="text-sm text-gray-600 dark:text-gray-400"
+          >
             {"Don't have an account? "}
             <button
               onClick={() => redirect('/createAccount')}
@@ -108,7 +126,7 @@ const LoginComponent = () => {
             >
               {'Sign up'}
             </button>
-          </p>
+          </motion.p>
         </div>
 
         {/* Form */}
@@ -116,13 +134,20 @@ const LoginComponent = () => {
           onSubmit={handleSubmit}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
           className="space-y-6"
         >
+          {/* Form fields remain the same */}
           <div className="space-y-3">
             <Label htmlFor="username" className="text-gray-700 dark:text-gray-300">
               Username
             </Label>
-            <motion.div whileHover={{ scale: 1.01 }}>
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 }}
+            >
               <Input
                 id="username"
                 type="text"
@@ -140,35 +165,49 @@ const LoginComponent = () => {
               <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">
                 Password
               </Label>
-              <button
+              <motion.button
                 type="button"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
                 className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
               >
                 Forgot password?
-              </button>
+              </motion.button>
             </div>
-            <motion.div whileHover={{ scale: 1.01 }}>
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+            >
               <Input
                 id="password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 rounded-lg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
                 required
               />
             </motion.div>
           </div>
           {error && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 1, y: 0 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-red-500 text-sm"
+              className="text-red-500 text-sm "
             >
               {error}
             </motion.div>
           )}
-          <motion.div whileHover={{ scale: 1.01 }}>
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+          >
+
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
@@ -190,20 +229,31 @@ const LoginComponent = () => {
         </motion.form>
 
         {/* Divider */}
-        <div className="relative my-8">
+        <motion.div
+          className="relative my-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.65 }}
+        >
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300 dark:border-gray-600" />
           </div>
           <div className="relative flex justify-center">
-            <span className="px-3 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm">
+            <span className="px-3 bg-white dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-sm">
               OR CONTINUE WITH
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Social login buttons */}
         <div className="flex flex-col space-y-3">
-          <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+          >
             <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-3 py-3 rounded-lg border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -220,7 +270,13 @@ const LoginComponent = () => {
             </Button>
           </motion.div>
 
-          <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
+          <motion.div
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.75 }}
+          >
             <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-3 py-3 rounded-lg border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -235,7 +291,7 @@ const LoginComponent = () => {
           </motion.div>
         </div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 };
 

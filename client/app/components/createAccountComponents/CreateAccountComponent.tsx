@@ -64,7 +64,7 @@ const CreateAccountComponent = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-md"
+        className="absolute inset-0 bg-gradient-to-br from-black-500/10 via-grey-500/10 to-zinc-500/10 backdrop-blur-md"
         onClick={() => router.back()}
       />
       
@@ -103,7 +103,7 @@ const CreateAccountComponent = () => {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 z-10 mx-4 border border-gray-200 dark:border-gray-700"
+        className="relative w-full max-w-md bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-8 z-10 mx-4 border border-gray-200 dark:border-gray-700"
       >
         {/* Close button */}
         <motion.button
@@ -252,7 +252,7 @@ const CreateAccountComponent = () => {
             <div className="w-full border-t border-gray-300 dark:border-gray-600" />
           </div>
           <div className="relative flex justify-center">
-            <span className="px-3 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm">
+            <span className="px-3 bg-white dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-sm">
               OR CONTINUE WITH
             </span>
           </div>

@@ -22,7 +22,7 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
   const total = subtotal + gst;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-[#DDC9C9] dark:bg-[#252A27CC] rounded-lg shadow-md p-6">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Booking Summary</h2>
       
       <div className="space-y-3 mb-4">
