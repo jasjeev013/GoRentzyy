@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 public class LocationServiceImpl implements LocationService {
 
@@ -34,11 +36,16 @@ public class LocationServiceImpl implements LocationService {
 
 
     @Override
-    public ResponseEntity<ApiResponseObject> addLocation(LocationDto locationDto, Long carId) {
+    public ResponseEntity<ApiResponseObject> addLocation(LocationDto locationDto, Long carId,String email) {
         // Check if the car exists
         Car car = carRepository.findById(carId).orElseThrow(() ->
                 new CarNotFoundException("Car with ID " + carId + " does not exist.")
         );
+
+        if (!Objects.equals(car.getHost().getEmail(), email)){
+            throw new RuntimeException("Owner of this car can only set Location");
+        }
+
 
         // Map DTO to Entity
         Location newLocation = modelMapper.map(locationDto, Location.class);

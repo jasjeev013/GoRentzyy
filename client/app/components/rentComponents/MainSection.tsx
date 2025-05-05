@@ -1,14 +1,28 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import CarListing from './CarListing';
 import FiltersLeftbar from './FiltersLeftbar';
 // Update the import path below if your carTypes file is located elsewhere
 import { CarCategory, CarType, FuelType, TransmissionMode, AvailabilityStatus } from '../../types/index';
+import { useCarStore } from '../../../stores/carStore';
 
 const MainSection = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOption, setSortOption] = useState('price-low');
-    const cars = [
+    const { cars, fetchAllCars } = useCarStore();
+
+    useEffect(() => {
+        const fetchCars = async () => {
+            await fetchAllCars();
+        };
+        fetchCars();
+    }
+    , [fetchAllCars]);
+    // const cars = []
+    
+    
+    
+    /*[
         {
             "carId": 1,
             "name": "Hyundai i20 2021",
@@ -160,7 +174,7 @@ const MainSection = () => {
             "availabilityStatus": AvailabilityStatus.RESERVED,
             "maintenanceDueDate": "2025-04-30T12:00:00"
         }
-    ]
+    ]*/
     
     // State for filters
     const [filters, setFilters] = useState({

@@ -6,6 +6,7 @@ import com.gorentzyy.backend.services.LocationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +23,9 @@ public class LocationController {
     }
 
     @PostMapping("/create/{carId}")
-    public ResponseEntity<ApiResponseObject> addLocation(@Valid @RequestBody LocationDto locationDto, @PathVariable Long carId){
-        return locationService.addLocation(locationDto,carId);
+    public ResponseEntity<ApiResponseObject> addLocation(@Valid @RequestBody LocationDto locationDto, @PathVariable Long carId, Authentication authentication){
+        String email = authentication.getName();
+        return locationService.addLocation(locationDto,carId,email);
     }
 
     @PutMapping("/update/{locationId}")

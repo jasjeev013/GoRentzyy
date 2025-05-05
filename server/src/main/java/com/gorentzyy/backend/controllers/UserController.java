@@ -54,8 +54,6 @@ public class UserController {
     @GetMapping("/get")
     public ResponseEntity<ApiResponseObject> getUser(Authentication authentication) {
         String email = authentication.getName();  // Extract email
-
-        System.out.println("Ghus gyaa");
         return userService.getUserByEmail(email);
     }
 

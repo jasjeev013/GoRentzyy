@@ -1,0 +1,61 @@
+{
+    "message": "All cars found",
+    "result": true,
+    "data": [
+        [
+            {
+                "host": {
+                    "userId": 1,
+                    "fullName": "Mohammed Arif",
+                    "email": "m.arif@example.in",
+                    "phoneNumber": "+919998877665",
+                    "address": "Charminar, Hyderabad, Telangana",
+                    "role": "HOST",
+                    "createdAt": "2025-05-04T15:53:12.660049",
+                    "updatedAt": "2025-05-04T15:53:12.660049"
+                },
+                "carId": 1,
+                "name": "Honda City",
+                "make": "Honda",
+                "model": "City ZX",
+                "year": 2020,
+                "color": "White",
+                "registrationNumber": "DL2CAF1234",
+                "photos": [],
+                "carCategory": "SEDAN",
+                "carType": "ECONOMY",
+                "fuelType": "PETROL",
+                "transmissionMode": "AUTOMATIC",
+                "seatingCapacity": 5,
+                "luggageCapacity": 500,
+                "rentalPricePerDay": 2000.0,
+                "rentalPricePerWeek": 12000.0,
+                "rentalPricePerMonth": 50000.0,
+                "availabilityStatus": "AVAILABLE",
+                "maintenanceDueDate": "2025-06-15T10:00:00",
+                "createdAt": "2025-05-04T16:09:27.136129",
+                "updatedAt": "2025-05-04T16:09:27.136129",
+                "insurance": "Comprehensive insurance with third-party cover",
+                "roadSideAssistance": "Available 24/7",
+                "fuelPolicy": "Full to Full",
+                "features": "Air conditioning, Bluetooth, Parking sensors",
+                "importantPoints": "Good for city commute, fuel-efficient",
+                "location": {
+                    "locationId": 1,
+                    "city": "Mumbai",
+                    "address": "Flat No. 502, Sea Breeze Apartments, Juhu Tara Road, Juhu, Mumbai, Maharashtra",
+                    "latitude": 19.076,
+                    "longitude": 72.8777
+                },
+                "reviews": [
+                    {
+                        "reviewId": 4,
+                        "rating": 5,
+                        "comments": "The car is a dream to drive! Super smooth handling, excellent fuel efficiency, and top-notch features. Highly recommend!",
+                        "createdAt": "2025-05-05T14:26:01.463758"
+                    }
+                ]
+            }
+        ]
+    ]
+}

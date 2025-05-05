@@ -64,14 +64,14 @@ Commands written
         [
             {
                 "host": {
-                    "userId": 5,
+                    "userId": 1,
                     "fullName": "Mohammed Arif",
                     "email": "m.arif@example.in",
                     "phoneNumber": "+919998877665",
                     "address": "Charminar, Hyderabad, Telangana",
                     "role": "HOST",
-                    "createdAt": "2025-05-03T16:53:58.514171",
-                    "updatedAt": "2025-05-03T16:53:58.514171"
+                    "createdAt": "2025-05-04T15:53:12.660049",
+                    "updatedAt": "2025-05-04T15:53:12.660049"
                 },
                 "carId": 1,
                 "name": "Honda City",
@@ -92,26 +92,39 @@ Commands written
                 "rentalPricePerMonth": 50000.0,
                 "availabilityStatus": "AVAILABLE",
                 "maintenanceDueDate": "2025-06-15T10:00:00",
-                "createdAt": "2025-05-03T17:01:03.206402",
-                "updatedAt": "2025-05-03T17:01:03.206402",
+                "createdAt": "2025-05-04T16:09:27.136129",
+                "updatedAt": "2025-05-04T16:09:27.136129",
                 "insurance": "Comprehensive insurance with third-party cover",
                 "roadSideAssistance": "Available 24/7",
                 "fuelPolicy": "Full to Full",
                 "features": "Air conditioning, Bluetooth, Parking sensors",
                 "importantPoints": "Good for city commute, fuel-efficient",
-                "locations": [],
-                "reviews": []
+                "location": {
+                    "locationId": 1,
+                    "city": "Mumbai",
+                    "address": "Flat No. 502, Sea Breeze Apartments, Juhu Tara Road, Juhu, Mumbai, Maharashtra",
+                    "latitude": 19.076,
+                    "longitude": 72.8777
+                },
+                "reviews": [
+                    {
+                        "reviewId": 4,
+                        "rating": 5,
+                        "comments": "The car is a dream to drive! Super smooth handling, excellent fuel efficiency, and top-notch features. Highly recommend!",
+                        "createdAt": "2025-05-05T14:26:01.463758"
+                    }
+                ]
             },
             {
                 "host": {
-                    "userId": 5,
+                    "userId": 1,
                     "fullName": "Mohammed Arif",
                     "email": "m.arif@example.in",
                     "phoneNumber": "+919998877665",
                     "address": "Charminar, Hyderabad, Telangana",
                     "role": "HOST",
-                    "createdAt": "2025-05-03T16:53:58.514171",
-                    "updatedAt": "2025-05-03T16:53:58.514171"
+                    "createdAt": "2025-05-04T15:53:12.660049",
+                    "updatedAt": "2025-05-04T15:53:12.660049"
                 },
                 "carId": 2,
                 "name": "Mahindra XUV700",
@@ -132,26 +145,45 @@ Commands written
                 "rentalPricePerMonth": 110000.0,
                 "availabilityStatus": "RESERVED",
                 "maintenanceDueDate": "2025-07-10T12:00:00",
-                "createdAt": "2025-05-03T17:02:14.296795",
-                "updatedAt": "2025-05-03T17:02:14.296795",
+                "createdAt": "2025-05-04T16:09:35.053976",
+                "updatedAt": "2025-05-04T16:09:35.053976",
                 "insurance": "Full coverage with accidental damage protection",
                 "roadSideAssistance": "24/7 roadside assistance",
                 "fuelPolicy": "Full to Full",
                 "features": "Sunroof, Leather seats, 4WD",
                 "importantPoints": "Perfect for long trips and off-road",
-                "locations": [],
-                "reviews": []
+                "location": {
+                    "locationId": 2,
+                    "city": "Delhi",
+                    "address": "House No. 23, Block C, Janakpuri, New Delhi, Delhi",
+                    "latitude": 28.626,
+                    "longitude": 77.072
+                },
+                "reviews": [
+                    {
+                        "reviewId": 5,
+                        "rating": 4,
+                        "comments": "Great car overall. The performance is excellent, but I feel the interior could be a little more refined for the price.",
+                        "createdAt": "2025-05-05T14:27:09.695208"
+                    },
+                    {
+                        "reviewId": 6,
+                        "rating": 3,
+                        "comments": "It's a decent car, but it lacks power and comfort. Not the best in its class, but it gets the job done.",
+                        "createdAt": "2025-05-05T14:28:36.201261"
+                    }
+                ]
             },
             {
                 "host": {
-                    "userId": 5,
+                    "userId": 1,
                     "fullName": "Mohammed Arif",
                     "email": "m.arif@example.in",
                     "phoneNumber": "+919998877665",
                     "address": "Charminar, Hyderabad, Telangana",
                     "role": "HOST",
-                    "createdAt": "2025-05-03T16:53:58.514171",
-                    "updatedAt": "2025-05-03T16:53:58.514171"
+                    "createdAt": "2025-05-04T15:53:12.660049",
+                    "updatedAt": "2025-05-04T15:53:12.660049"
                 },
                 "carId": 3,
                 "name": "Maruti Suzuki Swift",
@@ -172,33 +204,32 @@ Commands written
                 "rentalPricePerMonth": 35000.0,
                 "availabilityStatus": "AVAILABLE",
                 "maintenanceDueDate": "2025-10-20T08:00:00",
-                "createdAt": "2025-05-03T17:02:39.47653",
-                "updatedAt": "2025-05-03T17:02:39.47653",
+                "createdAt": "2025-05-04T16:09:41.778984",
+                "updatedAt": "2025-05-04T16:09:41.778984",
                 "insurance": "Third-party liability insurance",
                 "roadSideAssistance": "Limited coverage",
                 "fuelPolicy": "Full to Full",
                 "features": "Touchscreen, Reverse sensors, Apple CarPlay",
                 "importantPoints": "Compact, good for city driving",
-                "locations": [],
-                "reviews": [
-                    {
-                        "reviewId": 7,
-                        "rating": 5,
-                        "comments": "SG Highway is a bustling, vibrant area with everything you need in close proximity. From cafes to shopping malls, it's all there. It’s one of the best-connected roads in Ahmedabad. I highly recommend it!",
-                        "createdAt": "2025-05-03T18:15:46.551463"
-                    }
-                ]
+                "location": {
+                    "locationId": 3,
+                    "city": "Bangalore",
+                    "address": "No. 12, 2nd Cross, 3rd Main, Jayanagar 4th Block, Bangalore, Karnataka",
+                    "latitude": 12.9342,
+                    "longitude": 77.588
+                },
+                "reviews": []
             },
             {
                 "host": {
-                    "userId": 5,
+                    "userId": 1,
                     "fullName": "Mohammed Arif",
                     "email": "m.arif@example.in",
                     "phoneNumber": "+919998877665",
                     "address": "Charminar, Hyderabad, Telangana",
                     "role": "HOST",
-                    "createdAt": "2025-05-03T16:53:58.514171",
-                    "updatedAt": "2025-05-03T16:53:58.514171"
+                    "createdAt": "2025-05-04T15:53:12.660049",
+                    "updatedAt": "2025-05-04T15:53:12.660049"
                 },
                 "carId": 4,
                 "name": "BMW 3 Series",
@@ -219,168 +250,47 @@ Commands written
                 "rentalPricePerMonth": 180000.0,
                 "availabilityStatus": "AVAILABLE",
                 "maintenanceDueDate": "2025-08-30T15:00:00",
-                "createdAt": "2025-05-03T17:03:17.207688",
-                "updatedAt": "2025-05-03T17:03:17.207688",
+                "createdAt": "2025-05-04T16:09:48.027262",
+                "updatedAt": "2025-05-04T16:09:48.027262",
                 "insurance": "Comprehensive insurance with roadside assistance",
                 "roadSideAssistance": "24/7 road assistance",
                 "fuelPolicy": "Full to Full",
                 "features": "Navigation, Premium audio system, Automatic climate control",
                 "importantPoints": "Luxury sedan with great performance",
-                "locations": [],
-                "reviews": [
-                    {
-                        "reviewId": 8,
-                        "rating": 4,
-                        "comments": "Great place for a business setup. SG Highway is well connected, and the infrastructure around it is top-notch. There are some traffic issues during rush hours, but otherwise, it's a good location to be in.",
-                        "createdAt": "2025-05-03T18:15:58.31993"
-                    }
-                ]
-            },
-            {
-                "host": {
-                    "userId": 1,
-                    "fullName": "Rajesh Kumar",
-                    "email": "rajesh.kumar@example.in",
-                    "phoneNumber": "+919876543210",
-                    "address": "MG Road, Bengaluru, Karnataka",
-                    "role": "HOST",
-                    "createdAt": "2025-05-03T16:51:34.778083",
-                    "updatedAt": "2025-05-03T16:51:34.778083"
+                "location": {
+                    "locationId": 4,
+                    "city": "Chennai",
+                    "address": "Flat No. 3B, 2nd Floor, Green Park Apartments, Anna Nagar, Chennai, Tamil Nadu",
+                    "latitude": 13.0827,
+                    "longitude": 80.2707
                 },
-                "carId": 5,
-                "name": "Tata Nexon",
-                "make": "Tata",
-                "model": "Nexon XZ+",
-                "year": 2021,
-                "color": "Blue",
-                "registrationNumber": "MH04TG1234",
-                "photos": [],
-                "carCategory": "CROSSOVER",
-                "carType": "ELECTRIC",
-                "fuelType": "ELECTRIC",
-                "transmissionMode": "AUTOMATIC",
-                "seatingCapacity": 5,
-                "luggageCapacity": 350,
-                "rentalPricePerDay": 2500.0,
-                "rentalPricePerWeek": 15000.0,
-                "rentalPricePerMonth": 60000.0,
-                "availabilityStatus": "UNDER_MAINTENANCE",
-                "maintenanceDueDate": "2025-12-15T14:00:00",
-                "createdAt": "2025-05-03T17:07:25.669949",
-                "updatedAt": "2025-05-03T17:07:25.669949",
-                "insurance": "Basic electric car insurance",
-                "roadSideAssistance": "Available during working hours",
-                "fuelPolicy": "Full to Full",
-                "features": "Electric sunroof, Rearview camera, Keyless entry",
-                "importantPoints": "Environmentally friendly, low running cost",
-                "locations": [],
                 "reviews": [
                     {
-                        "reviewId": 9,
+                        "reviewId": 7,
                         "rating": 2,
-                        "comments": "I was disappointed with the area. While SG Highway itself is a major road, the amount of noise and pollution is quite high. It’s fine for businesses, but for those looking for peace and quiet, this might not be the best place.",
-                        "createdAt": "2025-05-03T18:16:10.564153"
+                        "comments": "Disappointed with the car's reliability. It's had several issues since purchase, and the handling isn't as responsive as I expected.",
+                        "createdAt": "2025-05-05T14:28:47.99841"
                     },
                     {
-                        "reviewId": 10,
+                        "reviewId": 12,
                         "rating": 5,
-                        "comments": "I absolutely love the SG Highway area! There are lots of options for food, shopping, and entertainment. The connectivity is excellent, and the area is constantly evolving with new developments. It's very convenient for both residents and travelers.",
-                        "createdAt": "2025-05-03T18:16:17.522476"
+                        "comments": "Absolutely love this car! The acceleration is fantastic, and it handles corners like a pro. The tech features are amazing too. Worth every penny.",
+                        "createdAt": "2025-05-05T14:31:27.221811"
                     }
                 ]
             },
             {
                 "host": {
-                    "userId": 1,
-                    "fullName": "Rajesh Kumar",
-                    "email": "rajesh.kumar@example.in",
-                    "phoneNumber": "+919876543210",
-                    "address": "MG Road, Bengaluru, Karnataka",
-                    "role": "HOST",
-                    "createdAt": "2025-05-03T16:51:34.778083",
-                    "updatedAt": "2025-05-03T16:51:34.778083"
-                },
-                "carId": 6,
-                "name": "Hyundai Verna",
-                "make": "Hyundai",
-                "model": "Verna SX",
-                "year": 2020,
-                "color": "Grey",
-                "registrationNumber": "HR26CU3245",
-                "photos": [],
-                "carCategory": "SEDAN",
-                "carType": "SPORTS",
-                "fuelType": "PETROL",
-                "transmissionMode": "MANUAL",
-                "seatingCapacity": 5,
-                "luggageCapacity": 400,
-                "rentalPricePerDay": 2500.0,
-                "rentalPricePerWeek": 15000.0,
-                "rentalPricePerMonth": 60000.0,
-                "availabilityStatus": "AVAILABLE",
-                "maintenanceDueDate": "2025-11-10T09:00:00",
-                "createdAt": "2025-05-03T17:08:09.833937",
-                "updatedAt": "2025-05-03T17:08:09.833937",
-                "insurance": "Comprehensive insurance",
-                "roadSideAssistance": "Available 24/7",
-                "fuelPolicy": "Full to Full",
-                "features": "Touchscreen infotainment, Cruise control, Leather seats",
-                "importantPoints": "Stylish sedan with a sporty feel",
-                "locations": [],
-                "reviews": []
-            },
-            {
-                "host": {
-                    "userId": 1,
-                    "fullName": "Rajesh Kumar",
-                    "email": "rajesh.kumar@example.in",
-                    "phoneNumber": "+919876543210",
-                    "address": "MG Road, Bengaluru, Karnataka",
-                    "role": "HOST",
-                    "createdAt": "2025-05-03T16:51:34.778083",
-                    "updatedAt": "2025-05-03T16:51:34.778083"
-                },
-                "carId": 7,
-                "name": "Toyota Innova Crysta",
-                "make": "Toyota",
-                "model": "Innova Crysta 2.8 ZX",
-                "year": 2023,
-                "color": "Silver",
-                "registrationNumber": "KA53FB8899",
-                "photos": [],
-                "carCategory": "MINIVAN",
-                "carType": "LUXURY",
-                "fuelType": "DIESEL",
-                "transmissionMode": "AUTOMATIC",
-                "seatingCapacity": 7,
-                "luggageCapacity": 600,
-                "rentalPricePerDay": 5500.0,
-                "rentalPricePerWeek": 33000.0,
-                "rentalPricePerMonth": 130000.0,
-                "availabilityStatus": "RESERVED",
-                "maintenanceDueDate": "2025-07-25T11:00:00",
-                "createdAt": "2025-05-03T17:08:30.400637",
-                "updatedAt": "2025-05-03T17:08:30.400637",
-                "insurance": "Full insurance coverage with additional benefits",
-                "roadSideAssistance": "24/7 roadside assistance",
-                "fuelPolicy": "Full to Full",
-                "features": "Leather upholstery, Advanced safety features, Premium audio system",
-                "importantPoints": "Best for family trips and long drives",
-                "locations": [],
-                "reviews": []
-            },
-            {
-                "host": {
-                    "userId": 3,
+                    "userId": 2,
                     "fullName": "Amit Patel",
                     "email": "amit.patel@example.com",
                     "phoneNumber": "+919812345678",
                     "address": "SG Highway, Ahmedabad, Gujarat",
                     "role": "HOST",
-                    "createdAt": "2025-05-03T16:52:39.736111",
-                    "updatedAt": "2025-05-03T16:52:39.736111"
+                    "createdAt": "2025-05-04T15:53:20.925373",
+                    "updatedAt": "2025-05-04T15:53:20.925373"
                 },
-                "carId": 8,
+                "carId": 5,
                 "name": "Audi Q7",
                 "make": "Audi",
                 "model": "Q7 55 TFSI",
@@ -399,55 +309,41 @@ Commands written
                 "rentalPricePerMonth": 250000.0,
                 "availabilityStatus": "AVAILABLE",
                 "maintenanceDueDate": "2025-05-05T13:00:00",
-                "createdAt": "2025-05-03T17:13:41.219837",
-                "updatedAt": "2025-05-03T17:13:41.219837",
+                "createdAt": "2025-05-04T16:11:31.802609",
+                "updatedAt": "2025-05-04T16:11:31.802609",
                 "insurance": "Comprehensive insurance including third-party cover",
                 "roadSideAssistance": "24/7 assistance",
                 "fuelPolicy": "Full to Full",
                 "features": "Panoramic sunroof, Parking assist, Premium sound system",
                 "importantPoints": "Luxury SUV with top-notch features",
-                "locations": [
-                    {
-                        "locationId": 1,
-                        "name": "SG Highway, Ahmedabad",
-                        "address": "SG Highway, Ahmedabad, Gujarat, India",
-                        "latitude": 23.0225,
-                        "longitude": 72.5714
-                    }
-                ],
+                "location": {
+                    "locationId": 5,
+                    "city": "Kolkata",
+                    "address": "Flat No. 7A, 5th Floor, Park Street, Kolkata, West Bengal",
+                    "latitude": 22.5726,
+                    "longitude": 88.3639
+                },
                 "reviews": [
                     {
-                        "reviewId": 1,
-                        "rating": 5,
-                        "comments": "The location is perfect! SG Highway is easily accessible and well-connected to various parts of Ahmedabad. The surrounding area has plenty of restaurants, shopping malls, and offices. I had a great experience, and everything was very convenient!",
-                        "createdAt": "2025-05-03T17:35:34.801141"
-                    },
-                    {
-                        "reviewId": 3,
+                        "reviewId": 11,
                         "rating": 4,
-                        "comments": "Nice area with good facilities around. Traffic can be a bit heavy at times, but overall, SG Highway offers a great environment for both work and leisure. The infrastructure is well-developed, making it a good choice for businesses and residents.",
-                        "createdAt": "2025-05-03T17:39:58.654009"
-                    },
-                    {
-                        "reviewId": 4,
-                        "rating": 3,
-                        "comments": "While SG Highway is a well-developed area, the traffic can get frustrating at times. There's a lot of commercial development happening, so the area feels crowded, but it’s okay if you're looking for quick access to various parts of the city.",
-                        "createdAt": "2025-05-03T17:43:08.906141"
+                        "comments": "Solid car with good value for money. It's reliable and fuel-efficient, but the ride could be a bit more comfortable on rough roads.",
+                        "createdAt": "2025-05-05T14:31:11.498737"
                     }
                 ]
             },
             {
                 "host": {
-                    "userId": 3,
+                    "userId": 2,
                     "fullName": "Amit Patel",
                     "email": "amit.patel@example.com",
                     "phoneNumber": "+919812345678",
                     "address": "SG Highway, Ahmedabad, Gujarat",
                     "role": "HOST",
-                    "createdAt": "2025-05-03T16:52:39.736111",
-                    "updatedAt": "2025-05-03T16:52:39.736111"
+                    "createdAt": "2025-05-04T15:53:20.925373",
+                    "updatedAt": "2025-05-04T15:53:20.925373"
                 },
-                "carId": 9,
+                "carId": 6,
                 "name": "Ford Ecosport",
                 "make": "Ford",
                 "model": "EcoSport Titanium",
@@ -466,23 +362,180 @@ Commands written
                 "rentalPricePerMonth": 45000.0,
                 "availabilityStatus": "UNDER_MAINTENANCE",
                 "maintenanceDueDate": "2025-12-25T10:00:00",
-                "createdAt": "2025-05-03T17:15:35.936339",
-                "updatedAt": "2025-05-03T17:15:35.936339",
+                "createdAt": "2025-05-04T16:11:38.794627",
+                "updatedAt": "2025-05-04T16:11:38.794627",
                 "insurance": "Third-party insurance",
                 "roadSideAssistance": "Available 24/7",
                 "fuelPolicy": "Full to Full",
                 "features": "Bluetooth, LED lights, Alloy wheels",
                 "importantPoints": "Compact SUV with good mileage",
-                "locations": [
-                    {
-                        "locationId": 2,
-                        "name": "SG Highway, Ahmedabad (Near Vastrapur Lake)",
-                        "address": "SG Highway, Vastrapur, Ahmedabad, Gujarat, India",
-                        "latitude": 23.0258,
-                        "longitude": 72.5196
-                    }
-                ],
+                "location": {
+                    "locationId": 7,
+                    "city": "Mumbai",
+                    "address": "Plot No. 21, Malabar Hill, Mumbai, Maharashtra",
+                    "latitude": 18.9685,
+                    "longitude": 72.8231
+                },
                 "reviews": []
+            },
+            {
+                "host": {
+                    "userId": 3,
+                    "fullName": "Rajesh Kumar",
+                    "email": "rajesh.kumar@example.in",
+                    "phoneNumber": "+919876543210",
+                    "address": "MG Road, Bengaluru, Karnataka",
+                    "role": "HOST",
+                    "createdAt": "2025-05-04T15:53:27.427387",
+                    "updatedAt": "2025-05-04T15:53:27.427387"
+                },
+                "carId": 7,
+                "name": "Tata Nexon",
+                "make": "Tata",
+                "model": "Nexon XZ+",
+                "year": 2021,
+                "color": "Blue",
+                "registrationNumber": "MH04TG1234",
+                "photos": [],
+                "carCategory": "CROSSOVER",
+                "carType": "ELECTRIC",
+                "fuelType": "ELECTRIC",
+                "transmissionMode": "AUTOMATIC",
+                "seatingCapacity": 5,
+                "luggageCapacity": 350,
+                "rentalPricePerDay": 2500.0,
+                "rentalPricePerWeek": 15000.0,
+                "rentalPricePerMonth": 60000.0,
+                "availabilityStatus": "UNDER_MAINTENANCE",
+                "maintenanceDueDate": "2025-10-15T14:00:00",
+                "createdAt": "2025-05-04T16:12:57.044792",
+                "updatedAt": "2025-05-04T16:12:57.044792",
+                "insurance": "Basic electric car insurance",
+                "roadSideAssistance": "Available during working hours",
+                "fuelPolicy": "Full to Full",
+                "features": "Electric sunroof, Rearview camera, Keyless entry",
+                "importantPoints": "Environmentally friendly, low running cost",
+                "location": {
+                    "locationId": 8,
+                    "city": "Delhi",
+                    "address": "Block D-8, Shalimar Bagh, New Delhi, Delhi",
+                    "latitude": 28.6776,
+                    "longitude": 77.1463
+                },
+                "reviews": [
+                    {
+                        "reviewId": 8,
+                        "rating": 1,
+                        "comments": "Horrible experience. The car broke down within a few months, and the customer service was terrible. Would not recommend.",
+                        "createdAt": "2025-05-05T14:29:27.074493"
+                    }
+                ]
+            },
+            {
+                "host": {
+                    "userId": 3,
+                    "fullName": "Rajesh Kumar",
+                    "email": "rajesh.kumar@example.in",
+                    "phoneNumber": "+919876543210",
+                    "address": "MG Road, Bengaluru, Karnataka",
+                    "role": "HOST",
+                    "createdAt": "2025-05-04T15:53:27.427387",
+                    "updatedAt": "2025-05-04T15:53:27.427387"
+                },
+                "carId": 8,
+                "name": "Hyundai Verna",
+                "make": "Hyundai",
+                "model": "Verna SX",
+                "year": 2020,
+                "color": "Grey",
+                "registrationNumber": "HR26CU3245",
+                "photos": [],
+                "carCategory": "SEDAN",
+                "carType": "SPORTS",
+                "fuelType": "PETROL",
+                "transmissionMode": "MANUAL",
+                "seatingCapacity": 5,
+                "luggageCapacity": 400,
+                "rentalPricePerDay": 2500.0,
+                "rentalPricePerWeek": 15000.0,
+                "rentalPricePerMonth": 60000.0,
+                "availabilityStatus": "AVAILABLE",
+                "maintenanceDueDate": "2025-11-10T09:00:00",
+                "createdAt": "2025-05-04T16:13:10.40629",
+                "updatedAt": "2025-05-04T16:13:10.40629",
+                "insurance": "Comprehensive insurance",
+                "roadSideAssistance": "Available 24/7",
+                "fuelPolicy": "Full to Full",
+                "features": "Touchscreen infotainment, Cruise control, Leather seats",
+                "importantPoints": "Stylish sedan with a sporty feel",
+                "location": {
+                    "locationId": 9,
+                    "city": "Delhi",
+                    "address": "Flat No. 302, Vasant Vihar, New Delhi, Delhi",
+                    "latitude": 28.5477,
+                    "longitude": 77.168
+                },
+                "reviews": [
+                    {
+                        "reviewId": 10,
+                        "rating": 4,
+                        "comments": "Great family car! Spacious, safe, and has a decent amount of power for everyday driving. The infotainment system could be faster, though.",
+                        "createdAt": "2025-05-05T14:31:01.561849"
+                    }
+                ]
+            },
+            {
+                "host": {
+                    "userId": 3,
+                    "fullName": "Rajesh Kumar",
+                    "email": "rajesh.kumar@example.in",
+                    "phoneNumber": "+919876543210",
+                    "address": "MG Road, Bengaluru, Karnataka",
+                    "role": "HOST",
+                    "createdAt": "2025-05-04T15:53:27.427387",
+                    "updatedAt": "2025-05-04T15:53:27.427387"
+                },
+                "carId": 9,
+                "name": "Toyota Innova Crysta",
+                "make": "Toyota",
+                "model": "Innova Crysta 2.8 ZX",
+                "year": 2023,
+                "color": "Silver",
+                "registrationNumber": "KA53FB8899",
+                "photos": [],
+                "carCategory": "MINIVAN",
+                "carType": "LUXURY",
+                "fuelType": "DIESEL",
+                "transmissionMode": "AUTOMATIC",
+                "seatingCapacity": 7,
+                "luggageCapacity": 600,
+                "rentalPricePerDay": 5500.0,
+                "rentalPricePerWeek": 33000.0,
+                "rentalPricePerMonth": 130000.0,
+                "availabilityStatus": "RESERVED",
+                "maintenanceDueDate": "2025-07-25T11:00:00",
+                "createdAt": "2025-05-04T16:13:20.265544",
+                "updatedAt": "2025-05-04T16:13:20.265544",
+                "insurance": "Full insurance coverage with additional benefits",
+                "roadSideAssistance": "24/7 roadside assistance",
+                "fuelPolicy": "Full to Full",
+                "features": "Leather upholstery, Advanced safety features, Premium audio system",
+                "importantPoints": "Best for family trips and long drives",
+                "location": {
+                    "locationId": 10,
+                    "city": "Bangalore",
+                    "address": "Flat No. 6, Prestige Shantiniketan, Whitefield, Bangalore, Karnataka",
+                    "latitude": 12.9769,
+                    "longitude": 77.7513
+                },
+                "reviews": [
+                    {
+                        "reviewId": 9,
+                        "rating": 3,
+                        "comments": "It’s an okay car. Comfortable, but the performance doesn’t really impress me. It’s slow to accelerate, and the road noise is a bit much at higher speeds.",
+                        "createdAt": "2025-05-05T14:30:50.592992"
+                    }
+                ]
             }
         ]
     ]

@@ -14,7 +14,7 @@ const LoginComponent = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated, userData, role } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,11 +24,15 @@ const LoginComponent = () => {
 
     const result = await login(username, password);
 
-    setIsLoading(false);
 
     if (result.success) {
-      router.push('/');
+      if (isAuthenticated) {
+        setIsLoading(false);
+        router.push(`/dashboard/${role === 'ROLE_RENTER' ? 'renter' : 'host'}/${userData?.userId}`);
+
+      }
     } else {
+      setIsLoading(false);
       setError(result.error);
     }
   };

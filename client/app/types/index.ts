@@ -63,6 +63,7 @@ export interface CarProps {
     gridView: boolean; // Added gridView prop
 }
 export interface Car {
+
     carId: number;
     photos: string[];
     name: string;
@@ -87,4 +88,62 @@ export interface BookingDetailsProps {
 
 export interface CarSpecificationsProps {
   car: Car;
+}
+
+export interface Host {
+  userId: number;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  role: 'HOST' | 'RENTER'; 
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Location {
+  locationId: number;
+  city: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface Review {
+  reviewId: number;
+  rating: number;
+  comments: string;
+  createdAt: string;
+}
+
+export interface CarDetails {
+  host: Host;
+  carId: number;
+  name: string;
+  make: string;
+  model: string;
+  year: number;
+  color: string;
+  registrationNumber: string;
+  photos: string[]; // Assuming these are URLs or filenames
+  carCategory: string;
+  carType: string;
+  fuelType: string;
+  transmissionMode: string;
+  seatingCapacity: number;
+  luggageCapacity: number;
+  rentalPricePerDay: number;
+  rentalPricePerWeek: number;
+  rentalPricePerMonth: number;
+  availabilityStatus: string;
+  maintenanceDueDate: string;
+  createdAt: string;
+  updatedAt: string;
+  insurance: string;
+  roadSideAssistance: string;
+  fuelPolicy: string;
+  features: string;
+  importantPoints: string;
+  location: Location;
+  reviews: Review[];
 }

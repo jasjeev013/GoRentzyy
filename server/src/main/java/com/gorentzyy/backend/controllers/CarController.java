@@ -59,7 +59,6 @@ public class CarController {
     }
     @GetMapping("/getAll")
     public ResponseEntity<ApiResponseData> getAllCars(){
-
         return carService.getAllCars();
     }
 

@@ -23,14 +23,15 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @PreAuthorize("hasRole('ROLE_RENTER')")
+    @PreAuthorize("hasAuthority('ROLE_RENTER')")
     @PostMapping("/create/{carId}")
     public ResponseEntity<ApiResponseObject> createReview(@Valid @RequestBody ReviewDto reviewDto, Authentication authentication, @PathVariable Long carId){
         String email = authentication.getName();
+        System.out.println(authentication.getAuthorities());
         return reviewService.createReview(reviewDto,email,carId);
     }
 
-    @PreAuthorize("hasRole('RENTER')")
+    @PreAuthorize("hasAuthority('ROLE_RENTER')")
     @PutMapping("/update/{reviewId}")
     public ResponseEntity<ApiResponseObject> updateReview(@Valid @RequestBody ReviewDto reviewDto, @PathVariable Long reviewId){
         return reviewService.updateReview(reviewDto,reviewId);
@@ -41,7 +42,7 @@ public class ReviewController {
         return reviewService.getReview(reviewId);
     }
 
-    @PreAuthorize("hasRole('RENTER')")
+    @PreAuthorize("hasAuthority('ROLE_RENTER')")
     @DeleteMapping("/delete/{reviewId}")
     public ResponseEntity<ApiResponseObject> deleteReview(@PathVariable Long reviewId){
         return reviewService.deleteReview(reviewId);

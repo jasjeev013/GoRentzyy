@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -27,6 +28,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+@EnableMethodSecurity
 @Configuration
 @Profile("prod")
 public class ProdSecurityConfig {
@@ -66,7 +68,7 @@ public class ProdSecurityConfig {
 //                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
                 .authorizeHttpRequests(auth -> auth
                         // Public routes
-                        .requestMatchers("/api/user/create","/api/car/getAll","/api/google/callback", "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
+                        .requestMatchers("/api/user/create","/api/car/getByC","/api/car/getByCT","/api/car/getByMM","/api/car/getAll","/api/google/callback", "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
 
                         // User routes (Authenticated)
                         .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",
