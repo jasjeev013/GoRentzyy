@@ -7,8 +7,14 @@ import { Label } from '../../../components/ui/label';
 import { signIn } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-
-
+import { useRegister } from '../../../hooks/useRegister';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../../components/ui/select';
 
 const CreateAccountComponent = () => {
   const router = useRouter();
@@ -16,11 +22,14 @@ const CreateAccountComponent = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phone: '',
+    role: '',
+    address: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
-
+  const { register } = useRegister();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,23 +41,40 @@ const CreateAccountComponent = () => {
     // Check password match when confirming password
     if (name === 'confirmPassword' || name === 'password') {
       setPasswordMatch(
-        name === 'password' 
-          ? value === formData.confirmPassword 
+        name === 'password'
+          ? value === formData.confirmPassword
           : value === formData.password
       );
     }
   };
 
+  const handleRoleChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      role: value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!passwordMatch) return;
-    
+    if (!passwordMatch || !formData.role) return;
+
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const result = await register({
+      fullName: formData.name,
+      email: formData.email,
+      phoneNumber: formData.phone,
+      password: formData.password,
+      role: formData.role,
+      address: formData.address
+    });
+    
+    if (result.success) {
+      router.push('/dashboard');
+    }
+    
     setIsLoading(false);
-    console.log('Creating account with:', formData);
-    // Handle actual signup logic here
   };
 
   const socialSignup = async (provider: 'google' | 'github') => {
@@ -60,14 +86,14 @@ const CreateAccountComponent = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Animated gradient background */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-gradient-to-br from-black-500/10 via-grey-500/10 to-zinc-500/10 backdrop-blur-md"
         onClick={() => router.back()}
       />
-      
+
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(15)].map((_, i) => (
@@ -114,10 +140,10 @@ const CreateAccountComponent = () => {
         >
           <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </motion.button>
-        
+
         {/* Header */}
         <div className="text-center mb-8">
-          <motion.h2 
+          <motion.h2
             initial={{ y: -20 }}
             animate={{ y: 0 }}
             className="text-3xl font-bold text-gray-800 dark:text-white mb-2"
@@ -134,9 +160,9 @@ const CreateAccountComponent = () => {
             </button>
           </p>
         </div>
-        
+
         {/* Form */}
-        <motion.form 
+        <motion.form
           onSubmit={handleSubmit}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -177,7 +203,58 @@ const CreateAccountComponent = () => {
               />
             </motion.div>
           </div>
-          
+
+          <div className="space-y-3">
+            <Label htmlFor="phone" className="text-gray-700 dark:text-gray-300">
+              Phone Number
+            </Label>
+            <motion.div whileHover={{ scale: 1.01 }}>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="+91 XXXXXXXXXX"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </motion.div>
+          </div>
+
+          <div className="space-y-3">
+            <Label htmlFor="address" className="text-gray-700 dark:text-gray-300">
+              Address
+            </Label>
+            <motion.div whileHover={{ scale: 1.01 }}>
+              <Input
+                id="address"
+                name="address"
+                type="text"
+                placeholder="Your full address"
+                value={formData.address}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-lg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </motion.div>
+          </div>
+
+          <div className="space-y-3">
+            <Label className="text-gray-700 dark:text-gray-300">
+              Role
+            </Label>
+            <Select onValueChange={handleRoleChange} required>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select your role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="HOST">Host (List your cars)</SelectItem>
+                <SelectItem value="RENTER">Renter (Book cars)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-3">
             <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">
               Password
@@ -215,7 +292,7 @@ const CreateAccountComponent = () => {
               />
             </motion.div>
             {!passwordMatch && formData.confirmPassword && (
-              <motion.p 
+              <motion.p
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-sm text-red-500"
@@ -224,12 +301,12 @@ const CreateAccountComponent = () => {
               </motion.p>
             )}
           </div>
-          
+
           <motion.div whileHover={{ scale: 1.01 }}>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
-              disabled={isLoading || !passwordMatch}
+              disabled={isLoading || !passwordMatch || !formData.role}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -245,7 +322,7 @@ const CreateAccountComponent = () => {
             </Button>
           </motion.div>
         </motion.form>
-        
+
         {/* Divider */}
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
@@ -257,7 +334,7 @@ const CreateAccountComponent = () => {
             </span>
           </div>
         </div>
-        
+
         {/* Social signup buttons */}
         <div className="flex flex-col space-y-3">
           <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
@@ -276,7 +353,7 @@ const CreateAccountComponent = () => {
               Google
             </Button>
           </motion.div>
-          
+
           <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}>
             <Button
               variant="outline"

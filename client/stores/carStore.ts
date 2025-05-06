@@ -83,7 +83,9 @@ export const useCarStore = create<CarState>((set) => ({
   fetchCarsByCity: async (city) => {
     set({ loading: true, error: null });
     try {
+      console.log("Fetching cars by city:", city);
       const cars = await carService.fetchCarsByCity(city);
+      console.log("Hello cars aa gyee ",cars);
       set({ cars, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });

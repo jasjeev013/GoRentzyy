@@ -4,8 +4,16 @@ import { FiMapPin } from 'react-icons/fi';
 import DatePicker from './DatePicker';
 import DropdownMenuC from './DropdownMenuC';
 import { Button } from '../../../components/ui/button';
+import { useCarStore } from '../../../stores/carStore';
 
 const SearchBarSection = () => {
+const { fetchCarsByCity } = useCarStore();
+    const handleSubmit = () => {
+        // Handle the submit action here
+        console.log("Submit button clicked!");
+        fetchCarsByCity("YOrk"); 
+        
+    }
 
     return (
 
@@ -29,7 +37,7 @@ const SearchBarSection = () => {
                             <DatePicker whichDate="end" />
                         </div>
 
-                        <Button className="bg-white text-purple-600 font-bold py-3 px-6 rounded-lg hover:bg-purple-100 transition">
+                        <Button onClick={handleSubmit} className="bg-white text-purple-600 font-bold py-3 px-6 rounded-lg hover:bg-purple-100 transition">
                             Modify Search
                         </Button>
                     </div>

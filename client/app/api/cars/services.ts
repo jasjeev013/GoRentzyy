@@ -60,7 +60,7 @@ export const carService = {
   },
 
   fetchCarsByCity: async (city: string): Promise<Car[]> => {
-    const response = await api.get('/api/car/getByCity', {
+    const response = await api.get('/api/car/getByC', {
       params: { city }
     });
     return response.data.data.flat();
@@ -71,7 +71,7 @@ export const carService = {
     startDate: string, 
     endDate: string
   ): Promise<Car[]> => {
-    const response = await api.get('/api/car/getByCityAndDate', {
+    const response = await api.get('/api/car/getByCT', {
       params: { city, startDate, endDate }
     });
     return response.data.data.flat();
@@ -81,7 +81,7 @@ export const carService = {
     make: string, 
     model: string
   ): Promise<Car[]> => {
-    const response = await api.get('/api/car/getByMakeAndModel', {
+    const response = await api.get('/api/car/getByMM', {
       params: { make, model }
     });
     return response.data.data.flat();

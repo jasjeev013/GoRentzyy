@@ -4,7 +4,6 @@ import { useAuth } from '../../../hooks/useAuth';
 
 const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
     const { isAuthenticated, role, userData } = useAuth();
-    console.log()
 
 
 
