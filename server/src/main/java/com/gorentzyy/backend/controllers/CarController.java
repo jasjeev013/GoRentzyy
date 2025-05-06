@@ -30,6 +30,8 @@ public class CarController {
     @PreAuthorize("hasRole('HOST')")
     @PostMapping("/create")
     public ResponseEntity<ApiResponseObject> addNewCar(@Valid @RequestBody CarDto carDto, Authentication authentication){
+
+
         String email = authentication.getName();
         return carService.addNewCar(carDto,email);
     }

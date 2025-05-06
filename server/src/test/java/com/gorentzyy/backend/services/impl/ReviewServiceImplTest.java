@@ -96,7 +96,7 @@ class ReviewServiceImplTest {
         when(reviewRepository.save(any(Review.class))).thenReturn(review);
         when(modelMapper.map(review, ReviewDto.class)).thenReturn(reviewDto);
 
-        ResponseEntity<ApiResponseObject> response = reviewService.updateReview(reviewDto, 1L);
+        ResponseEntity<ApiResponseObject> response = reviewService.updateReview(reviewDto, 1L,review.getCar().getHost().getEmail());
 
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.getBody().isResult());
@@ -108,7 +108,7 @@ class ReviewServiceImplTest {
         when(reviewRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ReviewNotFoundException.class, () ->
-                reviewService.updateReview(reviewDto, 1L)
+                reviewService.updateReview(reviewDto, 1L,review.getCar().getHost().getEmail())
         );
     }
 

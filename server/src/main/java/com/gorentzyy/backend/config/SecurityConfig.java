@@ -73,7 +73,7 @@ public class SecurityConfig {
 
                         // User routes (Authenticated)
                         .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",
-                                "/api/user/delete").authenticated()
+                                "/api/user/delete","/api/user/getOTPEmail","/api/user/verifyOTPEmail","/api/user/getOTPPhone").authenticated()
 
                         // Car routes (Only for HOST)
                         .requestMatchers("/api/car/create", "/api/car/update/{carId}",

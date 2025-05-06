@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Service
 public class ReviewServiceImpl implements ReviewService {
@@ -71,10 +72,11 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public ResponseEntity<ApiResponseObject> updateReview(ReviewDto reviewDto, Long reviewId) {
+    public ResponseEntity<ApiResponseObject> updateReview(ReviewDto reviewDto, Long reviewId,String email) {
         Review existingReview = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException("Review with ID " + reviewId + " not found"));
 
+        if (!Objects.equals(existingReview.getCar().getHost().getEmail(), email)) throw new RuntimeException("Owner of this car can only update review");
         existingReview.setComments(reviewDto.getComments());
         existingReview.setRating(reviewDto.getRating());
 

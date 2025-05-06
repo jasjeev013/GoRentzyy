@@ -22,7 +22,6 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendEmail(String to, String subject, String body) {
         try {
-            System.out.println("Hello jiii");
             SimpleMailMessage mail  =new SimpleMailMessage();
             mail.setTo(to);
             mail.setSubject(subject);

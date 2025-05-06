@@ -11,10 +11,7 @@ import com.gorentzyy.backend.models.User;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.UserDto;
 import com.gorentzyy.backend.repositories.UserRepository;
-import com.gorentzyy.backend.services.CloudinaryService;
-import com.gorentzyy.backend.services.EmailService;
-import com.gorentzyy.backend.services.RedisService;
-import com.gorentzyy.backend.services.UserService;
+import com.gorentzyy.backend.services.*;
 import com.gorentzyy.backend.utils.JwtUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -36,8 +33,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,11 +52,12 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
     private final RedisService redisService;
     private final JwtUtils jwtUtils;
+    private final SMSService smsService;
 
 
 
  @Autowired
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, JwtUtils jwtUtils) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, JwtUtils jwtUtils, SMSService smsService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
@@ -66,7 +66,8 @@ public class UserServiceImpl implements UserService {
         this.authenticationManager = authenticationManager;
         this.redisService = redisService;
         this.jwtUtils = jwtUtils;
-    }
+     this.smsService = smsService;
+ }
 
 
 
@@ -89,6 +90,9 @@ public class UserServiceImpl implements UserService {
         LocalDateTime now = LocalDateTime.now();
         newUser.setCreatedAt(now);
         newUser.setUpdatedAt(now);
+
+        newUser.setEmailVerified(false);
+        newUser.setPhoneNumberVerified(false);
 
         try {
             // Hash the password before saving the user
@@ -335,5 +339,45 @@ public class UserServiceImpl implements UserService {
             logger.error("Unexpected error fetching user by email {}: {}", email, e.getMessage(), e);
             throw new DatabaseException("Failed to retrieve user data");
         }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> sendOTPForEmailVerification(String email) {
+        String token = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 999999));
+        // Put in redis for this email
+        redisService.set(email,token,Duration.ofMinutes(2));
+
+        emailService.sendEmail(email,"Here's your OTP for GORentzyy","OTP: "+token);
+        return new ResponseEntity<>(new ApiResponseObject("OTP Sent successfully",true,null),HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> validateOTPForEmailVerification(String email,String token) {
+     if (null!=redisService){
+         String cachedToken = String.valueOf(redisService.get(email,String.class));
+         if (Objects.equals(cachedToken, token)) {
+             User existingUser = userRepository.findByEmail(email)
+                     .orElseThrow(() -> new UserNotFoundException("User with email: " + email + " not found"));
+
+             existingUser.setEmailVerified(true);
+             userRepository.save(existingUser);
+             emailService.sendEmail(email,"Verified Email Successfully","Email is validated Successfully");
+
+             return new ResponseEntity<>(new ApiResponseObject("Email Verified Successfully", true, null), HttpStatus.OK);
+         }
+         else return new ResponseEntity<>(new ApiResponseObject("OTP Expired",false,null),HttpStatus.NOT_FOUND);
+     }
+     return new ResponseEntity<>(new ApiResponseObject("Internal Server Error",false,null),HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> sendOTpForPhoneNumberVerification(String phoneNumber) {
+     smsService.sendSMS(phoneNumber,"Hello from GoRentzyy");
+        return new ResponseEntity<>(new ApiResponseObject("Message Sent",true,null),HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> validateOTPForPhoneNumberVerification(String phoneNumber, String token) {
+        return null;
     }
 }

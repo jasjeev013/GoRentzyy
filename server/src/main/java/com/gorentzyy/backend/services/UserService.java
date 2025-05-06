@@ -55,6 +55,12 @@ public interface UserService {
      */
     ResponseEntity<ApiResponseObject> getUserByEmail(String email);
 
+    ResponseEntity<ApiResponseObject> sendOTPForEmailVerification(String email);
+    ResponseEntity<ApiResponseObject> validateOTPForEmailVerification(String email,String token);
+
+    ResponseEntity<ApiResponseObject> sendOTpForPhoneNumberVerification(String phoneNumber);
+    ResponseEntity<ApiResponseObject> validateOTPForPhoneNumberVerification(String phoneNumber,String token);
+
 
 
 }

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -109,5 +110,11 @@ public class GlobalExceptionHandlerAdvice {
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         logger.error("Unhandled Exception: {}", ex.getMessage());
         return new ResponseEntity<>(new ErrorResponse("An unexpected error occurred.", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(Exception ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid Credentials found", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

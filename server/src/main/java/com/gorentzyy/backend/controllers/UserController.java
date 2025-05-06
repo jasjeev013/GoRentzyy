@@ -80,6 +80,21 @@ public class UserController {
         return userService.loginUser(loginRequest);
     }
 
+    @GetMapping("/getOTPEmail")
+    public ResponseEntity<ApiResponseObject> getOtpForEmailVerification(@RequestParam String email){
+        return userService.sendOTPForEmailVerification(email);
+    }
+
+    @GetMapping("/verifyOTPEmail")
+    public ResponseEntity<ApiResponseObject> verifyOTPForEmailVerification(@RequestParam String email,@RequestParam String token){
+        return userService.validateOTPForEmailVerification(email,token);
+    }
+
+    @GetMapping("/getOTPPhone")
+    public ResponseEntity<ApiResponseObject> getOTPForPHoneNumberVerification(@RequestParam String phoneNumber){
+        return userService.sendOTpForPhoneNumberVerification(phoneNumber);
+    }
+
 
 }
 

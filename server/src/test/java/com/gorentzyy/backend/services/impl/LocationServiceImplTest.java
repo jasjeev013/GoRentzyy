@@ -92,7 +92,7 @@ class LocationServiceImplTest {
         when(locationRepository.save(any(Location.class))).thenReturn(location);
         when(modelMapper.map(location, LocationDto.class)).thenReturn(locationDto);
 
-        ResponseEntity<ApiResponseObject> response = locationService.updateLocation(locationDto, 1L);
+        ResponseEntity<ApiResponseObject> response = locationService.updateLocation(locationDto, 1L,car.getHost().getEmail());
 
         assertEquals(202, response.getStatusCodeValue());
         assertNotNull(response.getBody());
@@ -104,7 +104,7 @@ class LocationServiceImplTest {
     void testUpdateLocation_NotFound() {
         when(locationRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(LocationNotFoundException.class, () -> locationService.updateLocation(locationDto, 1L));
+        assertThrows(LocationNotFoundException.class, () -> locationService.updateLocation(locationDto, 1L,car.getHost().getEmail()));
 
         verify(locationRepository, never()).save(any(Location.class));
     }

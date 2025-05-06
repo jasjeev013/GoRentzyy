@@ -26,6 +26,9 @@ public class User {
     private String phoneNumber;
     private String address;
 
+    private Boolean emailVerified;
+    private Boolean phoneNumberVerified;
+
     @Enumerated(EnumType.STRING)
 
     private AppConstants.Role role;

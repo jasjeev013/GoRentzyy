@@ -33,8 +33,9 @@ public class ReviewController {
 
     @PreAuthorize("hasAuthority('ROLE_RENTER')")
     @PutMapping("/update/{reviewId}")
-    public ResponseEntity<ApiResponseObject> updateReview(@Valid @RequestBody ReviewDto reviewDto, @PathVariable Long reviewId){
-        return reviewService.updateReview(reviewDto,reviewId);
+    public ResponseEntity<ApiResponseObject> updateReview(@Valid @RequestBody ReviewDto reviewDto, @PathVariable Long reviewId,Authentication authentication){
+        String email = authentication.getName();
+        return reviewService.updateReview(reviewDto,reviewId,email);
     }
 
     @GetMapping("/get/{reviewId}")

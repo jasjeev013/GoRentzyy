@@ -65,11 +65,13 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto, Long locationId) {
+    public ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto, Long locationId,String email) {
         // Find the existing location
         Location existingLocation = locationRepository.findById(locationId).orElseThrow(() ->
                 new LocationNotFoundException("Location with ID " + locationId + " does not exist.")
         );
+
+        if (!Objects.equals(existingLocation.getCar().getHost().getEmail(), email)) throw new RuntimeException("Owner of this car can only update Location");
 
         // Update the existing location with new values
         existingLocation.setAddress(locationDto.getAddress()==null?existingLocation.getAddress():locationDto.getAddress());

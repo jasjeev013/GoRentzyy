@@ -29,8 +29,9 @@ public class LocationController {
     }
 
     @PutMapping("/update/{locationId}")
-    public ResponseEntity<ApiResponseObject> updateLocation(@Valid @RequestBody LocationDto locationDto,@PathVariable Long locationId){
-        return locationService.updateLocation(locationDto,locationId);
+    public ResponseEntity<ApiResponseObject> updateLocation(@Valid @RequestBody LocationDto locationDto,@PathVariable Long locationId,Authentication authentication){
+        String email = authentication.getName();
+        return locationService.updateLocation(locationDto,locationId,email);
     }
 
     @GetMapping("/get/{locationId}")

@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 public interface LocationService {
 
     ResponseEntity<ApiResponseObject> addLocation(LocationDto locationDto,Long carId,String email);
-    ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto,Long locationId);
+    ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto,Long locationId,String email);
     ResponseEntity<ApiResponseObject> getLocation(Long locationId);
     ResponseEntity<ApiResponseObject> deleteLocation(Long locationId);
 }
