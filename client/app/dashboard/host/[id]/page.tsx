@@ -28,6 +28,8 @@ import {
 } from 'recharts'
 import { useAuth } from '../../../../hooks/useAuth'
 import { redirect } from 'next/navigation'
+import CarManagementTable from '../../../components/carPageComponents/CarManagementTable'
+import BookingManagementTable from '../../../components/carPageComponents/BookingManagementTable'
 
 const data = [
   { name: 'Mon', reserved: 12, rental: 8, done: 10 },
@@ -195,47 +197,11 @@ const DashboardPage = () => {
               )}
 
               {activeTab === 'cars' && (
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h2 className="text-2xl font-bold mb-6">Cars Management</h2>
-                  <div className="grid gap-6">
-                    <div className="bg-gray-700 p-4 rounded-lg">
-                      <h3 className="text-xl font-semibold mb-4">All Vehicles</h3>
-                      <p className="text-gray-300">Your car inventory will be displayed here</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gray-700 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-2">Add New Car</h3>
-                        <Button className="w-full">Add Vehicle</Button>
-                      </div>
-                      <div className="bg-gray-700 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-2">Car Categories</h3>
-                        <Button variant="outline" className="w-full">Manage Categories</Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <CarManagementTable/>
               )}
 
               {activeTab === 'bookings' && (
-                <div className="bg-gray-800 rounded-lg p-6">
-                  <h2 className="text-2xl font-bold mb-6">Bookings Management</h2>
-                  <div className="grid gap-6">
-                    <div className="bg-gray-700 p-4 rounded-lg">
-                      <h3 className="text-xl font-semibold mb-4">Current Bookings</h3>
-                      <p className="text-gray-300">All active bookings will be displayed here</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="bg-gray-700 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-2">Booking Calendar</h3>
-                        <Button className="w-full">View Calendar</Button>
-                      </div>
-                      <div className="bg-gray-700 p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-2">Booking Reports</h3>
-                        <Button variant="outline" className="w-full">Generate Reports</Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <BookingManagementTable/>
               )}
 
               {activeTab === 'profile' && (

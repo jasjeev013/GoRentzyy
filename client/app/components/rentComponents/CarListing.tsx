@@ -44,8 +44,11 @@ const CarListing = ({ cars, sortOption, onSortChange }: CarListingProps) => {
             </div>
 
             {/* Car Cards */}
+            {cars.length === 0 && <div className='text-center'>Nothing to show here</div>}
+
             <div className={`${gridView ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'flex flex-col'} gap-6`}>
-                {cars && cars.map(car => (
+
+                {cars.length != 0 && cars.map(car => (
                     <Car
                         key={car.carId}
                         {...car}

@@ -365,7 +365,6 @@ public class CarServiceImpl implements CarService {
             } else {
                 throw new CloudinaryUploadException("Failed to upload photo.");
             }
-            existingCar.getPhotos().add((String) savedPhoto.get("url"));
         }
         carRepository.save(existingCar);
         return new ResponseEntity<>(new ApiResponseObject("Uploaded all photos",true,null),HttpStatus.ACCEPTED);
