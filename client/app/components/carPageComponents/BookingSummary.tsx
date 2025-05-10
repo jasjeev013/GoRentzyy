@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { Button } from '../../../components/ui/button';
+import RentalPaymentConfirmation from './RentalPaymentConfirmation';
 
 interface BookingSummaryProps {
   basePrice: number;
@@ -9,42 +10,43 @@ interface BookingSummaryProps {
 }
 
 const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [includeLuggage, setIncludeLuggage] = useState(false);
   const [includeProtection, setIncludeProtection] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
-  
+
   const gst = basePrice * 0.18;
   const deposit = basePrice * 2;
   const luggageFee = includeLuggage ? 500 : 0;
   const protectionFee = includeProtection ? 300 : 0;
-  
+
   const subtotal = basePrice + luggageFee + protectionFee;
   const total = subtotal + gst;
 
   return (
     <div className="bg-[#DDC9C9] dark:bg-[#252A27CC] rounded-lg shadow-md p-6">
       <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Booking Summary</h2>
-      
+
       <div className="space-y-3 mb-4">
         <div className="flex justify-between">
           <span className="text-gray-600 dark:text-gray-300">Rental Charges</span>
           <span>₹{basePrice.toFixed(2)}</span>
         </div>
-        
+
         <div className="flex justify-between">
           <span className="text-gray-600 dark:text-gray-300">GST (18%)</span>
           <span>₹{gst.toFixed(2)}</span>
         </div>
-        
+
         <div className="flex justify-between">
           <span className="text-gray-600 dark:text-gray-300">Refundable Deposit</span>
           <span>₹{deposit.toFixed(2)}</span>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="luggage" 
+            <Checkbox
+              id="luggage"
               checked={includeLuggage}
               onCheckedChange={(checked) => setIncludeLuggage(!!checked)}
             />
@@ -54,11 +56,11 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
           </div>
           <span>₹500.00</span>
         </div>
-        
+
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="protection" 
+            <Checkbox
+              id="protection"
               checked={includeProtection}
               onCheckedChange={(checked) => setIncludeProtection(!!checked)}
             />
@@ -69,7 +71,7 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
           <span>₹300.00</span>
         </div>
       </div>
-      
+
       <div className="mb-4">
         <label htmlFor="promo" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Promo Code
@@ -86,10 +88,10 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
           </button>
         </div>
       </div>
-      
+
       <div className="flex items-center space-x-2 mb-6">
-        <Checkbox 
-          id="terms" 
+        <Checkbox
+          id="terms"
           checked={agreeTerms}
           onCheckedChange={(checked) => setAgreeTerms(!!checked)}
         />
@@ -97,17 +99,25 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
           I agree to the <a href="#" className="text-blue-600 hover:underline">Terms & Conditions</a>
         </label>
       </div>
-      
+
       <div className="border-t pt-4">
         <div className="flex justify-between font-semibold text-lg">
           <span>Total Amount</span>
           <span>₹{total.toFixed(2)}</span>
         </div>
       </div>
-      
-      <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700" disabled={!agreeTerms}>
+
+      <Button
+        className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
+        disabled={!agreeTerms}
+        onClick={() => setShowConfirmation(true)}
+      >
         Proceed to Payment
       </Button>
+
+      {showConfirmation && (
+        <RentalPaymentConfirmation onClose={() => setShowConfirmation(false)} />
+      )}
     </div>
   );
 };

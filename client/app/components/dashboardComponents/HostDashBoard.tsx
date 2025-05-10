@@ -25,6 +25,8 @@ import {
     Legend,
     ResponsiveContainer
 } from 'recharts'
+
+
 const HostDashBoard = ({ data, popularCars }) => {
     return (
         <>

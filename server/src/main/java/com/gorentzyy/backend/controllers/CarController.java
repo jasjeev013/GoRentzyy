@@ -66,6 +66,7 @@ public class CarController {
 
     @GetMapping("/getByC")
     public ResponseEntity<ApiResponseData> getAllCarsForSpecificCity(@RequestParam String city){
+        System.out.println("getAllCarsForSpecificCity");
         return carService.getAllCarsForSpecificCity(city);
     }
 
@@ -75,6 +76,7 @@ public class CarController {
     }
     @GetMapping("/getByCT")
     public ResponseEntity<ApiResponseData> getAllCarsForSpecificCityAndTimeline(@RequestParam String city, @RequestParam LocalDateTime startDate,LocalDateTime endDate){
+        System.out.println(city + " " + startDate + " " + endDate);
         return carService.getAllCarsForSpecificCityWithNotHavingStartDateANdEndDate(city,startDate,endDate);
     }
 

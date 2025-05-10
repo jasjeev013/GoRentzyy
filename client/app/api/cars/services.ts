@@ -71,9 +71,24 @@ export const carService = {
     startDate: string, 
     endDate: string
   ): Promise<Car[]> => {
+    // Convert dates to ISO string format if they're not already
+    const formattedStartDate = new Date(startDate).toISOString().split('Z')[0];
+    const formattedEndDate = new Date(endDate).toISOString().split('Z')[0];
+    // const formattedStartDate = "2025-04-04T16:09:27.136129"
+    // const formattedEndDate = "2025-05-04T16:09:27.136129";
+
+    console.log('Formatted Start Date:', formattedStartDate);
+    console.log('Formatted End Date:', formattedEndDate);
+    
     const response = await api.get('/api/car/getByCT', {
-      params: { city, startDate, endDate }
+      params: { 
+        city, 
+        startDate: formattedStartDate,
+        endDate: formattedEndDate 
+      }
     });
+
+    console.log('Response from fetchCarsByCityAndDate:', response.data);
     return response.data.data.flat();
   },
 

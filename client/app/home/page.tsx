@@ -11,6 +11,8 @@ import EightFooterSection from '../components/homeComponents/EightFooterSection'
 
 
 const page = () => {
+
+  
   return (
     <>
 

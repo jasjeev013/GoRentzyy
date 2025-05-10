@@ -69,11 +69,14 @@ public class SecurityConfig {
 //                .requiresChannel(rcc -> rcc.anyRequest().requiresInsecure()) // Only HTTP
                 .authorizeHttpRequests(auth -> auth
                         // Public routes
-                        .requestMatchers("/api/user/create","/api/car/getByC","/api/car/getByCT","/api/car/getByMM","/api/prod/user/test","/api/car/getAll","/api/google/callback", "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
+                        .requestMatchers("/api/user/create","/api/car/getByC","/api/car/getByCT",
+                                "/api/car/getByMM","/api/prod/user/test","/api/car/getAll","/api/google/callback",
+                                "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
 
                         // User routes (Authenticated)
                         .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",
-                                "/api/user/delete","/api/user/getOTPEmail","/api/user/verifyOTPEmail","/api/user/getOTPPhone").authenticated()
+                                "/api/user/delete","/api/user/getOTPEmail","/api/user/verifyOTPEmail",
+                                "/api/user/getOTPPhone").authenticated()
 
                         // Car routes (Only for HOST)
                         .requestMatchers("/api/car/create", "/api/car/update/{carId}",

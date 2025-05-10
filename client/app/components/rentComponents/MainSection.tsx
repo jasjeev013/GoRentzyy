@@ -2,22 +2,22 @@
 import { useState, useMemo, useEffect } from 'react';
 import CarListing from './CarListing';
 import FiltersLeftbar from './FiltersLeftbar';
-// Update the import path below if your carTypes file is located elsewhere
-import { CarCategory, CarType, FuelType, TransmissionMode, AvailabilityStatus } from '../../types/index';
 import { useCarStore } from '../../../stores/carStore';
 
 const MainSection = () => {
+
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOption, setSortOption] = useState('price-low');
-    const { cars, fetchAllCars } = useCarStore();
+    const { cars, availableCars, fetchAllCars } = useCarStore();
+
+    // Use availableCars if they exist, otherwise fall back to all cars
+    const displayCars = availableCars.length > 0 ? availableCars : cars;
 
     useEffect(() => {
-        const fetchCars = async () => {
-            await fetchAllCars();
-        };
-        fetchCars();
-    }
-    , [fetchAllCars]);
+        if (cars.length === 0) {
+            // fetchAllCars();
+        }
+    }, [cars.length, fetchAllCars]);
     
     
     // State for filters
@@ -36,14 +36,15 @@ const MainSection = () => {
 
     // Filter and sort cars
     const filteredCars = useMemo(() => {
-        let result = [...cars];
-        // Search filter
+       let result = [...displayCars];
+        
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             result = result.filter(car =>
                 car.name.toLowerCase().includes(term) ||
                 car.make.toLowerCase().includes(term) ||
-                car.model.toLowerCase().includes(term)
+                car.model.toLowerCase().includes(term) ||
+                car.location.city.toLowerCase().includes(term)
             );
         }
         // Car Category filter
@@ -103,7 +104,7 @@ const MainSection = () => {
         }
 
         return result;
-    }, [cars, searchTerm, filters, sortOption]);
+    }, [displayCars, searchTerm]);
 
     return (
         <div className="min-h-screen">
