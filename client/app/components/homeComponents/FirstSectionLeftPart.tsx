@@ -1,6 +1,5 @@
 "use client"
 import React, { useState } from 'react'
-import { useCarStore } from '../../../stores/carStore';
 import { useRouter } from 'next/navigation';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
@@ -8,18 +7,11 @@ import { Loader2 } from 'lucide-react';
 
 const FirstSectionLeftPart = () => {
     const router = useRouter();
-    const { fetchCarsByCity, fetchCarsByCityAndDate, fetchAllCars } = useCarStore();
     const [city, setCity] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-
-    const formatToLocalDateTime = (dateString: string) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toISOString();
-    };
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,28 +19,16 @@ const FirstSectionLeftPart = () => {
         setError('');
 
         try {
-            if (city) {
-                if (startDate && endDate) {
-                    const formattedStartDate = formatToLocalDateTime(startDate);
-                    const formattedEndDate = formatToLocalDateTime(endDate);
-                    await fetchCarsByCityAndDate(city, formattedStartDate, formattedEndDate);
-                } else {
-                    await fetchCarsByCity(city);
-                }
-            } else {
-                await fetchAllCars();
-            }
-            console.log('City:', city);
-            console.log('Start Date:', startDate);
-            console.log('End Date:', endDate);
-
-            setTimeout(() => {
-                // Simulate a delay for the search operation
-                console.log('Search completed');
-            }, 12000);
-            // Redirect to the rent page after search
-
-            router.push(`/rent?city=${city}&startDate=${startDate}&endDate=${endDate}`);
+            let query = '/rent';
+            const params = new URLSearchParams();
+            
+            if (city) params.append('city', city);
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+            
+            query += params.toString() ? `?${params.toString()}` : '';
+            router.push(query);
+            
         } catch (err) {
             setError('Failed to fetch cars. Please try again.');
             console.error('Search error:', err);
@@ -120,6 +100,5 @@ const FirstSectionLeftPart = () => {
         </div>
     );
 };
-
 
 export default FirstSectionLeftPart;

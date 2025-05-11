@@ -33,7 +33,7 @@ const BookingDetails = ({ pricePerDay, carType, location }: BookingDetailsProps)
   return (
     <div className="bg-[#DDC9C9] dark:bg-[#252A27CC] rounded-lg shadow-md p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">₹{pricePerDay.toFixed(2)}/day</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">₹{pricePerDay}/day</h2>
         <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
           {carType}
         </span>

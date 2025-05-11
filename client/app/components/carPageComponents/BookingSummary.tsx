@@ -6,7 +6,7 @@ import RentalPaymentConfirmation from './RentalPaymentConfirmation';
 
 interface BookingSummaryProps {
   basePrice: number;
-  luggageCapacity: number;
+  luggageCapacity: string;
 }
 
 const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => {
@@ -30,17 +30,17 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
       <div className="space-y-3 mb-4">
         <div className="flex justify-between">
           <span className="text-gray-600 dark:text-gray-300">Rental Charges</span>
-          <span>₹{basePrice.toFixed(2)}</span>
+          <span>₹{basePrice}</span>
         </div>
 
         <div className="flex justify-between">
           <span className="text-gray-600 dark:text-gray-300">GST (18%)</span>
-          <span>₹{gst.toFixed(2)}</span>
+          <span>₹{gst}</span>
         </div>
 
         <div className="flex justify-between">
           <span className="text-gray-600 dark:text-gray-300">Refundable Deposit</span>
-          <span>₹{deposit.toFixed(2)}</span>
+          <span>₹{deposit}</span>
         </div>
 
         <div className="flex items-center justify-between">
@@ -103,7 +103,7 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
       <div className="border-t pt-4">
         <div className="flex justify-between font-semibold text-lg">
           <span>Total Amount</span>
-          <span>₹{total.toFixed(2)}</span>
+          <span>₹{total}</span>
         </div>
       </div>
 

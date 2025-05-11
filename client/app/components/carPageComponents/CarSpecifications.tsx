@@ -61,9 +61,9 @@ const CarSpecifications = ({ car }: CarSpecificationsProps) => {
       <div>
         <h3 className="font-medium mb-2">Important Points</h3>
         <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-300">
-          {car.importantPoints?.map((point, index) => (
+          {/* { && car.importantPoints?.map((point, index) => (
             <li key={index}>{point}</li>
-          ))}
+          ))} */}
         </ul>
       </div>
     </div>

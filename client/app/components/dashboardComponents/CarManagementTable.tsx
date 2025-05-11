@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Switch } from '../../../components/ui/switch';
 import { Label } from '../../../components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../components/ui/avatar';
+import { useAuth } from '../../../hooks/useAuth';
 
 const carCategories = [
     "SEDAN", "COUPE", "HATCHBACK", "CONVERTIBLE",
@@ -27,6 +28,10 @@ const transmissionModes = ["MANUAL", "AUTOMATIC", "IMT"];
 const availabilityStatuses = ["AVAILABLE", "RESERVED", "UNDER_MAINTENANCE"];
 
 const CarManagementTable = () => {
+
+    const { userData } = useAuth();
+
+
     const [searchTerm, setSearchTerm] = useState('');
     const [carTypeFilter, setCarTypeFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');

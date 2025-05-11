@@ -1,25 +1,18 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import CarListing from './CarListing';
 import FiltersLeftbar from './FiltersLeftbar';
 import { useCarStore } from '../../../stores/carStore';
+import { Loader2 } from 'lucide-react';
 
 const MainSection = () => {
-
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOption, setSortOption] = useState('price-low');
-    const { cars, availableCars, fetchAllCars } = useCarStore();
+    const { cars, availableCars, loading } = useCarStore();
 
-    // Use availableCars if they exist, otherwise fall back to all cars
+    // Determine which cars to display
     const displayCars = availableCars.length > 0 ? availableCars : cars;
 
-    useEffect(() => {
-        if (cars.length === 0) {
-            // fetchAllCars();
-        }
-    }, [cars.length, fetchAllCars]);
-    
-    
     // State for filters
     const [filters, setFilters] = useState({
         carCategory: [] as string[],
@@ -36,58 +29,44 @@ const MainSection = () => {
 
     // Filter and sort cars
     const filteredCars = useMemo(() => {
-       let result = [...displayCars];
-        
+        let result = [...displayCars];
+
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             result = result.filter(car =>
                 car.name.toLowerCase().includes(term) ||
                 car.make.toLowerCase().includes(term) ||
-                car.model.toLowerCase().includes(term) ||
-                car.location.city.toLowerCase().includes(term)
+                car.model.toLowerCase().includes(term) 
             );
         }
-        // Car Category filter
+
+        // Apply filters
         if (filters.carCategory.length > 0) {
-            result = result.filter(car =>
-                filters.carCategory.includes(car.carCategory)
-            );
+            result = result.filter(car => filters.carCategory.includes(car.carCategory));
         }
 
-        // Car Type filter
         if (filters.carType.length > 0) {
-            result = result.filter(car =>
-                filters.carType.includes(car.carType)
-            );
+            result = result.filter(car => filters.carType.includes(car.carType));
         }
 
-        // Fuel type filter
         if (filters.fuelType.length > 0) {
-            result = result.filter(car =>
-                filters.fuelType.includes(car.fuelType)
-            );
+            result = result.filter(car => filters.fuelType.includes(car.fuelType));
         }
 
-        // Transmission filter
         if (filters.transmission.length > 0) {
-            result = result.filter(car =>
-                filters.transmission.includes(car.transmissionMode)
-            );
+            result = result.filter(car => filters.transmission.includes(car.transmissionMode));
         }
 
-        // Price range filter
         result = result.filter(car =>
             car.rentalPricePerDay >= filters.minPrice &&
             car.rentalPricePerDay <= filters.maxPrice
         );
 
-        // Year range filter
         result = result.filter(car =>
             car.year >= filters.minYear &&
             car.year <= filters.maxYear
         );
 
-        // Seating capacity filter
         result = result.filter(car =>
             car.seatingCapacity >= filters.seatingCapacity
         );
@@ -104,40 +83,45 @@ const MainSection = () => {
         }
 
         return result;
-    }, [displayCars, searchTerm]);
+    }, [displayCars, searchTerm, filters, sortOption]);
 
     return (
         <div className="min-h-screen">
-            {/* Search Bar Section */}
-            <div className="shadow-md mx-20 p-4 rounded-lg">
-                <div className="flex items-center gap-4">
-                    <input
-                        type="text"
-                        placeholder="Search by make, model, or location"
-                        className="border border-gray-300 rounded-lg p-2 w-full"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">
-                        Search
-                    </button>
+            {loading ? (
+                <div className="flex justify-center items-center h-64">
+                    <Loader2 className="h-12 w-12 animate-spin" />
                 </div>
-            </div>
+            ) : (
+                <>
+                    {/* Search Bar Section */}
+                    <div className="shadow-md mx-20 p-4 rounded-lg">
+                        <div className="flex items-center gap-4">
+                            <input
+                                type="text"
+                                placeholder="Search by make, model, or location"
+                                className="border border-gray-300 rounded-lg p-2 w-full"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
-            {/* Main Content */}
-            <div className="max-w-7xl mx-auto p-6">
-                <div className="flex flex-col md:flex-row gap-6">
-                    <FiltersLeftbar
-                        onFilterChange={setFilters}
-                        currentFilters={filters}
-                    />
-                    <CarListing
-                        cars={filteredCars}
-                        sortOption={sortOption}
-                        onSortChange={setSortOption}
-                    />
-                </div>
-            </div>
+                    {/* Main Content */}
+                    <div className="max-w-7xl mx-auto p-6">
+                        <div className="flex flex-col md:flex-row gap-6">
+                            <FiltersLeftbar
+                                onFilterChange={setFilters}
+                                currentFilters={filters}
+                            />
+                            <CarListing
+                                cars={filteredCars}
+                                sortOption={sortOption}
+                                onSortChange={setSortOption}
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

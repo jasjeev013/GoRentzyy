@@ -3,42 +3,35 @@ import React, { useState } from 'react'
 import { FiMapPin } from 'react-icons/fi';
 
 import { Button } from '../../../components/ui/button';
-import { useCarStore } from '../../../stores/carStore';
 import { Input } from '../../../components/ui/input';
 import { Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 
 
-const SearchBarSection = ({cityQuery,startDateQuery,endDateQuery}) => {
-    const { fetchCarsByCity, fetchCarsByCityAndDate, fetchAllCars } = useCarStore();
+const SearchBarSection = ({ cityQuery, startDateQuery, endDateQuery }) => {
+    const router = useRouter();
     const [city, setCity] = useState(cityQuery);
     const [startDate, setStartDate] = useState(startDateQuery);
     const [endDate, setEndDate] = useState(endDateQuery);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const formatToLocalDateTime = (dateString: string) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toISOString();
-    };
-
     const handleSubmit = async () => {
         setIsLoading(true);
         setError('');
 
         try {
-            if (city) {
-                if (startDate && endDate) {
-                    const formattedStartDate = formatToLocalDateTime(startDate);
-                    const formattedEndDate = formatToLocalDateTime(endDate);
-                    await fetchCarsByCityAndDate(city, formattedStartDate, formattedEndDate);
-                } else {
-                    await fetchCarsByCity(city);
-                }
-            } else {
-                await fetchAllCars();
-            }
+            let query = '/rent';
+            const params = new URLSearchParams();
+            
+            if (city) params.append('city', city);
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+            
+            query += params.toString() ? `?${params.toString()}` : '';
+            router.push(query);
+            
         } catch (err) {
             setError('Failed to fetch cars. Please try again.');
             console.error('Search error:', err);
@@ -47,11 +40,18 @@ const SearchBarSection = ({cityQuery,startDateQuery,endDateQuery}) => {
         }
     };
 
+    const handleClear = () => {
+        setCity('');
+        setStartDate('');
+        setEndDate('');
+        router.push('/rent');
+    };
+
     return (
         <div className="text-white p-6">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-2xl font-bold mb-6">Book Self-Drive Cars</h1>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div className="relative">
                         <FiMapPin className="absolute left-3 top-3 text-purple-300" />
                         <Input
@@ -93,6 +93,14 @@ const SearchBarSection = ({cityQuery,startDateQuery,endDateQuery}) => {
                             'Modify Search'
                         )}
                     </Button>
+
+                    <Button 
+                        onClick={handleClear}
+                        variant="outline"
+                        className="text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-600 transition"
+                    >
+                        Clear Filters
+                    </Button>
                 </div>
                 {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             </div>
@@ -100,6 +108,4 @@ const SearchBarSection = ({cityQuery,startDateQuery,endDateQuery}) => {
     );
 };
 
-
-
-export default SearchBarSection
+export default SearchBarSection;

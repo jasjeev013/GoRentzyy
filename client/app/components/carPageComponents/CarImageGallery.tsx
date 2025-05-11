@@ -7,6 +7,7 @@ interface CarImageGalleryProps {
 }
 
 const CarImageGallery = ({ photos }: CarImageGalleryProps) => {
+  console.log(photos);
   const [mainImage, setMainImage] = useState(photos[0]);
 
   return (

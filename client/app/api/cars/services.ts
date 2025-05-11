@@ -100,5 +100,16 @@ export const carService = {
       params: { make, model }
     });
     return response.data.data.flat();
-  }
+  },
+
+  fetchCarById: async (carId: number): Promise<Car> => {
+    try {
+      const response = await api.get(`/api/car/get/${carId}`);
+      console.log('Response from fetchCarById:', response.data);
+      return response.data;
+
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch car details');
+    }
+  },
 };

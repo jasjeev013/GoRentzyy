@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { FiGrid, FiList } from 'react-icons/fi';
 import Car from './Car';
 import { CarListingProps } from '../../types';
+import { useCarStore } from '../../../stores/carStore';
 
 
 
 const CarListing = ({ cars, sortOption, onSortChange }: CarListingProps) => {
     const [gridView, setGridView] = useState(true);
-
+    const { loading } = useCarStore();
 
     return (
         <div className="w-full md:w-3/4">
@@ -44,7 +45,7 @@ const CarListing = ({ cars, sortOption, onSortChange }: CarListingProps) => {
             </div>
 
             {/* Car Cards */}
-            {cars.length === 0 && <div className='text-center'>Nothing to show here</div>}
+            {!loading &&  cars.length === 0 && <div className='text-center'>Nothing to show here</div>}
 
             <div className={`${gridView ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'flex flex-col'} gap-6`}>
 

@@ -31,7 +31,7 @@ const Car = ({
     const handleViewDetails = () => {
         setIsNavigating(true);
         router.push(`/rent/${carId}`);
-        setTimeout(() => setIsNavigating(false), 700);
+        setIsNavigating(false);
     };
 
     return (

@@ -34,8 +34,11 @@ const popularCars = [
 ]
 
 const DashboardPage = () => {
-  const { logout } = useAuth();
+  const { userData,logout } = useAuth();
   const [activeTab, setActiveTab] = useState('home')
+
+
+
   return (
     <>
 
@@ -45,7 +48,7 @@ const DashboardPage = () => {
             {/* Top Navigation Bar - Modified */}
             <nav className="p-4 flex justify-between items-center">
               <div className="flex items-center space-x-4">
-                <h1 className="text-2xl md:text-3xl font-bold">Hey Jasjeev Singh Kohli</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Hey {userData.fullName}</h1>
               </div>
               <div className="flex items-center space-x-4">
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -79,19 +82,19 @@ const DashboardPage = () => {
             {/* Tab Contents */}
             <div className="container mx-auto p-4 md:p-6">
               {activeTab === 'home' && (
-                <HostDashBoard data={data} popularCars={popularCars}/>
+                <HostDashBoard data={data} popularCars={popularCars} />
               )}
 
               {activeTab === 'cars' && (
-                <CarManagementTable/>
+                <CarManagementTable />
               )}
 
               {activeTab === 'bookings' && (
-                <BookingManagementTable/>
+                <BookingManagementTable />
               )}
 
               {activeTab === 'profile' && (
-                <HostProfileEdit/>
+                <HostProfileEdit />
               )}
             </div>
           </div>

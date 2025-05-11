@@ -58,19 +58,23 @@ interface Car {
 interface CarState {
   cars: Car[];
   availableCars: Car[];
+  currentCar: Car | null; // Add this for single car
   loading: boolean;
   error: string | null;
   fetchAllCars: () => Promise<void>;
   fetchCarsByCity: (city: string) => Promise<void>;
   fetchCarsByCityAndDate: (city: string, startDate: string, endDate: string) => Promise<void>;
   fetchCarsByMakeAndModel: (make: string, model: string) => Promise<void>;
+  fetchCarById: (carId: number) => Promise<void>; // Add this
   clearAvailableCars: () => void;
+  clearCurrentCar: () => void; // Add this
 }
 
 
 export const useCarStore = create<CarState>((set) => ({
   cars: [],
   availableCars: [],
+  currentCar: null,
   loading: false,
   error: null,
   fetchAllCars: async () => {
@@ -109,5 +113,16 @@ export const useCarStore = create<CarState>((set) => ({
       set({ error: error.message, loading: false });
     }
   },
+  fetchCarById: async (carId) => {
+    set({ loading: true, error: null });
+    try {
+      const car = await carService.fetchCarById(carId);
+      console.log('Fetched car:', car.object);
+      set({ currentCar: car.object, loading: false });
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
+  clearCurrentCar: () => set({ currentCar: null }),
   clearAvailableCars: () => set({ availableCars: [] })
 }));

@@ -82,7 +82,7 @@ export interface Car {
 
 export interface BookingDetailsProps {
   pricePerDay: number;
-  carType: CarType;
+  carType: string;
   location: string;
 }
 
