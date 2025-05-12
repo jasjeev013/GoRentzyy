@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Plus, Edit, Trash2, X, Check, ChevronDown } from 'lucide-react';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
@@ -9,27 +9,67 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Switch } from '../../../components/ui/switch';
 import { Label } from '../../../components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../components/ui/avatar';
-import { useAuth } from '../../../hooks/useAuth';
+import { useCarStore } from '../../../stores/carStore';
 
-const carCategories = [
-    "SEDAN", "COUPE", "HATCHBACK", "CONVERTIBLE",
-    "WAGON", "SUV", "CROSSOVER", "PICKUP_TRUCK", "MINIVAN"
-];
 
-const carTypes = [
-    "ECONOMY", "LUXURY", "SPORTS", "SUPERCAR",
-    "ELECTRIC", "HYBRID", "OFF_ROAD"
-];
-
-const fuelTypes = ["PETROL", "DIESEL", "ELECTRIC", "CNG", "OTHER"];
-
-const transmissionModes = ["MANUAL", "AUTOMATIC", "IMT"];
-
-const availabilityStatuses = ["AVAILABLE", "RESERVED", "UNDER_MAINTENANCE"];
-
+interface Car {
+  host: {
+    userId: number;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    address: string;
+    role: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  carId: number;
+  name: string;
+  make: string;
+  model: string;
+  year: number;
+  color: string;
+  registrationNumber: string;
+  photos: string[];
+  carCategory: string;
+  carType: string;
+  fuelType: string;
+  transmissionMode: string;
+  seatingCapacity: number;
+  luggageCapacity: number;
+  rentalPricePerDay: number;
+  rentalPricePerWeek: number;
+  rentalPricePerMonth: number;
+  availabilityStatus: string;
+  maintenanceDueDate: string;
+  createdAt: string;
+  updatedAt: string;
+  insurance: string;
+  roadSideAssistance: string;
+  fuelPolicy: string;
+  features: string;
+  importantPoints: string;
+  location: {
+    locationId: number;
+    city: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+  };
+  reviews: {
+    reviewId: number;
+    rating: number;
+    comments: string;
+    createdAt: string;
+  }[];
+}
 const CarManagementTable = () => {
+    const { hostCars,fetchAllCarsOfHost } = useCarStore();
 
-    const { userData } = useAuth();
+    useEffect(() => {
+        fetchAllCarsOfHost();
+        setCars(hostCars);
+    }, [fetchAllCarsOfHost,hostCars]);
 
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -39,7 +79,7 @@ const CarManagementTable = () => {
     const [isAddCarModalOpen, setIsAddCarModalOpen] = useState(false);
     const [editingCar, setEditingCar] = useState(null);
     const [cars, setCars] = useState([
-        {
+        /*{
             id: 1,
             name: "Honda City",
             registrationNumber: "DL2CAF1234",
@@ -63,10 +103,10 @@ const CarManagementTable = () => {
             insurance: "Comprehensive",
             roadsideAssistance: true,
             fuelPolicy: "Full to Full",
-            features: ["Air conditioning", "Bluetooth", "Parking sensors"],
+            features: "Air conditioning",
             importantPoints: "Good for city commute, fuel-efficient",
-            images: ["/honda-city-1.jpg", "/honda-city-2.jpg"]
-        },
+            photos: ["/honda-city-1.jpg", "/honda-city-2.jpg"]
+        },*/
         // Add more sample cars as needed
     ]);
 
@@ -106,7 +146,7 @@ const CarManagementTable = () => {
             fuelPolicy: "",
             features: [],
             importantPoints: "",
-            images: []
+            photos: []
         });
     };
 
@@ -326,11 +366,11 @@ const CarManagementTable = () => {
                         </CardHeader>
                         <CardContent className="pt-6">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                {/* Left Column - Images */}
+                                {/* Left Column - photos */}
                                 <div>
-                                    <h3 className="text-lg font-medium mb-4">Car Images</h3>
+                                    <h3 className="text-lg font-medium mb-4">Car photos</h3>
                                     <div className="grid grid-cols-3 gap-2">
-                                        {editingCar.images.map((img, index) => (
+                                        {editingCar.photos.map((img, index) => (
                                             <div key={index} className="relative group">
                                                 <Avatar className="w-full h-32 rounded-lg">
                                                     <AvatarImage src={img} />

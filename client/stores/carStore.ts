@@ -59,6 +59,7 @@ interface CarState {
   cars: Car[];
   availableCars: Car[];
   currentCar: Car | null; // Add this for single car
+  hostCars: Car[]; // Add this for host's cars
   loading: boolean;
   error: string | null;
   fetchAllCars: () => Promise<void>;
@@ -66,6 +67,9 @@ interface CarState {
   fetchCarsByCityAndDate: (city: string, startDate: string, endDate: string) => Promise<void>;
   fetchCarsByMakeAndModel: (make: string, model: string) => Promise<void>;
   fetchCarById: (carId: number) => Promise<void>; // Add this
+  fetchAllCarsOfHost: () => Promise<void>;
+  addNewCar: (carData: Omit<Car, 'carId' | 'createdAt' | 'updatedAt' | 'host' | 'location' | 'reviews'>) => Promise<void>;
+  updateCar: (carId: number, carData: Partial<Car>) => Promise<void>;
   clearAvailableCars: () => void;
   clearCurrentCar: () => void; // Add this
 }
@@ -77,6 +81,7 @@ export const useCarStore = create<CarState>((set) => ({
   currentCar: null,
   loading: false,
   error: null,
+  hostCars: [],
   fetchAllCars: async () => {
     set({ loading: true, error: null, availableCars: [] });
     try {
@@ -117,10 +122,52 @@ export const useCarStore = create<CarState>((set) => ({
     set({ loading: true, error: null });
     try {
       const car = await carService.fetchCarById(carId);
-      console.log('Fetched car:', car.object);
-      set({ currentCar: car.object, loading: false });
+      console.log('Fetched car:', car);
+      set({ currentCar: car, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
+    }
+  },
+  fetchAllCarsOfHost: async () => {
+    set({ loading: true, error: null });
+    try {
+      const cars = await carService.fetchAllCarsOfHost();
+      set({ hostCars: cars, loading: false });
+    } catch (error) {
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  addNewCar: async (carData) => {
+    set({ loading: true, error: null });
+    try {
+      const newCar = await carService.addNewCar(carData);
+      set((state) => ({
+        hostCars: [...state.hostCars, newCar],
+        loading: false
+      }));
+      // return newCar;
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  updateCar: async (carId, carData) => {
+    set({ loading: true, error: null });
+    try {
+      const updatedCar = await carService.updateCar(carId, carData);
+      set((state) => ({
+        hostCars: state.hostCars.map(car => 
+          car.carId === carId ? updatedCar : car
+        ),
+        currentCar: state.currentCar?.carId === carId ? updatedCar : state.currentCar,
+        loading: false
+      }));
+      // return updatedCar;
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
     }
   },
   clearCurrentCar: () => set({ currentCar: null }),

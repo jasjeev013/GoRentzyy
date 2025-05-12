@@ -19,7 +19,7 @@ import java.io.IOException;
 @Component
 public class JWTTokenValidatorFilter extends OncePerRequestFilter {
 
-    private JwtUtils jwtUtils;
+    private final JwtUtils jwtUtils;
 
     @Autowired
     public JWTTokenValidatorFilter(JwtUtils jwtUtils) {

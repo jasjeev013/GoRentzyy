@@ -105,11 +105,25 @@ export const carService = {
   fetchCarById: async (carId: number): Promise<Car> => {
     try {
       const response = await api.get(`/api/car/get/${carId}`);
-      console.log('Response from fetchCarById:', response.data);
-      return response.data;
+      console.log('Response from fetchCarById:', response.data.object);
+      return response.data.object;
 
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to fetch car details');
     }
+  },
+  fetchAllCarsOfHost: async (): Promise<Car[]> => {
+    const response = await api.get('/api/car/getAllSpecific');
+    return response.data;
+  },
+
+  addNewCar: async (carData: Omit<Car, 'carId' | 'createdAt' | 'updatedAt' | 'host' | 'location' | 'reviews'>): Promise<Car> => {
+    const response = await api.post('/api/car/create', carData);
+    return response.data;
+  },
+
+  updateCar: async (carId: number, carData: Partial<Car>): Promise<Car> => {
+    const response = await api.put(`/api/car/update/${carId}`, carData);
+    return response.data;
   },
 };

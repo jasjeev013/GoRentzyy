@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, MoreVertical } from 'lucide-react';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
@@ -9,17 +9,27 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../../components/ui/table';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../components/ui/avatar';
 import { format } from 'date-fns';
+import { useBookingStore } from '../../../stores/bookingStore';
 
 const paymentMethods = ["CREDIT_CARD", "PAYPAL", "UPI", "OTHER"];
 const paymentStatuses = ["SUCCESSFUL", "FAILED", "PENDING"];
 
 const BookingManagementTable = () => {
+
+  const { hostBookings, fetchHostBookings } = useBookingStore();
+
+
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
-  
+
+  useEffect(() => {
+    fetchHostBookings();
+    setBookings(hostBookings);
+  }, [fetchHostBookings,hostBookings]);
+
   const [bookings, setBookings] = useState([
-    {
+    /*{
       id: 1,
       carName: "Honda City",
       registrationNumber: "DL2CAF1234",
@@ -54,13 +64,13 @@ const BookingManagementTable = () => {
       paymentMethod: "PAYPAL",
       paymentStatus: "FAILED",
       renterAvatar: "/avatars/priya-patel.jpg"
-    },
+    },*/
     // Add more sample bookings as needed
   ]);
 
   const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = 
-      booking.carName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch =
+      booking.carName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.renter.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPaymentMethod = paymentMethodFilter ? booking.paymentMethod === paymentMethodFilter : true;
@@ -97,7 +107,7 @@ const BookingManagementTable = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Payment Method" />
@@ -109,7 +119,7 @@ const BookingManagementTable = () => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Payment Status" />
@@ -204,7 +214,7 @@ const BookingManagementTable = () => {
                   <div className="text-sm text-gray-400">{booking.paymentMethod}</div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-400">Start Date</div>
@@ -215,7 +225,7 @@ const BookingManagementTable = () => {
                   <div>{formatDateTime(booking.endDate)}</div>
                 </div>
               </div>
-              
+
               <div className="flex justify-between items-center pt-2 border-t border-gray-700">
                 <div>
                   <div className="text-sm text-gray-400">Total Price</div>
