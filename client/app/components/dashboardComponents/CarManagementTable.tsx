@@ -12,64 +12,100 @@ import { Avatar, AvatarImage, AvatarFallback } from '../../../components/ui/avat
 import { useCarStore } from '../../../stores/carStore';
 
 
+
 interface Car {
-  host: {
-    userId: number;
-    fullName: string;
-    email: string;
-    phoneNumber: string;
-    address: string;
-    role: string;
+    host: {
+        userId: number;
+        fullName: string;
+        email: string;
+        phoneNumber: string;
+        address: string;
+        role: string;
+        createdAt: string;
+        updatedAt: string;
+    };
+    carId: number;
+    name: string;
+    make: string;
+    model: string;
+    year: number;
+    color: string;
+    registrationNumber: string;
+    photos: string[];
+    carCategory: string;
+    carType: string;
+    fuelType: string;
+    transmissionMode: string;
+    seatingCapacity: number;
+    luggageCapacity: number;
+    rentalPricePerDay: number;
+    rentalPricePerWeek: number;
+    rentalPricePerMonth: number;
+    availabilityStatus: string;
+    maintenanceDueDate: string;
     createdAt: string;
     updatedAt: string;
-  };
-  carId: number;
-  name: string;
-  make: string;
-  model: string;
-  year: number;
-  color: string;
-  registrationNumber: string;
-  photos: string[];
-  carCategory: string;
-  carType: string;
-  fuelType: string;
-  transmissionMode: string;
-  seatingCapacity: number;
-  luggageCapacity: number;
-  rentalPricePerDay: number;
-  rentalPricePerWeek: number;
-  rentalPricePerMonth: number;
-  availabilityStatus: string;
-  maintenanceDueDate: string;
-  createdAt: string;
-  updatedAt: string;
-  insurance: string;
-  roadSideAssistance: string;
-  fuelPolicy: string;
-  features: string;
-  importantPoints: string;
-  location: {
-    locationId: number;
-    city: string;
-    address: string;
-    latitude: number;
-    longitude: number;
-  };
-  reviews: {
-    reviewId: number;
-    rating: number;
-    comments: string;
-    createdAt: string;
-  }[];
+    insurance: string;
+    roadSideAssistance: string;
+    fuelPolicy: string;
+    features: string;
+    importantPoints: string;
+    location: {
+        locationId: number;
+        city: string;
+        address: string;
+        latitude: number;
+        longitude: number;
+    };
+    reviews: {
+        reviewId: number;
+        rating: number;
+        comments: string;
+        createdAt: string;
+    }[];
 }
 const CarManagementTable = () => {
-    const { hostCars,fetchAllCarsOfHost } = useCarStore();
+    const { hostCars, fetchAllCarsOfHost } = useCarStore();
+
+    const carTypes = [
+        "ECONOMY",
+        "LUXURY",
+        "SUV",
+        "SEDAN",
+        "HATCHBACK",
+        "VAN",
+        "TRUCK",
+        "MOTORCYCLE",
+        "CONVERTIBLE",
+        "COUPE",
+        "WAGON",
+        "MINIVAN",
+        "PICKUP",
+        "SPORTS",
+        "DIESEL",
+    ]
+
+    const carCategories = [
+        "SEDAN",
+        "SUV",
+        "HATCHBACK",
+        "LUXURY",
+        "ECONOMY",
+        "VAN",
+        "TRUCK",
+        "MOTORCYCLE",
+        "CONVERTIBLE",
+        "COUPE",
+        "WAGON",
+        "MINIVAN",
+        "PICKUP",
+        "SPORTS"
+    ];
 
     useEffect(() => {
         fetchAllCarsOfHost();
         setCars(hostCars);
-    }, [fetchAllCarsOfHost,hostCars]);
+    }, [fetchAllCarsOfHost]);
 
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -79,35 +115,230 @@ const CarManagementTable = () => {
     const [isAddCarModalOpen, setIsAddCarModalOpen] = useState(false);
     const [editingCar, setEditingCar] = useState(null);
     const [cars, setCars] = useState([
-        /*{
-            id: 1,
-            name: "Honda City",
-            registrationNumber: "DL2CAF1234",
-            carCategory: "SEDAN",
-            carType: "ECONOMY",
-            fuelType: "PETROL",
-            transmissionMode: "AUTOMATIC",
-            totalBookings: 24,
-            availabilityStatus: "AVAILABLE",
-            review: 4.2,
-            make: "Honda",
-            model: "City ZX",
-            year: 2020,
-            color: "White",
-            seatingCapacity: 5,
-            luggageCapacity: 500,
-            pricePerDay: 2000,
-            pricePerWeek: 12000,
-            pricePerMonth: 50000,
-            maintenanceDueDate: "2025-06-15",
-            insurance: "Comprehensive",
-            roadsideAssistance: true,
-            fuelPolicy: "Full to Full",
-            features: "Air conditioning",
-            importantPoints: "Good for city commute, fuel-efficient",
-            photos: ["/honda-city-1.jpg", "/honda-city-2.jpg"]
-        },*/
-        // Add more sample cars as needed
+        {
+            "host": {
+                "userId": 1,
+                "fullName": "Mohammed Arif",
+                "email": "m.arif@example.in",
+                "phoneNumber": "+919998877665",
+                "address": "Charminar, Hyderabad, Telangana",
+                "role": "HOST",
+                "emailVerified": null,
+                "phoneNumberVerified": null,
+                "createdAt": "2025-05-04T15:53:12.660049",
+                "updatedAt": "2025-05-04T15:53:12.660049"
+            },
+            "carId": 1,
+            "name": "Honda City",
+            "make": "Honda",
+            "model": "City ZX",
+            "year": 2020,
+            "color": "White",
+            "registrationNumber": "DL2CAF1234",
+            "photos": [
+                "http://res.cloudinary.com/dt8ndepvi/image/upload/v1746555393/gy1lmuchoipfnl2efgok.webp",
+                "http://res.cloudinary.com/dt8ndepvi/image/upload/v1746555393/gy1lmuchoipfnl2efgok.webp",
+                "http://res.cloudinary.com/dt8ndepvi/image/upload/v1746555584/pc4lrh9rhaaqlykieisj.jpg",
+                "http://res.cloudinary.com/dt8ndepvi/image/upload/v1746555584/pc4lrh9rhaaqlykieisj.jpg"
+            ],
+            "carCategory": "SEDAN",
+            "carType": "ECONOMY",
+            "fuelType": "PETROL",
+            "transmissionMode": "AUTOMATIC",
+            "seatingCapacity": 5,
+            "luggageCapacity": 500,
+            "rentalPricePerDay": 2000,
+            "rentalPricePerWeek": 12000,
+            "rentalPricePerMonth": 50000,
+            "availabilityStatus": "AVAILABLE",
+            "maintenanceDueDate": "2025-06-15T10:00:00",
+            "createdAt": "2025-05-04T16:09:27.136129",
+            "updatedAt": "2025-05-04T16:09:27.136129",
+            "insurance": "Comprehensive insurance with third-party cover",
+            "roadSideAssistance": "Available 24/7",
+            "fuelPolicy": "Full to Full",
+            "features": "Air conditioning, Bluetooth, Parking sensors",
+            "importantPoints": "Good for city commute, fuel-efficient",
+            "location": null,
+            "reviews": [
+                {
+                    "reviewId": 4,
+                    "rating": 5,
+                    "comments": "The car is a dream to drive! Super smooth handling, excellent fuel efficiency, and top-notch features. Highly recommend!",
+                    "createdAt": "2025-05-05T14:26:01.463758"
+                }
+            ]
+        },
+        {
+            "host": {
+                "userId": 1,
+                "fullName": "Mohammed Arif",
+                "email": "m.arif@example.in",
+                "phoneNumber": "+919998877665",
+                "address": "Charminar, Hyderabad, Telangana",
+                "role": "HOST",
+                "emailVerified": null,
+                "phoneNumberVerified": null,
+                "createdAt": "2025-05-04T15:53:12.660049",
+                "updatedAt": "2025-05-04T15:53:12.660049"
+            },
+            "carId": 2,
+            "name": "Mahindra XUV700",
+            "make": "Mahindra",
+            "model": "XUV700 AX7",
+            "year": 2023,
+            "color": "Silver",
+            "registrationNumber": "MH12DG5467",
+            "photos": [],
+            "carCategory": "SUV",
+            "carType": "LUXURY",
+            "fuelType": "DIESEL",
+            "transmissionMode": "MANUAL",
+            "seatingCapacity": 7,
+            "luggageCapacity": 800,
+            "rentalPricePerDay": 4500,
+            "rentalPricePerWeek": 27000,
+            "rentalPricePerMonth": 110000,
+            "availabilityStatus": "RESERVED",
+            "maintenanceDueDate": "2025-07-10T12:00:00",
+            "createdAt": "2025-05-04T16:09:35.053976",
+            "updatedAt": "2025-05-04T16:09:35.053976",
+            "insurance": "Full coverage with accidental damage protection",
+            "roadSideAssistance": "24/7 roadside assistance",
+            "fuelPolicy": "Full to Full",
+            "features": "Sunroof, Leather seats, 4WD",
+            "importantPoints": "Perfect for long trips and off-road",
+            "location": {
+                "locationId": 2,
+                "city": "Delhi",
+                "address": "House No. 23, Block C, Janakpuri, New Delhi, Delhi",
+                "latitude": 28.626,
+                "longitude": 77.072
+            },
+            "reviews": [
+                {
+                    "reviewId": 5,
+                    "rating": 4,
+                    "comments": "Great car overall. The performance is excellent, but I feel the interior could be a little more refined for the price.",
+                    "createdAt": "2025-05-05T14:27:09.695208"
+                },
+                {
+                    "reviewId": 6,
+                    "rating": 3,
+                    "comments": "It's a decent car, but it lacks power and comfort. Not the best in its class, but it gets the job done.",
+                    "createdAt": "2025-05-05T14:28:36.201261"
+                }
+            ]
+        },
+        {
+            "host": {
+                "userId": 1,
+                "fullName": "Mohammed Arif",
+                "email": "m.arif@example.in",
+                "phoneNumber": "+919998877665",
+                "address": "Charminar, Hyderabad, Telangana",
+                "role": "HOST",
+                "emailVerified": null,
+                "phoneNumberVerified": null,
+                "createdAt": "2025-05-04T15:53:12.660049",
+                "updatedAt": "2025-05-04T15:53:12.660049"
+            },
+            "carId": 3,
+            "name": "Maruti Suzuki Swift",
+            "make": "Maruti Suzuki",
+            "model": "Swift ZXI",
+            "year": 2021,
+            "color": "Red",
+            "registrationNumber": "TN10CA9876",
+            "photos": [],
+            "carCategory": "HATCHBACK",
+            "carType": "ECONOMY",
+            "fuelType": "PETROL",
+            "transmissionMode": "IMT",
+            "seatingCapacity": 5,
+            "luggageCapacity": 250,
+            "rentalPricePerDay": 1500,
+            "rentalPricePerWeek": 9000,
+            "rentalPricePerMonth": 35000,
+            "availabilityStatus": "AVAILABLE",
+            "maintenanceDueDate": "2025-10-20T08:00:00",
+            "createdAt": "2025-05-04T16:09:41.778984",
+            "updatedAt": "2025-05-04T16:09:41.778984",
+            "insurance": "Third-party liability insurance",
+            "roadSideAssistance": "Limited coverage",
+            "fuelPolicy": "Full to Full",
+            "features": "Touchscreen, Reverse sensors, Apple CarPlay",
+            "importantPoints": "Compact, good for city driving",
+            "location": {
+                "locationId": 3,
+                "city": "Bangalore",
+                "address": "No. 12, 2nd Cross, 3rd Main, Jayanagar 4th Block, Bangalore, Karnataka",
+                "latitude": 12.9342,
+                "longitude": 77.588
+            },
+            "reviews": []
+        },
+        {
+            "host": {
+                "userId": 1,
+                "fullName": "Mohammed Arif",
+                "email": "m.arif@example.in",
+                "phoneNumber": "+919998877665",
+                "address": "Charminar, Hyderabad, Telangana",
+                "role": "HOST",
+                "emailVerified": null,
+                "phoneNumberVerified": null,
+                "createdAt": "2025-05-04T15:53:12.660049",
+                "updatedAt": "2025-05-04T15:53:12.660049"
+            },
+            "carId": 4,
+            "name": "BMW 3 Series",
+            "make": "BMW",
+            "model": "320d Luxury Line",
+            "year": 2022,
+            "color": "Black",
+            "registrationNumber": "KA03MB0011",
+            "photos": [],
+            "carCategory": "SEDAN",
+            "carType": "LUXURY",
+            "fuelType": "DIESEL",
+            "transmissionMode": "AUTOMATIC",
+            "seatingCapacity": 5,
+            "luggageCapacity": 400,
+            "rentalPricePerDay": 8000,
+            "rentalPricePerWeek": 48000,
+            "rentalPricePerMonth": 180000,
+            "availabilityStatus": "AVAILABLE",
+            "maintenanceDueDate": "2025-08-30T15:00:00",
+            "createdAt": "2025-05-04T16:09:48.027262",
+            "updatedAt": "2025-05-04T16:09:48.027262",
+            "insurance": "Comprehensive insurance with roadside assistance",
+            "roadSideAssistance": "24/7 road assistance",
+            "fuelPolicy": "Full to Full",
+            "features": "Navigation, Premium audio system, Automatic climate control",
+            "importantPoints": "Luxury sedan with great performance",
+            "location": {
+                "locationId": 4,
+                "city": "Chennai",
+                "address": "Flat No. 3B, 2nd Floor, Green Park Apartments, Anna Nagar, Chennai, Tamil Nadu",
+                "latitude": 13.0827,
+                "longitude": 80.2707
+            },
+            "reviews": [
+                {
+                    "reviewId": 7,
+                    "rating": 2,
+                    "comments": "Disappointed with the car's reliability. It's had several issues since purchase, and the handling isn't as responsive as I expected.",
+                    "createdAt": "2025-05-05T14:28:47.99841"
+                },
+                {
+                    "reviewId": 12,
+                    "rating": 5,
+                    "comments": "Absolutely love this car! The acceleration is fantastic, and it handles corners like a pro. The tech features are amazing too. Worth every penny.",
+                    "createdAt": "2025-05-05T14:31:27.221811"
+                }
+            ]
+        }
     ]);
 
     const filteredCars = cars.filter(car => {
@@ -205,7 +436,7 @@ const CarManagementTable = () => {
                             </SelectContent>
                         </Select>
 
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        {/* <Select value={statusFilter} onValueChange={setStatusFilter}>
                             <SelectTrigger className="w-full sm:w-[180px]">
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
@@ -215,7 +446,7 @@ const CarManagementTable = () => {
                                     <SelectItem key={status} value={status}>{status}</SelectItem>
                                 ))}
                             </SelectContent>
-                        </Select>
+                        </Select> */}
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -246,7 +477,7 @@ const CarManagementTable = () => {
             {isGridView ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCars.map((car) => (
-                        <Card key={car.id} className="hover:shadow-lg transition-shadow">
+                        <Card key={car.carId} className="hover:shadow-lg transition-shadow">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-lg">{car.name}</CardTitle>
                                 <Badge className={getStatusBadgeColor(car.availabilityStatus)}>
@@ -269,11 +500,12 @@ const CarManagementTable = () => {
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Bookings:</span>
-                                        <span>{car.totalBookings}</span>
+                                        {/* <span>{car.totalBookings}</span> */}
+                                        <span>10</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Rating:</span>
-                                        <span>{car.review}/5</span>
+                                        <span>4/5</span>
                                     </div>
                                 </div>
                             </CardContent>
@@ -300,7 +532,7 @@ const CarManagementTable = () => {
                         <tbody className="bg-gray-800 divide-y divide-gray-700">
                             {filteredCars.map((car, index) => (
                                 <tr
-                                    key={car.id}
+                                    key={car.carId}
                                     className="hover:bg-gray-700 cursor-pointer"
                                     onClick={() => {
                                         setIsAddCarModalOpen(true);
@@ -314,13 +546,13 @@ const CarManagementTable = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.carType}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.fuelType}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.transmissionMode}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.totalBookings}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">10</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <Badge className={getStatusBadgeColor(car.availabilityStatus)}>
                                             {car.availabilityStatus}
                                         </Badge>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.review}/5</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">4/5</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -454,9 +686,9 @@ const CarManagementTable = () => {
                                                     <SelectValue placeholder="Select fuel type" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {fuelTypes.map(fuel => (
+                                                    {/* {FuelType.map(fuel => (
                                                         <SelectItem key={fuel} value={fuel}>{fuel}</SelectItem>
-                                                    ))}
+                                                    ))} */}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -467,9 +699,9 @@ const CarManagementTable = () => {
                                                     <SelectValue placeholder="Select transmission" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {transmissionModes.map(transmission => (
+                                                    {/* {transmissionModes.map(transmission => (
                                                         <SelectItem key={transmission} value={transmission}>{transmission}</SelectItem>
-                                                    ))}
+                                                    ))} */}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -491,9 +723,9 @@ const CarManagementTable = () => {
                                                     <SelectValue placeholder="Select status" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {availabilityStatuses.map(status => (
+                                                    {/* {availabilityStatuses.map(status => (
                                                         <SelectItem key={status} value={status}>{status}</SelectItem>
-                                                    ))}
+                                                    ))} */}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -540,7 +772,7 @@ const CarManagementTable = () => {
 
                                     <div>
                                         <Label>Features (comma separated)</Label>
-                                        <Input value={editingCar.features.join(', ')} onChange={(e) => setEditingCar({ ...editingCar, features: e.target.value.split(', ') })} />
+                                        <Input value={editingCar.features} onChange={(e) => setEditingCar({ ...editingCar, features: e.target.value })} />
                                     </div>
 
                                     <div>

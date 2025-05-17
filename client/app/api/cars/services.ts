@@ -114,7 +114,7 @@ export const carService = {
   },
   fetchAllCarsOfHost: async (): Promise<Car[]> => {
     const response = await api.get('/api/car/getAllSpecific');
-    return response.data;
+    return response.data.data.flat();
   },
 
   addNewCar: async (carData: Omit<Car, 'carId' | 'createdAt' | 'updatedAt' | 'host' | 'location' | 'reviews'>): Promise<Car> => {

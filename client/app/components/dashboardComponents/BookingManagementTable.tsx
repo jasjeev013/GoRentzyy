@@ -25,50 +25,13 @@ const BookingManagementTable = () => {
 
   useEffect(() => {
     fetchHostBookings();
+    console.log("Host Bookings: ", hostBookings); 
     setBookings(hostBookings);
-  }, [fetchHostBookings,hostBookings]);
+  }, [fetchHostBookings]);
 
-  const [bookings, setBookings] = useState([
-    /*{
-      id: 1,
-      carName: "Honda City",
-      registrationNumber: "DL2CAF1234",
-      renter: "Neha Verma",
-      startDate: "2025-05-04T16:09:27.136129",
-      endDate: "2025-05-08T10:00:00.000000",
-      totalPricePaid: 12000,
-      paymentMethod: "CREDIT_CARD",
-      paymentStatus: "SUCCESSFUL",
-      renterAvatar: "/avatars/neha-verma.jpg"
-    },
-    {
-      id: 2,
-      carName: "Tesla Model 3",
-      registrationNumber: "MH01EF5678",
-      renter: "Rahul Sharma",
-      startDate: "2025-05-10T09:30:00.000000",
-      endDate: "2025-05-15T18:00:00.000000",
-      totalPricePaid: 25000,
-      paymentMethod: "UPI",
-      paymentStatus: "PENDING",
-      renterAvatar: "/avatars/rahul-sharma.jpg"
-    },
-    {
-      id: 3,
-      carName: "Toyota Fortuner",
-      registrationNumber: "KA03MG9012",
-      renter: "Priya Patel",
-      startDate: "2025-05-20T14:00:00.000000",
-      endDate: "2025-05-25T14:00:00.000000",
-      totalPricePaid: 30000,
-      paymentMethod: "PAYPAL",
-      paymentStatus: "FAILED",
-      renterAvatar: "/avatars/priya-patel.jpg"
-    },*/
-    // Add more sample bookings as needed
-  ]);
+  const [bookings, setBookings] = useState([]);
 
-  const filteredBookings = bookings.filter(booking => {
+  const filteredBookings = bookings.length!=0?  bookings.filter(booking => {
     const matchesSearch =
       booking.carName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -76,7 +39,9 @@ const BookingManagementTable = () => {
     const matchesPaymentMethod = paymentMethodFilter ? booking.paymentMethod === paymentMethodFilter : true;
     const matchesPaymentStatus = paymentStatusFilter ? booking.paymentStatus === paymentStatusFilter : true;
     return matchesSearch && matchesPaymentMethod && matchesPaymentStatus;
-  });
+  }):[];
+
+  console.log("Filtered Bookings: ", filteredBookings);
 
   const formatDateTime = (dateTimeString: string) => {
     const date = new Date(dateTimeString);
@@ -153,7 +118,7 @@ const BookingManagementTable = () => {
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y divide-gray-700">
-              {filteredBookings.map((booking, index) => (
+              {filteredBookings.length!=0 &&  filteredBookings.map((booking, index) => (
                 <TableRow key={booking.id} className="hover:bg-gray-700">
                   <TableCell className="text-gray-300">{index + 1}</TableCell>
                   <TableCell>
@@ -192,7 +157,7 @@ const BookingManagementTable = () => {
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
-        {filteredBookings.map((booking, index) => (
+         {filteredBookings.length!=0 && filteredBookings.map((booking, index) => (
           <Card key={booking.id} className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-start justify-between pb-4">
               <div>

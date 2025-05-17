@@ -28,7 +28,7 @@ const LoginComponent = () => {
     if (result.success) {
       if (isAuthenticated) {
         setIsLoading(false);
-        router.push(`/dashboard/${role === 'ROLE_RENTER' ? 'renter' : 'host'}/${userData?.userId}`);
+        router.push(`/dashboard/${userData?.userId}`);
 
       }
     } else {

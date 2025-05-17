@@ -22,12 +22,12 @@ interface Booking {
 export const bookingService = {
   fetchHostBookings: async (): Promise<Booking[]> => {
     const response = await api.get('/api/booking/getByHost');
-    return response.data;
+    return response.data.data.flat();
   },
 
   fetchRenterBookings: async (): Promise<Booking[]> => {
     const response = await api.get('/api/booking/getByRenter');
-    return response.data;
+    return response.data.data.flat();
   },
 
   createBooking: async (carId: number, bookingData: {

@@ -1,6 +1,7 @@
 // stores/bookingStore.ts
 import { create } from 'zustand';
-import { bookingService } from '../app/api/bookings/services';
+import { bookingService } from '../app/api/bookings/service';
+
 
 interface Booking {
   bookingId: number;
