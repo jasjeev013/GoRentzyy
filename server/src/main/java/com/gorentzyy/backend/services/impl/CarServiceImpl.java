@@ -57,7 +57,7 @@ public class CarServiceImpl implements CarService {
             maxAttempts = 3,  // Retry 3 times before failing
             backoff = @Backoff(delay = 2000, multiplier = 2)  // 2 sec delay, increasing exponentially
     )
-    public ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto, String email) {
+    public ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto, String email, List<MultipartFile> files) {
         try {
             // Step 1: Check if car already exists
             if (carRepository.existsByRegistrationNumber(carDto.getRegistrationNumber())) {
@@ -77,20 +77,47 @@ public class CarServiceImpl implements CarService {
                 throw new RoleNotAuthorizedException("Role Not Authorized to add cars");
             }
 
-            // Step 5: Map CarDto to Car entity
+            // Step 4: Map CarDto to Car entity
             Car newCar = modelMapper.map(carDto, Car.class);
             newCar.setHost(host);
             host.getCars().add(newCar);
 
-            // Step 6: Set timestamps
+            // Step 5: Set timestamps
             LocalDateTime now = LocalDateTime.now();
             newCar.setCreatedAt(now);
             newCar.setUpdatedAt(now);
 
-            // Step 7: Save the new car
+            // Step 6: Save the new car first to get the ID
             Car savedCar = carRepository.save(newCar);
 
-            logger.info("Car with registration number {} added successfully.", carDto.getRegistrationNumber());
+            // Step 7: Handle file uploads if files are present
+            if (files != null && !files.isEmpty()) {
+                List<String> photoUrls = new ArrayList<>();
+
+                for (MultipartFile file : files) {
+                    try {
+                        Map uploadedFile = cloudinaryService.upload(file);
+                        String photoUrl = (String) uploadedFile.get("url");
+
+                        if (photoUrl != null) {
+                            photoUrls.add(photoUrl);
+                        } else {
+                            logger.warn("Failed to upload one of the photos for car {}", savedCar.getCarId());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error uploading photo for car {}: {}", savedCar.getCarId(), e.getMessage());
+                        // Continue with other photos even if one fails
+                    }
+                }
+
+                // Update the car with photo URLs
+                savedCar.setPhotos(photoUrls);
+                carRepository.save(savedCar);
+            }
+
+            logger.info("Car with registration number {} added successfully with {} photos.",
+                    carDto.getRegistrationNumber(),
+                    (files != null) ? files.size() : 0);
 
             return new ResponseEntity<>(new ApiResponseObject(
                     "The car was added successfully", true, modelMapper.map(savedCar, CarDto.class)

@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -94,7 +95,7 @@ class CarServiceImplTest {
         when(carRepository.save(any(Car.class))).thenReturn(car);
         when(modelMapper.map(car, CarDto.class)).thenReturn(carDto);
 
-        ResponseEntity<ApiResponseObject> response = carService.addNewCar(carDto, host.getEmail());
+        ResponseEntity<ApiResponseObject> response = carService.addNewCar(carDto, host.getEmail(), List.of());
 
         assertNotNull(response);
         assertEquals(201, response.getStatusCodeValue());
@@ -106,7 +107,7 @@ class CarServiceImplTest {
     void testAddNewCar_CarAlreadyExists() {
         when(carRepository.existsByRegistrationNumber(carDto.getRegistrationNumber())).thenReturn(true);
 
-        assertThrows(CarAlreadyExistsException.class, () -> carService.addNewCar(carDto, host.getEmail()));
+        assertThrows(CarAlreadyExistsException.class, () -> carService.addNewCar(carDto, host.getEmail(),List.of()));
     }
 
     @Test

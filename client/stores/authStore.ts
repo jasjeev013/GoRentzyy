@@ -11,6 +11,9 @@ interface UserData {
   role: string;
   createdAt: string;
   updatedAt: string;
+  emailVerified: boolean;
+  phoneNumberVerified: boolean;
+  profilePicture: string;
 }
 
 interface AuthState {

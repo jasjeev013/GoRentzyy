@@ -1,7 +1,6 @@
 // stores/carStore.ts
-import { create } from 'zustand';
-import { carService } from '../app/api/cars/services';
-
+import { create } from "zustand";
+import { carService } from "../app/api/cars/services";
 
 interface Car {
   host: {
@@ -21,7 +20,7 @@ interface Car {
   year: number;
   color: string;
   registrationNumber: string;
-  photos: string[];
+  photos: string[]; // Array of photo URLs (strings)
   carCategory: string;
   carType: string;
   fuelType: string;
@@ -36,7 +35,7 @@ interface Car {
   createdAt: string;
   updatedAt: string;
   insurance: string;
-  roadSideAssistance: string;
+  roadSideAssistance: boolean; // Changed from string to boolean
   fuelPolicy: string;
   features: string;
   importantPoints: string;
@@ -55,6 +54,14 @@ interface Car {
   }[];
 }
 
+// Add this type for creating/updating cars
+interface CarDto extends Omit<Car, 
+  'carId' | 'createdAt' | 'updatedAt' | 'host' | 'location' | 'reviews' | 'photos'
+> {
+  photos?: File[]; // For file uploads during creation/update
+}
+
+
 interface CarState {
   cars: Car[];
   availableCars: Car[];
@@ -64,16 +71,21 @@ interface CarState {
   error: string | null;
   fetchAllCars: () => Promise<void>;
   fetchCarsByCity: (city: string) => Promise<void>;
-  fetchCarsByCityAndDate: (city: string, startDate: string, endDate: string) => Promise<void>;
+  fetchCarsByCityAndDate: (
+    city: string,
+    startDate: string,
+    endDate: string
+  ) => Promise<void>;
   fetchCarsByMakeAndModel: (make: string, model: string) => Promise<void>;
   fetchCarById: (carId: number) => Promise<void>; // Add this
   fetchAllCarsOfHost: () => Promise<void>;
-  addNewCar: (carData: Omit<Car, 'carId' | 'createdAt' | 'updatedAt' | 'host' | 'location' | 'reviews'>) => Promise<void>;
+  addNewCar: (
+    carData: CarDto, photos: File[]
+  ) => Promise<Car>;
   updateCar: (carId: number, carData: Partial<Car>) => Promise<void>;
   clearAvailableCars: () => void;
   clearCurrentCar: () => void; // Add this
 }
-
 
 export const useCarStore = create<CarState>((set) => ({
   cars: [],
@@ -103,7 +115,11 @@ export const useCarStore = create<CarState>((set) => ({
   fetchCarsByCityAndDate: async (city, startDate, endDate) => {
     set({ loading: true, error: null });
     try {
-      const availableCars = await carService.fetchCarsByCityAndDate(city, startDate, endDate);
+      const availableCars = await carService.fetchCarsByCityAndDate(
+        city,
+        startDate,
+        endDate
+      );
       set({ availableCars, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
@@ -122,7 +138,7 @@ export const useCarStore = create<CarState>((set) => ({
     set({ loading: true, error: null });
     try {
       const car = await carService.fetchCarById(carId);
-      console.log('Fetched car:', car);
+      console.log("Fetched car:", car);
       set({ currentCar: car, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });
@@ -138,15 +154,15 @@ export const useCarStore = create<CarState>((set) => ({
     }
   },
 
-  addNewCar: async (carData) => {
+  addNewCar: async (carData, photos) => {
     set({ loading: true, error: null });
     try {
-      const newCar = await carService.addNewCar(carData);
+      const newCar = await carService.addNewCar(carData, photos);
       set((state) => ({
         hostCars: [...state.hostCars, newCar],
-        loading: false
+        loading: false,
       }));
-      // return newCar;
+      return newCar;
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;
@@ -158,11 +174,12 @@ export const useCarStore = create<CarState>((set) => ({
     try {
       const updatedCar = await carService.updateCar(carId, carData);
       set((state) => ({
-        hostCars: state.hostCars.map(car => 
+        hostCars: state.hostCars.map((car) =>
           car.carId === carId ? updatedCar : car
         ),
-        currentCar: state.currentCar?.carId === carId ? updatedCar : state.currentCar,
-        loading: false
+        currentCar:
+          state.currentCar?.carId === carId ? updatedCar : state.currentCar,
+        loading: false,
       }));
       // return updatedCar;
     } catch (error) {
@@ -171,5 +188,5 @@ export const useCarStore = create<CarState>((set) => ({
     }
   },
   clearCurrentCar: () => set({ currentCar: null }),
-  clearAvailableCars: () => set({ availableCars: [] })
+  clearAvailableCars: () => set({ availableCars: [] }),
 }));

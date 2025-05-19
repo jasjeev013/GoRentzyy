@@ -29,11 +29,11 @@ public class CarController {
 //    Working
     @PreAuthorize("hasRole('HOST')")
     @PostMapping("/create")
-    public ResponseEntity<ApiResponseObject> addNewCar(@Valid @RequestBody CarDto carDto, Authentication authentication){
+    public ResponseEntity<ApiResponseObject> addNewCar(@RequestPart("files") List<MultipartFile> files,@Valid @RequestPart("carDto") CarDto carDto, Authentication authentication){
 
 
         String email = authentication.getName();
-        return carService.addNewCar(carDto,email);
+        return carService.addNewCar(carDto,email,files);
     }
 
     @PreAuthorize("hasRole('HOST')")

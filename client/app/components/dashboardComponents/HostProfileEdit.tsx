@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { use, useState } from 'react';
 import { Camera, Check, X, Mail, Phone } from 'lucide-react';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
@@ -8,20 +8,22 @@ import { Avatar, AvatarImage, AvatarFallback } from '../../../components/ui/avat
 import { Badge } from '../../../components/ui/badge';
 import { Textarea } from '../../../components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { useAuth } from '../../../hooks/useAuth';
 
 const HostProfileEdit = () => {
-  const [userData, setUserData] = useState({
-    name: 'Jasjeev Singh Kohli',
-    address: '123 Main St, New Delhi, India',
+  const { userData } = useAuth();
+  const [user, setuser] = useState({
+    name: userData?.fullName,
+    address: userData?.address,
     organization: 'CarRental Pro',
-    phone: '+919876543210',
-    email: 'jasjeev@example.com',
-    phoneVerified: false,
-    emailVerified: false,
-    profileImage: '/profile.jpg'
+    phone:  userData?.phoneNumber,
+    email:  userData?.email,
+    phoneVerified: userData?.phoneNumberVerified,
+    emailVerified: userData?.emailVerified,
+    profileImage: userData?.profilePicture || '/default-profile.png'
   });
 
-  const [originalData] = useState({ ...userData });
+  const [originalData] = useState({ ...user });
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [phoneOTP, setPhoneOTP] = useState('');
@@ -30,14 +32,14 @@ const HostProfileEdit = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setUserData(prev => ({ ...prev, [name]: value }));
+    setuser(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
-      setUserData(prev => ({
+      setuser(prev => ({
         ...prev,
         profileImage: URL.createObjectURL(selectedFile)
       }));
@@ -58,25 +60,25 @@ const HostProfileEdit = () => {
 
   const confirmPhoneVerification = () => {
     // In a real app, you would verify OTP with backend
-    setUserData(prev => ({ ...prev, phoneVerified: true }));
+    setuser(prev => ({ ...prev, phoneVerified: true }));
     setIsEditingPhone(false);
     setPhoneOTP('');
   };
 
   const confirmEmailVerification = () => {
     // In a real app, you would verify OTP with backend
-    setUserData(prev => ({ ...prev, emailVerified: true }));
+    setuser(prev => ({ ...prev, emailVerified: true }));
     setIsEditingEmail(false);
     setEmailOTP('');
   };
 
   const handleSave = () => {
     // In a real app, you would save to backend here
-    console.log('Saved:', userData);
+    console.log('Saved:', user);
   };
 
   const handleCancel = () => {
-    setUserData({ ...originalData });
+    setuser({ ...originalData });
     setFile(null);
     setIsEditingPhone(false);
     setIsEditingEmail(false);
@@ -94,9 +96,9 @@ const HostProfileEdit = () => {
             <div className="flex flex-1/3 flex-col items-center gap-4 w-full md:w-auto">
               <div className="relative">
                 <Avatar className="h-50 w-50">
-                  <AvatarImage src={userData.profileImage} />
+                  <AvatarImage src={user.profileImage} />
                   <AvatarFallback>
-                    {userData.name.split(' ').map(n => n[0]).join('')}
+                    {user.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <label 
@@ -132,7 +134,7 @@ const HostProfileEdit = () => {
                 <Input
                   id="name"
                   name="name"
-                  value={userData.name}
+                  value={user.name}
                   onChange={handleChange}
                   className="bg-gray-700 border-gray-600"
                 />
@@ -144,7 +146,7 @@ const HostProfileEdit = () => {
                 <Textarea
                   id="address"
                   name="address"
-                  value={userData.address}
+                  value={user.address}
                   onChange={handleChange}
                   className="bg-gray-700 border-gray-600 min-h-[80px]"
                 />
@@ -156,7 +158,7 @@ const HostProfileEdit = () => {
                 <Input
                   id="organization"
                   name="organization"
-                  value={userData.organization}
+                  value={user.organization}
                   onChange={handleChange}
                   className="bg-gray-700 border-gray-600"
                 />
@@ -169,11 +171,11 @@ const HostProfileEdit = () => {
                   <Input
                     id="phone"
                     name="phone"
-                    value={userData.phone}
+                    value={user.phone}
                     onChange={handleChange}
                     className="bg-gray-700 border-gray-600 flex-1"
                   />
-                  {userData.phoneVerified ? (
+                  {user.phoneVerified ? (
                     <Badge className="bg-green-500 hover:bg-green-600 h-10 px-3 flex items-center gap-1">
                       <Check className="h-4 w-4" />
                       Verified
@@ -215,11 +217,11 @@ const HostProfileEdit = () => {
                     id="email"
                     name="email"
                     type="email"
-                    value={userData.email}
+                    value={user.email}
                     onChange={handleChange}
                     className="bg-gray-700 border-gray-600 flex-1"
                   />
-                  {userData.emailVerified ? (
+                  {user.emailVerified ? (
                     <Badge className="bg-green-500 hover:bg-green-600 h-10 px-3 flex items-center gap-1">
                       <Check className="h-4 w-4" />
                       Verified

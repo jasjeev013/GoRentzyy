@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface CarService {
 
-    ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto,String email);
+    ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto,String email,List<MultipartFile> files);
     ResponseEntity<ApiResponseObject> updateCar(CarDto carDto, Long carId);
     ResponseEntity<ApiResponseObject> getCarById(Long carId);
     ResponseEntity<ApiResponseObject> removeCar(Long carId);

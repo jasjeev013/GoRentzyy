@@ -88,7 +88,7 @@ public class CarDto implements Serializable {
     private LocalDateTime updatedAt;
 
     private String insurance;
-    private String roadSideAssistance;
+    private Boolean roadSideAssistance;
     private String fuelPolicy;
     private String features;
     private String importantPoints;

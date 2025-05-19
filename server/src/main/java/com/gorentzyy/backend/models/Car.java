@@ -63,7 +63,7 @@ public class Car {
     private LocalDateTime updatedAt;
 
     private String insurance;
-    private String roadSideAssistance;
+    private Boolean roadSideAssistance;
     private String fuelPolicy;
     private String features;
     private String importantPoints;

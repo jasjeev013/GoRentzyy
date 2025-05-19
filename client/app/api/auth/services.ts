@@ -15,6 +15,9 @@ interface UserData {
   role: string;
   createdAt: string;
   updatedAt: string;
+  emailVerified: boolean;
+  phoneNumberVerified: boolean;
+  profilePicture: string;
 }
 
 export const authService = {
@@ -38,6 +41,7 @@ export const authService = {
     address: string;
     role: string;
     password: string;
+    
   }): Promise<UserData> => {
     const response = await api.post('/api/user/create', userData);
     return response.data.object;
