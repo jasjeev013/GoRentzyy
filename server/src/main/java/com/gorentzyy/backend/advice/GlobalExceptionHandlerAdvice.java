@@ -117,4 +117,16 @@ public class GlobalExceptionHandlerAdvice {
         logger.error("Unhandled Exception: {}", ex.getMessage());
         return new ResponseEntity<>(new ErrorResponse("Invalid Credentials found", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(InvalidFileTypeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFileTypeException(Exception ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid InvalidFileTypeException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(FileSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleFileSizeExceededException(Exception ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid FileSizeExceededException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

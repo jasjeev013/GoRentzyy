@@ -71,7 +71,7 @@ const CreateAccountComponent = () => {
     });
     
     if (result.success) {
-      router.push('/dashboard');
+      router.back();
     }
     
     setIsLoading(false);

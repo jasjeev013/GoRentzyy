@@ -29,7 +29,7 @@ public interface UserService {
      * @param emailId ID of the user to be updated.
      * @return ResponseEntity with status and result.
      */
-    ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId);
+    ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId,MultipartFile multipartFile);
 
     /**
      * Retrieves a user by their unique ID.

@@ -40,15 +40,16 @@ public class UserController {
     }
 
     @PutMapping("/updateProfilePhoto")
-    public ResponseEntity<ApiResponseObject> updateProfilePhoto(Authentication authentication,@Valid   @RequestParam("image") MultipartFile multipartFile){
+    public ResponseEntity<ApiResponseObject> updateProfilePhoto(Authentication authentication,@Valid @RequestParam("image") MultipartFile multipartFile){
         String email = authentication.getName();
         return userService.updateProfilePhoto(multipartFile, email);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ApiResponseObject> updateUser(Authentication authentication,@Valid  @RequestBody UserDto userDto){
+    public ResponseEntity<ApiResponseObject> updateUser(Authentication authentication,@Valid  @RequestPart("userDto") UserDto userDto,
+                                                        @RequestPart(value = "image", required = false) MultipartFile image){
         String email = authentication.getName();
-        return userService.updateUserByEmail(userDto, email);
+        return userService.updateUserByEmail(userDto, email,image);
     }
 
     @GetMapping("/get")

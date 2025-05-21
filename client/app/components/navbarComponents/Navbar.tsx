@@ -28,7 +28,7 @@ const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
                     <a href="/rent" className=" hover:text-gray-400">Rent a Car</a>
                     <a href="/fleet" className=" hover:text-gray-400">Fleet</a>
                     {!isAuthenticated && <a href="/login" className=" hover:text-gray-400" >Login</a>}
-                    {isAuthenticated && <a href={`/dashboard/${role === 'ROLE_RENTER' ? 'renter' : 'host'}/${userData.userId}`}
+                    {isAuthenticated && <a href={`/dashboard/${role === 'ROLE_RENTER' ? 'renter' : 'host'}/${userData?.userId}`}
                         className=" hover:text-gray-400" >Dashboard</a>}
                 </div>
             </div>

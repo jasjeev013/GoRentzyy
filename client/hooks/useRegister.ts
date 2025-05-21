@@ -3,7 +3,7 @@ import { authService } from '../app/api/auth/services';
 import { useAuthStore } from '../stores/authStore';
 
 export const useRegister = () => {
-  const { login } = useAuthStore();
+  const { login,setUserData } = useAuthStore();
 
   const register = async (userData: {
     fullName: string;
@@ -21,6 +21,10 @@ export const useRegister = () => {
       
       if (loginResponse.status === 'OK') {
         login(loginResponse.jwtToken, loginResponse.role);
+
+        const user = await authService.getUserData(loginResponse.jwtToken);
+        setUserData(user);
+        console.log('User data:', user);
         return { success: true, user: registeredUser };
       }
       

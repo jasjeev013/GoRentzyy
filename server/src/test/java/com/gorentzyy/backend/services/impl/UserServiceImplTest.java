@@ -91,7 +91,7 @@ public class UserServiceImplTest  {
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(modelMapper.map(user, UserDto.class)).thenReturn(userDto);
 
-        ResponseEntity<ApiResponseObject> response = userService.updateUserByEmail(userDto, userDto.getEmail());
+        ResponseEntity<ApiResponseObject> response = userService.updateUserByEmail(userDto, userDto.getEmail(),null);
 
         assertNotNull(response);
         assertEquals(202, response.getStatusCodeValue());
@@ -103,7 +103,7 @@ public class UserServiceImplTest  {
     void testUpdateUserByEmail_UserNotFound() {
         when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> userService.updateUserByEmail(userDto, userDto.getEmail()));
+        assertThrows(UserNotFoundException.class, () -> userService.updateUserByEmail(userDto, userDto.getEmail(),null));
     }
 
     /** Test case for getting a user by ID **/

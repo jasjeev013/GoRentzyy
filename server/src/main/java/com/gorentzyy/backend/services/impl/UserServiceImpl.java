@@ -1,10 +1,7 @@
 package com.gorentzyy.backend.services.impl;
 
 import com.gorentzyy.backend.constants.EmailConstants;
-import com.gorentzyy.backend.exceptions.DatabaseException;
-import com.gorentzyy.backend.exceptions.PasswordHashingException;
-import com.gorentzyy.backend.exceptions.UserAlreadyExistsException;
-import com.gorentzyy.backend.exceptions.UserNotFoundException;
+import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.models.LoginRequest;
 import com.gorentzyy.backend.models.LoginResponse;
 import com.gorentzyy.backend.models.User;
@@ -51,6 +48,7 @@ public class UserServiceImpl implements UserService {
 
     private final AuthenticationManager authenticationManager;
     private final RedisService redisService;
+
     private final JwtUtils jwtUtils;
     private final SMSService smsService;
 
@@ -165,30 +163,68 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId) {
-        // Check if user exists by userId
+    public ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId, MultipartFile multipartFile) {
+        // Check if user exists by email
         User existingUser = userRepository.findByEmail(emailId).orElseThrow(() ->
                 new UserNotFoundException("User with Email ID " + emailId + " does not exist.")
         );
 
         // Update the user details
         LocalDateTime now = LocalDateTime.now();
+        existingUser.setCreatedAt(now);
         existingUser.setUpdatedAt(now);
         existingUser.setFullName(userDto.getFullName());
         existingUser.setPhoneNumber(userDto.getPhoneNumber());
         existingUser.setAddress(userDto.getAddress());
 
         try {
+            // Handle profile photo upload if file is present
+            if (multipartFile != null && !multipartFile.isEmpty()) {
+                // Validate file type and size
+                if (!multipartFile.getContentType().startsWith("image/")) {
+                    throw new InvalidFileTypeException("Only image files are allowed");
+                }
+                if (multipartFile.getSize() > 5 * 1024 * 1024) { // 5MB limit
+                    throw new FileSizeExceededException("File size exceeds maximum limit of 5MB");
+                }
+
+                // Upload to Cloudinary
+                Map uploadResult = cloudinaryService.upload(multipartFile);
+                String photoUrl = (String) uploadResult.get("url");
+
+                if (photoUrl == null) {
+                    throw new CloudinaryUploadException("Failed to upload profile photo");
+                }
+
+                // Delete old photo from Cloudinary if exists
+                /*if (existingUser.getProfilePicture() != null) {
+                    try {
+                        cloudinaryService.delete(existingUser.getProfilePicture());
+                    } catch (Exception e) {
+                        logger.warn("Failed to delete old profile picture from Cloudinary", e);
+                    }
+                }*/
+
+                existingUser.setProfilePicture(photoUrl);
+            }
+
             // Save the updated user
             User updatedUser = userRepository.save(existingUser);
             UserDto savedUserDto = modelMapper.map(updatedUser, UserDto.class);
+
             // Return a response with updated user information
             return new ResponseEntity<>(new ApiResponseObject(
-                    "User updated successfully", true, modelMapper.map(updatedUser, UserDto.class)
+                    "User updated successfully",
+                    true,
+                    savedUserDto
             ), HttpStatus.ACCEPTED);
+
         } catch (DataIntegrityViolationException e) {
             throw new DatabaseException("Error while updating user in the database.");
+        } catch (InvalidFileTypeException | FileSizeExceededException | CloudinaryUploadException e) {
+            throw e; // Re-throw specific exceptions
         } catch (Exception e) {
+            logger.error("Error updating user profile", e);
             throw new DatabaseException("An unexpected error occurred while updating the user.");
         }
     }

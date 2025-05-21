@@ -53,7 +53,7 @@ public class UserDto implements Serializable {
     @JsonIgnore
     private String socialLoginId;
 
-    @JsonIgnore
+
     private String profilePicture;
 
     private LocalDateTime createdAt;

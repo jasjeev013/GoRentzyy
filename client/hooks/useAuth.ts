@@ -15,7 +15,7 @@ export const useAuth = () => {
         // Fetch user data after successful login
         const user = await authService.getUserData(response.jwtToken);
         setUserData(user);
-        
+        console.log('User data:', user);
         return { success: true };
       }
       return { success: false, error: 'Login failed' };

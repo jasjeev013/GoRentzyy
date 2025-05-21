@@ -13,6 +13,7 @@ const MainSection = () => {
     // Determine which cars to display
     const displayCars = availableCars.length > 0 ? availableCars : cars;
 
+
     // State for filters
     const [filters, setFilters] = useState({
         carCategory: [] as string[],
@@ -30,6 +31,7 @@ const MainSection = () => {
     // Filter and sort cars
     const filteredCars = useMemo(() => {
         let result = [...displayCars];
+        console.log('Filtered Cars:', result);
 
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
@@ -39,6 +41,8 @@ const MainSection = () => {
                 car.model.toLowerCase().includes(term) 
             );
         }
+    
+
 
         // Apply filters
         if (filters.carCategory.length > 0) {

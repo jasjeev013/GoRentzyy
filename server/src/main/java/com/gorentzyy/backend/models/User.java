@@ -36,7 +36,6 @@ public class User {
     private String password;
     private String socialLoginId;
 
-    @Lob
     private String profilePicture;
 
     private LocalDateTime createdAt;

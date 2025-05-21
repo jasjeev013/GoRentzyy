@@ -10,6 +10,7 @@ import { useCarStore } from '../../../stores/carStore';
 const CarListing = ({ cars, sortOption, onSortChange }: CarListingProps) => {
     const [gridView, setGridView] = useState(true);
     const { loading } = useCarStore();
+    
 
     return (
         <div className="w-full md:w-3/4">

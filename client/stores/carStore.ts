@@ -99,6 +99,7 @@ export const useCarStore = create<CarState>((set) => ({
     try {
       const cars = await carService.fetchAllCars();
       set({ cars, loading: false });
+
     } catch (error) {
       set({ error: error.message, loading: false });
     }

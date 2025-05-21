@@ -8,20 +8,24 @@ import { Avatar, AvatarImage, AvatarFallback } from '../../../components/ui/avat
 import { Badge } from '../../../components/ui/badge';
 import { Textarea } from '../../../components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { useAuthStore } from '../../../stores/authStore';
 import { useAuth } from '../../../hooks/useAuth';
 
 const HostProfileEdit = () => {
-  const { userData } = useAuth();
+  const { userData,updateUserData } = useAuthStore();
+
   const [user, setuser] = useState({
-    name: userData?.fullName,
+    fullName: userData?.fullName,
     address: userData?.address,
-    organization: 'CarRental Pro',
-    phone:  userData?.phoneNumber,
+    phoneNumber:  userData?.phoneNumber,
     email:  userData?.email,
     phoneVerified: userData?.phoneNumberVerified,
     emailVerified: userData?.emailVerified,
-    profileImage: userData?.profilePicture || '/default-profile.png'
+    profileImage: userData?.profilePicture || '/default-profile.png',
+    role: userData?.role
   });
+
+  console.log('userData', userData);
 
   const [originalData] = useState({ ...user });
   const [isEditingPhone, setIsEditingPhone] = useState(false);
@@ -72,8 +76,9 @@ const HostProfileEdit = () => {
     setEmailOTP('');
   };
 
-  const handleSave = () => {
+  const handleSave =async () => {
     // In a real app, you would save to backend here
+    await updateUserData(user, file);
     console.log('Saved:', user);
   };
 
@@ -98,7 +103,7 @@ const HostProfileEdit = () => {
                 <Avatar className="h-50 w-50">
                   <AvatarImage src={user.profileImage} />
                   <AvatarFallback>
-                    {user.name.split(' ').map(n => n[0]).join('')}
+                    {user.fullName.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <label 
@@ -130,11 +135,11 @@ const HostProfileEdit = () => {
             <div className="flex-2/3 space-y-4">
               {/* Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="fullName">Full Name</Label>
                 <Input
-                  id="name"
-                  name="name"
-                  value={user.name}
+                  id="fullName"
+                  name="fullName"
+                  value={user.fullName}
                   onChange={handleChange}
                   className="bg-gray-700 border-gray-600"
                 />
@@ -152,26 +157,16 @@ const HostProfileEdit = () => {
                 />
               </div>
 
-              {/* Organization */}
-              <div className="space-y-2">
-                <Label htmlFor="organization">Organization</Label>
-                <Input
-                  id="organization"
-                  name="organization"
-                  value={user.organization}
-                  onChange={handleChange}
-                  className="bg-gray-700 border-gray-600"
-                />
-              </div>
+             
 
-              {/* Phone with Verification */}
+              {/* phoneNumber with Verification */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Mobile Phone</Label>
+                <Label htmlFor="phoneNumber">Mobile Phone</Label>
                 <div className="flex gap-2">
                   <Input
-                    id="phone"
-                    name="phone"
-                    value={user.phone}
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={user.phoneNumber}
                     onChange={handleChange}
                     className="bg-gray-700 border-gray-600 flex-1"
                   />

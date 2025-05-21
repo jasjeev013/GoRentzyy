@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, ArrowRight } from 'lucide-react';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
@@ -14,8 +14,13 @@ const LoginComponent = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const { login, isAuthenticated, userData, role } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,12 +29,10 @@ const LoginComponent = () => {
 
     const result = await login(username, password);
 
-
     if (result.success) {
       if (isAuthenticated) {
         setIsLoading(false);
-        router.push(`/dashboard/${userData?.userId}`);
-
+        router.back();
       }
     } else {
       setIsLoading(false);
@@ -37,6 +40,47 @@ const LoginComponent = () => {
     }
   };
 
+  const socialLogin = (provider: string) => {
+    // Implement your social login logic here
+    console.log(`Logging in with ${provider}`);
+  };
+
+  // Particle component that only renders on client
+  const Particle = ({ index }: { index: number }) => {
+    if (!isClient) return null;
+
+    const size = Math.random() * 10 + 5;
+    const initialX = Math.random() * 100;
+    const initialY = Math.random() * 100;
+    const duration = Math.random() * 10 + 10;
+
+    return (
+      <motion.div
+        className="absolute rounded-full bg-blue-500/20 dark:bg-blue-400/20"
+        initial={{
+          x: initialX,
+          y: initialY,
+          scale: Math.random() * 0.5 + 0.5,
+          opacity: 0
+        }}
+        animate={{
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          opacity: [0, 0.3, 0],
+          transition: {
+            duration,
+            repeat: Infinity,
+            repeatType: "reverse",
+            delay: 0.3
+          }
+        }}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+        }}
+      />
+    );
+  };
 
   return (
     <motion.div
@@ -49,48 +93,25 @@ const LoginComponent = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="absolute inset-0 bg-gradient-to-br  from-black-500/10 via-grey-500/10 to-zinc-500/10 backdrop-blur-md"
+        className="absolute inset-0 bg-gradient-to-br from-black-500/10 via-grey-500/10 to-zinc-500/10 backdrop-blur-md"
         onClick={() => router.back()}
       />
 
-      {/* Floating particles background */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-blue-500/20 dark:bg-blue-400/20"
-            initial={{
-              x: Math.random() * 100,
-              y: Math.random() * 100,
-              scale: Math.random() * 0.5 + 0.5,
-              opacity: 0
-            }}
-            animate={{
-              x: typeof window !== 'undefined' ? Math.random() * window.innerWidth : 0,
-              y: typeof window !== 'undefined' ? Math.random() * window.innerHeight : 0,
-              opacity: [0, 0.3, 0],
-              transition: {
-                duration: Math.random() * 10 + 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-                delay: 0.3 // Start after initial fade-in
-              }
-            }}
-            style={{
-              width: `${Math.random() * 10 + 5}px`,
-              height: `${Math.random() * 10 + 5}px`,
-            }}
-          />
-        ))}
-      </div>
+      {/* Floating particles background - only render on client */}
+      {isClient && (
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <Particle key={i} index={i} />
+          ))}
+        </div>
+      )}
 
-
-      {/* Login popup */}
+      {/* Rest of your login component remains the same */}
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{
-          delay: 0.2, // Slight delay after background appears
+          delay: 0.2,
           type: "spring",
           stiffness: 300,
           damping: 20

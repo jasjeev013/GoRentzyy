@@ -71,6 +71,7 @@ interface CarDto
 export const carService = {
   fetchAllCars: async (): Promise<Car[]> => {
     const response = await api.get("/api/car/getAll");
+    console.log("Response from fetchAllCars:", response.data);
     return response.data.data.flat();
   },
 

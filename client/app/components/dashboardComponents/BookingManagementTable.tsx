@@ -25,7 +25,7 @@ const BookingManagementTable = () => {
 
   useEffect(() => {
     fetchHostBookings();
-    console.log("Host Bookings: ", hostBookings); 
+   
     setBookings(hostBookings);
   }, [fetchHostBookings]);
 
@@ -41,7 +41,7 @@ const BookingManagementTable = () => {
     return matchesSearch && matchesPaymentMethod && matchesPaymentStatus;
   }):[];
 
-  console.log("Filtered Bookings: ", filteredBookings);
+
 
   const formatDateTime = (dateTimeString: string) => {
     const date = new Date(dateTimeString);
