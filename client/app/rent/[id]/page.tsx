@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import CarImageGallery from '../../components/carPageComponents/CarImageGallery';
 import CarSpecifications from '../../components/carPageComponents/CarSpecifications';
 import BookingDetails from '../../components/carPageComponents/BookingDetails';
@@ -8,9 +8,24 @@ import BookingSummary from '../../components/carPageComponents/BookingSummary';
 import { useCarStore } from '../../../stores/carStore';
 import { Loader2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
+import RentalPaymentConfirmation from '../../components/carPageComponents/RentalPaymentConfirmation';
+import { useBookingStore } from '../../../stores/bookingStore';
 
 const page = () => {
   const { id } = useParams();
+  const { createBooking } = useBookingStore();
+  const [bookingPeriod, setBookingPeriod] = useState<{
+    start: Date | null;
+    end: Date | null;
+  }>({
+    start: null,
+    end: null,
+  });
+
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+
+
   const { currentCar, fetchCarById, loading, error } = useCarStore();
   useEffect(() => {
     console.log(currentCar)
@@ -18,6 +33,18 @@ const page = () => {
       fetchCarById(Number(id));
     }
   }, [id, fetchCarById]);
+
+  const doBookingCar = async (total: number,) => {
+    await createBooking(Number(id), {
+      startDate: bookingPeriod.start?.toISOString().split('Z')[0],
+      endDate: bookingPeriod.end?.toISOString().split('Z')[0],
+      totalPrice: total,
+      status: 'CONFIRMED',
+    });
+
+    setShowConfirmation(true);
+
+  };
 
   if (loading) {
     return (
@@ -63,14 +90,21 @@ const page = () => {
               pricePerDay={currentCar.rentalPricePerDay}
               carType={currentCar.carType}
               location={''}
+              onDateTimeChange={(start: Date, end: Date) => setBookingPeriod({ start, end })}
+
             />
             <PickupOptions />
             <BookingSummary
               basePrice={currentCar.rentalPricePerDay}
               luggageCapacity={''}
+              doBookingCar={doBookingCar}
+
             />
           </div>
         </div>
+        {showConfirmation && (
+          <RentalPaymentConfirmation onClose={() => setShowConfirmation(false)} />
+        )}
       </div>
     </div>
   );

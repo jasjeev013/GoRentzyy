@@ -17,6 +17,7 @@ import RenterProfileEdit from '../../../components/dashboardComponents/RenterPro
 import RenterBookingDetails from '../../../components/dashboardComponents/RenterBookingDetails'
 import RenterDashboard from '../../../components/dashboardComponents/RenterDashBoard'
 import RenterNotificationTimeline from '../../../components/dashboardComponents/RenterNotificationTimeline'
+import { useAuthStore } from '../../../../stores/authStore'
 
 const data = [
   { name: 'Mon', reserved: 12, rental: 8, done: 10 },
@@ -37,6 +38,7 @@ const popularCars = [
 
 const DashboardPage = () => {
   const { logout } = useAuth();
+  const { userData } = useAuthStore();
   const [activeTab, setActiveTab] = useState('home')
   const [showNotifications, setShowNotifications] = useState(false);
   return (
@@ -48,7 +50,7 @@ const DashboardPage = () => {
             {/* Top Navigation Bar - Modified */}
             <nav className="p-4 flex justify-between items-center">
               <div className="flex items-center space-x-4">
-                <h1 className="text-2xl md:text-3xl font-bold">Hey Jasjeev Singh Kohli Renter</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Hey {userData.fullName}</h1>
               </div>
               <div className="flex items-center space-x-4">
                 <Button

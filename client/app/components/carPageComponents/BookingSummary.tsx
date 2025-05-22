@@ -3,14 +3,16 @@ import { useState } from 'react';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { Button } from '../../../components/ui/button';
 import RentalPaymentConfirmation from './RentalPaymentConfirmation';
+import { useBookingStore } from '../../../stores/bookingStore';
 
 interface BookingSummaryProps {
   basePrice: number;
   luggageCapacity: string;
+  doBookingCar: (total:number) => void;
 }
 
-const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => {
-  const [showConfirmation, setShowConfirmation] = useState(false);
+const BookingSummary = ({ basePrice, luggageCapacity,doBookingCar }: BookingSummaryProps) => {
+
   const [includeLuggage, setIncludeLuggage] = useState(false);
   const [includeProtection, setIncludeProtection] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -22,6 +24,9 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
 
   const subtotal = basePrice + luggageFee + protectionFee;
   const total = subtotal + gst;
+
+
+  
 
   return (
     <div className="bg-[#DDC9C9] dark:bg-[#252A27CC] rounded-lg shadow-md p-6">
@@ -110,14 +115,12 @@ const BookingSummary = ({ basePrice, luggageCapacity }: BookingSummaryProps) => 
       <Button
         className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
         disabled={!agreeTerms}
-        onClick={() => setShowConfirmation(true)}
+        onClick={() => doBookingCar(total)}
       >
         Proceed to Payment
       </Button>
 
-      {showConfirmation && (
-        <RentalPaymentConfirmation onClose={() => setShowConfirmation(false)} />
-      )}
+      
     </div>
   );
 };

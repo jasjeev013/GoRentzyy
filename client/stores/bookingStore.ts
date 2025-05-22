@@ -31,7 +31,8 @@ interface BookingState {
     startDate: string;
     endDate: string;
     totalPrice: number;
-  }) => Promise<void>;
+    status: string;
+  }) => Promise<any>;
 }
 
 export const useBookingStore = create<BookingState>((set) => ({

@@ -9,7 +9,7 @@ import { Badge } from '../../../components/ui/badge';
 import { Textarea } from '../../../components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
 import { useAuthStore } from '../../../stores/authStore';
-import { useAuth } from '../../../hooks/useAuth';
+
 
 const HostProfileEdit = () => {
   const { userData,updateUserData } = useAuthStore();

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { Search, ChevronDown, MoreVertical } from 'lucide-react';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
@@ -9,60 +9,39 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../../components/ui/table';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../components/ui/avatar';
 import { format } from 'date-fns';
+import { useBookingStore } from '../../../stores/bookingStore';
 
 const paymentMethods = ["CREDIT_CARD", "PAYPAL", "UPI", "OTHER"];
 const paymentStatuses = ["SUCCESSFUL", "FAILED", "PENDING"];
 
 const hostBookingDetails = () => {
+
+  const { renterBookings,fetchRenterBookings } = useBookingStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
-  
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      carName: "Honda City",
-      registrationNumber: "DL2CAF1234",
-      host: "Neha Verma",
-      startDate: "2025-05-04T16:09:27.136129",
-      endDate: "2025-05-08T10:00:00.000000",
-      totalPricePaid: 12000,
-      paymentMethod: "CREDIT_CARD",
-      paymentStatus: "SUCCESSFUL",
-      hostAvatar: "/avatars/neha-verma.jpg"
-    },
-    {
-      id: 2,
-      carName: "Tesla Model 3",
-      registrationNumber: "MH01EF5678",
-      host: "Rahul Sharma",
-      startDate: "2025-05-10T09:30:00.000000",
-      endDate: "2025-05-15T18:00:00.000000",
-      totalPricePaid: 25000,
-      paymentMethod: "UPI",
-      paymentStatus: "PENDING",
-      hostAvatar: "/avatars/rahul-sharma.jpg"
-    },
-    {
-      id: 3,
-      carName: "Toyota Fortuner",
-      registrationNumber: "KA03MG9012",
-      host: "Priya Patel",
-      startDate: "2025-05-20T14:00:00.000000",
-      endDate: "2025-05-25T14:00:00.000000",
-      totalPricePaid: 30000,
-      paymentMethod: "PAYPAL",
-      paymentStatus: "FAILED",
-      hostAvatar: "/avatars/priya-patel.jpg"
-    },
-    // Add more sample bookings as needed
-  ]);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        await fetchRenterBookings()
+        setBookings(renterBookings);
+      } catch (error) {
+        console.error("Error fetching bookings:", error);
+      }
+    };
+
+    fetchBookings();
+    console.log("Bookings:", renterBookings);
+  }, []);
+
+  const [bookings, setBookings] = useState([]);
 
   const filteredBookings = bookings.filter(booking => {
-    const matchesSearch = 
-      booking.carName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      booking.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.host.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      booking?.carName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking?.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking?.host.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPaymentMethod = paymentMethodFilter ? booking.paymentMethod === paymentMethodFilter : true;
     const matchesPaymentStatus = paymentStatusFilter ? booking.paymentStatus === paymentStatusFilter : true;
     return matchesSearch && matchesPaymentMethod && matchesPaymentStatus;
@@ -97,7 +76,7 @@ const hostBookingDetails = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             <Select value={paymentMethodFilter} onValueChange={setPaymentMethodFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Payment Method" />
@@ -109,7 +88,7 @@ const hostBookingDetails = () => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Payment Status" />
@@ -204,7 +183,7 @@ const hostBookingDetails = () => {
                   <div className="text-sm text-gray-400">{booking.paymentMethod}</div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-400">Start Date</div>
@@ -215,7 +194,7 @@ const hostBookingDetails = () => {
                   <div>{formatDateTime(booking.endDate)}</div>
                 </div>
               </div>
-              
+
               <div className="flex justify-between items-center pt-2 border-t border-gray-700">
                 <div>
                   <div className="text-sm text-gray-400">Total Price</div>

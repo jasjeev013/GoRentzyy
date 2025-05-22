@@ -1,27 +1,36 @@
 'use client';
 import { BookingDetailsProps } from '../../../app/types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-const BookingDetails = ({ pricePerDay, carType, location }: BookingDetailsProps) => {
+const BookingDetails = ({ pricePerDay, carType, location,onDateTimeChange }: any) => {
   const [startDate, setStartDate] = useState<string>(() => {
     const date = new Date();
     return date.toISOString().split('T')[0];
   });
-
   const [endDate, setEndDate] = useState<string>(() => {
     const date = new Date();
     date.setDate(date.getDate() + 3);
     return date.toISOString().split('T')[0];
   });
-
   const [startTime, setStartTime] = useState<string>('10');
   const [endTime, setEndTime] = useState<string>('10');
+  
+  useEffect(() => {
+  const start = new Date(`${startDate}T${startTime.padStart(2, '0')}:00:00`);
+  const end = new Date(`${endDate}T${endTime.padStart(2, '0')}:00:00`);
+  
+  onDateTimeChange?.(start, end);
+}, [startDate, endDate, startTime, endTime]);
+
+  
+  
+  const start = new Date(`${startDate}T${startTime.padStart(2, '0')}:00:00`);
+  const end = new Date(`${endDate}T${endTime.padStart(2, '0')}:00:00`);
 
   const calculateDuration = () => {
     if (!startDate || !endDate) return 'Select dates';
 
-    const start = new Date(`${startDate}T${startTime.padStart(2, '0')}:00:00`);
-    const end = new Date(`${endDate}T${endTime.padStart(2, '0')}:00:00`);
+
 
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));

@@ -15,7 +15,7 @@ const LoginComponent = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const { login, isAuthenticated, userData, role } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {

@@ -34,8 +34,9 @@ export const bookingService = {
     startDate: string;
     endDate: string;
     totalPrice: number;
-  }): Promise<Booking> => {
+  }): Promise<any> => {
     const response = await api.post(`/api/booking/create/${carId}`, bookingData);
-    return response.data;
+    console.log(response.data);
+    return response.data.object;
   },
 };
