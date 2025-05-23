@@ -24,6 +24,7 @@ interface UserData {
 export const authService = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
     const response = await api.post('/api/user/login', { username, password });
+
     return response.data;
   },
 
@@ -33,6 +34,7 @@ export const authService = {
         Authorization: token
       }
     });
+    console.log('User data response:', response.data);
     return response.data.object;
   },
 

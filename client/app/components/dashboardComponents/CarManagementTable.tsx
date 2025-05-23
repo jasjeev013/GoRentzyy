@@ -60,6 +60,7 @@ const CarManagementTable = () => {
     useEffect(() => {
         fetchAllCarsOfHost();
         setCars(hostCars);
+        console.log("Host Cars: Helloszz ");
     }, [fetchAllCarsOfHost, hostCars]);
 
     const [searchTerm, setSearchTerm] = useState('');

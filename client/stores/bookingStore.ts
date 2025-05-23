@@ -5,20 +5,68 @@ import { bookingService } from '../app/api/bookings/service';
 
 interface Booking {
   bookingId: number;
-  carId: number;
-  renterId: number;
-  hostId: number;
   startDate: string;
   endDate: string;
   totalPrice: number;
-  bookingStatus: string;
-  createdAt: string;
-  updatedAt: string;
+  status: string;
+  renter: {
+      userId: number;
+      fullName: string;
+      email: string;
+      phoneNumber: string;
+      address: string;
+      role: string;
+      emailVerified: boolean;
+      phoneNumberVerified: boolean;
+      profilePicture: string;
+      createdAt: string;
+      updatedAt: string;
+    };
   car: {
+    carId: number;
     name: string;
+    make: string;
+    model: string;
+    year: number;
+    color: string;
+    registrationNumber: string;
     photos: string[];
+    carCategory: string;
+    carType: string;
+    fuelType: string;
+    transmissionMode: string;
+    seatingCapacity: number;
+    luggageCapacity: number;
+    rentalPricePerDay: number;
+    rentalPricePerWeek: number;
+    rentalPricePerMonth: number;
+    availabilityStatus: string;
+    maintenanceDueDate: string;
+    createdAt: string;
+    updatedAt: string;
+    insurance: string;
+    roadSideAssistance: string | null;
+    fuelPolicy: string;
+    features: string;
+    importantPoints: string;
+    location: string | null;
+    reviews: any[]; // Replace `any` with a `Review` interface if reviews have a defined structure
+    host: {
+      userId: number;
+      fullName: string;
+      email: string;
+      phoneNumber: string;
+      address: string;
+      role: string;
+      emailVerified: boolean;
+      phoneNumberVerified: boolean;
+      profilePicture: string;
+      createdAt: string;
+      updatedAt: string;
+    };
   };
 }
+
 
 interface BookingState {
   hostBookings: Booking[];

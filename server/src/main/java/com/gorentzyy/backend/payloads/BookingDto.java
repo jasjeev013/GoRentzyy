@@ -48,12 +48,13 @@ public class BookingDto implements Serializable {
     @JsonIgnore
     private LocalDateTime updatedAt;
 
+    private CarDto car;
+    private UserDto renter;
+
 
 /*
- private Car car;
   private Payment payment;
 
-    private User renter;
     private List<Review> reviews;
 
     private List<Promotion> promotions;

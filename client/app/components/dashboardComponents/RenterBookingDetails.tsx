@@ -33,15 +33,16 @@ const hostBookingDetails = () => {
 
     fetchBookings();
     console.log("Bookings:", renterBookings);
-  }, []);
+  }, [fetchRenterBookings]);
 
   const [bookings, setBookings] = useState([]);
 
-  const filteredBookings = bookings.filter(booking => {
+  const filteredBookings = bookings
+  .filter(booking => {
     const matchesSearch =
-      booking?.carName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking?.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking?.host.toLowerCase().includes(searchTerm.toLowerCase());
+      booking?.car.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking?.car.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      booking?.car.host.fullName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPaymentMethod = paymentMethodFilter ? booking.paymentMethod === paymentMethodFilter : true;
     const matchesPaymentStatus = paymentStatusFilter ? booking.paymentStatus === paymentStatusFilter : true;
     return matchesSearch && matchesPaymentMethod && matchesPaymentStatus;
@@ -123,28 +124,28 @@ const hostBookingDetails = () => {
             </TableHeader>
             <TableBody className="divide-y divide-gray-700">
               {filteredBookings.map((booking, index) => (
-                <TableRow key={booking.id} className="hover:bg-gray-700">
+                <TableRow key={booking.bookingId} className="hover:bg-gray-700">
                   <TableCell className="text-gray-300">{index + 1}</TableCell>
                   <TableCell>
-                    <div className="font-medium text-white">{booking.carName}</div>
-                    <div className="text-sm text-gray-400">{booking.registrationNumber}</div>
+                    <div className="font-medium text-white">{booking.car.name}</div>
+                    <div className="text-sm text-gray-400">{booking.car.registrationNumber}</div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={booking.hostAvatar} />
-                        <AvatarFallback>{booking.host.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={booking.car.host.profilePicture} />
+                        <AvatarFallback>{booking.car.host.fullName.charAt(0)}</AvatarFallback>
                       </Avatar>
-                      <span>{booking.host}</span>
+                      <span>{booking.car.host.fullName}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-300">{formatDateTime(booking.startDate)}</TableCell>
                   <TableCell className="text-gray-300">{formatDateTime(booking.endDate)}</TableCell>
-                  <TableCell className="text-gray-300">₹{booking.totalPricePaid.toLocaleString()}</TableCell>
-                  <TableCell className="text-gray-300">{booking.paymentMethod}</TableCell>
+                  <TableCell className="text-gray-300">₹{booking.totalPrice}</TableCell>
+                  <TableCell className="text-gray-300">CREDIT_CARD</TableCell>
                   <TableCell>
-                    <Badge className={`${getPaymentStatusColor(booking.paymentStatus)}`}>
-                      {booking.paymentStatus}
+                    <Badge className={`${getPaymentStatusColor("SUCCESSFUL")}`}>
+                      SUCCESSFUL
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -162,25 +163,25 @@ const hostBookingDetails = () => {
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
         {filteredBookings.map((booking, index) => (
-          <Card key={booking.id} className="bg-gray-800 border-gray-700">
+          <Card key={index} className="bg-gray-800 border-gray-700">
             <CardHeader className="flex flex-row items-start justify-between pb-4">
               <div>
-                <CardTitle className="text-lg">{booking.carName}</CardTitle>
-                <div className="text-sm text-gray-400">{booking.registrationNumber}</div>
+                <CardTitle className="text-lg">{booking.car.name}</CardTitle>
+                <div className="text-sm text-gray-400">{booking.bookingId}</div>
               </div>
-              <Badge className={`${getPaymentStatusColor(booking.paymentStatus)}`}>
+              <Badge className={`${getPaymentStatusColor("SUCCESSFUL")}`}>
                 {booking.paymentStatus}
               </Badge>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={booking.hostAvatar} />
-                  <AvatarFallback>{booking.host.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={booking.car.host.profilePhoto} />
+                  <AvatarFallback>{booking.car.host.fullName.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium">{booking.host}</div>
-                  <div className="text-sm text-gray-400">{booking.paymentMethod}</div>
+                  <div className="font-medium">{booking.car.host.fullName}</div>
+                  <div className="text-sm text-gray-400">CREDIT_CARD</div>
                 </div>
               </div>
 
@@ -198,7 +199,7 @@ const hostBookingDetails = () => {
               <div className="flex justify-between items-center pt-2 border-t border-gray-700">
                 <div>
                   <div className="text-sm text-gray-400">Total Price</div>
-                  <div className="font-medium">₹{booking.totalPricePaid.toLocaleString()}</div>
+                  <div className="font-medium">₹{booking.totalPrice}</div>
                 </div>
                 <Button variant="ghost" size="icon">
                   <MoreVertical className="h-4 w-4" />

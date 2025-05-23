@@ -21,6 +21,7 @@ public class Payment {
     private Booking booking;
 
     private LocalDateTime paymentDate;
+
     private double amount;
 
     @Enumerated(EnumType.STRING)

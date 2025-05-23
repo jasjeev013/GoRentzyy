@@ -28,12 +28,14 @@ const LoginComponent = () => {
     setIsLoading(true);
 
     const result = await login(username, password);
+    console.log(result);
 
     if (result.success) {
-      if (isAuthenticated) {
+      
+      // if (isAuthenticated) {
         setIsLoading(false);
-        router.back();
-      }
+        router.push('/home');
+      // }
     } else {
       setIsLoading(false);
       setError(result.error);

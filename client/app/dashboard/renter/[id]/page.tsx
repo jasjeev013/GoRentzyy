@@ -12,31 +12,17 @@ import { Button } from '../../../../components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '../../../../components/ui/avatar'
 import { Badge } from '../../../../components/ui/badge'
 import { useAuth } from '../../../../hooks/useAuth'
-import { redirect } from 'next/navigation'
+import { redirect, useRouter } from 'next/navigation'
 import RenterProfileEdit from '../../../components/dashboardComponents/RenterProfileEdit'
 import RenterBookingDetails from '../../../components/dashboardComponents/RenterBookingDetails'
 import RenterDashboard from '../../../components/dashboardComponents/RenterDashBoard'
 import RenterNotificationTimeline from '../../../components/dashboardComponents/RenterNotificationTimeline'
 import { useAuthStore } from '../../../../stores/authStore'
 
-const data = [
-  { name: 'Mon', reserved: 12, rental: 8, done: 10 },
-  { name: 'Tue', reserved: 19, rental: 12, done: 14 },
-  { name: 'Wed', reserved: 15, rental: 10, done: 12 },
-  { name: 'Thu', reserved: 18, rental: 14, done: 16 },
-  { name: 'Fri', reserved: 24, rental: 18, done: 20 },
-  { name: 'Sat', reserved: 30, rental: 22, done: 25 },
-  { name: 'Sun', reserved: 28, rental: 20, done: 23 },
-]
 
-const popularCars = [
-  { id: 1, name: 'Nissan Ariya', status: 'Available', units: 12, image: '/nissan-ariya.jpg' },
-  { id: 2, name: 'Tesla Model 3', status: 'Available', units: 8, image: '/tesla-model3.jpg' },
-  { id: 3, name: 'Toyota RAV4', status: 'Low Stock', units: 3, image: '/toyota-rav4.jpg' },
-  { id: 4, name: 'Honda CR-V', status: 'Available', units: 10, image: '/honda-crv.jpg' },
-]
 
 const DashboardPage = () => {
+  const router = useRouter();
   const { logout } = useAuth();
   const { userData } = useAuthStore();
   const [activeTab, setActiveTab] = useState('home')
@@ -63,7 +49,7 @@ const DashboardPage = () => {
                 </Button>
                 <Button variant="ghost" size="icon" className="rounded-full" onClick={() => {
                   logout()
-                  redirect('/home')
+                  router.push('/login')
                 }}>
                   <LogOutIcon className="h-5 w-5" />
                 </Button>
