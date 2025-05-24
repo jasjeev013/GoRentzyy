@@ -8,8 +8,9 @@ import { Badge } from '../../../components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../../../components/ui/select';
 import { Switch } from '../../../components/ui/switch';
 import { Label } from '../../../components/ui/label';
-import { Avatar, AvatarImage, AvatarFallback } from '../../../components/ui/avatar';
 import { useCarStore } from '../../../stores/carStore';
+import { Location } from '../../types';
+import GoogleMapLocationPicker from './GoogleMapLocationPicker';
 
 const carTypes = [
     "ECONOMY",
@@ -53,15 +54,17 @@ const transmissionModes = [
     "IMT",
 ];
 
+
+
 const CarManagementTable = () => {
-    const { hostCars, fetchAllCarsOfHost, addNewCar } = useCarStore();
+    const { hostCars, fetchAllCarsOfHost, addNewCar, updateCar } = useCarStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         fetchAllCarsOfHost();
         setCars(hostCars);
-        console.log("Host Cars: Helloszz ");
-    }, [fetchAllCarsOfHost, hostCars]);
+        console.log(hostCars);
+    }, [fetchAllCarsOfHost]);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [carTypeFilter, setCarTypeFilter] = useState('');
@@ -72,6 +75,8 @@ const CarManagementTable = () => {
     const [cars, setCars] = useState<any[]>([]);
     const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
     const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+    const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+
 
     const filteredCars = cars.filter(car => {
         const matchesSearch = car.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,6 +120,12 @@ const CarManagementTable = () => {
             features: "",
             importantPoints: "",
         });
+        setEditingLocation({
+            city: "",
+            address: "",
+            latitude: 0,
+            longitude: 0
+        });
     };
 
     const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,10 +157,32 @@ const CarManagementTable = () => {
 
     const handleSaveCar = async () => {
         try {
-            await addNewCar(editingCar, photoFiles);
+            const carData = {
+                ...editingCar,
+                location: editingLocation
+            };
+            console.log("Car Data to Save:", carData);
+
+            if (editingCar?.carId) {
+                // Update existing car
+                console.log("Updating existing car with ID:", editingCar.carId);
+                await updateCar(
+                    editingCar.carId,
+                    carData,
+                    photoFiles,
+                );
+            } else {
+                // Create new car
+                console.log("Creating new car");
+                await addNewCar(
+                    carData,
+                    photoFiles,
+                );
+            }
             fetchAllCarsOfHost();
             setIsAddCarModalOpen(false);
             setEditingCar(null);
+            setEditingLocation(null);
             setPhotoPreviews([]);
             setPhotoFiles([]);
         } catch (error) {
@@ -170,6 +203,18 @@ const CarManagementTable = () => {
             case "UNDER_MAINTENANCE": return "bg-red-500";
             default: return "bg-gray-500";
         }
+    };
+
+    const handleLocationChange = (field: keyof Location, value: string | number) => {
+        setEditingLocation(prev => ({
+            ...(prev || { city: "", address: "", latitude: 0, longitude: 0 }),
+            [field]: value
+        }));
+    };
+
+    const handleMapLocationSelect = (lat: number, lng: number) => {
+        handleLocationChange('latitude', lat);
+        handleLocationChange('longitude', lng);
     };
 
     // Clean up object URLs when component unmounts
@@ -262,6 +307,10 @@ const CarManagementTable = () => {
                                         <span>10</span>
                                     </div>
                                     <div className="flex justify-between">
+                                        <span className="text-gray-400">Location:</span>
+                                        <span>{car.location?.city || 'N/A'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
                                         <span className="text-gray-400">Rating:</span>
                                         <span className="flex items-center">
                                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
@@ -286,6 +335,7 @@ const CarManagementTable = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Fuel</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Transmission</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Bookings</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Rating</th>
                             </tr>
@@ -299,6 +349,12 @@ const CarManagementTable = () => {
                                         setIsAddCarModalOpen(true);
                                         setEditingCar(car);
                                         setPhotoPreviews(car.photos || []);
+                                        setEditingLocation(car.location || {
+                                            city: "",
+                                            address: "",
+                                            latitude: 0,
+                                            longitude: 0
+                                        });
                                     }}
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{index + 1}</td>
@@ -309,6 +365,9 @@ const CarManagementTable = () => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.fuelType}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.transmissionMode}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">10</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                        {car.location?.city || 'N/A'}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <Badge className={getStatusBadgeColor(car.availabilityStatus)}>
                                             {car.availabilityStatus}
@@ -399,7 +458,69 @@ const CarManagementTable = () => {
                                             />
                                         </div>
                                     </div>
+                                    {/* Location Column */}
+                                    {/* Location Column */}
+                                    <div className="lg:col-span-1">
+                                        <h3 className="text-lg font-medium mb-4">Car Location</h3>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <Label className='my-1'>City</Label>
+                                                <Input
+                                                    value={editingLocation?.city || ''}
+                                                    onChange={(e) => handleLocationChange('city', e.target.value)}
+                                                    placeholder="e.g., New Delhi"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Label className='my-1'>Address</Label>
+                                                <textarea
+                                                    className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[80px]"
+                                                    value={editingLocation?.address || ''}
+                                                    onChange={(e) => handleLocationChange('address', e.target.value)}
+                                                    placeholder="e.g., 123 Main Street, Connaught Place"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <Label className='my-1'>Latitude</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={editingLocation?.latitude || 0}
+                                                        onChange={(e) => handleLocationChange('latitude', parseFloat(e.target.value))}
+                                                        step="0.000001"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className='my-1'>Longitude</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={editingLocation?.longitude || 0}
+                                                        onChange={(e) => handleLocationChange('longitude', parseFloat(e.target.value))}
+                                                        step="0.000001"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <Label className='my-1'>Select on Map</Label>
+                                                <GoogleMapLocationPicker
+                                                    onLocationSelect={handleMapLocationSelect}
+                                                    initialLocation={
+                                                        editingLocation?.latitude && editingLocation?.longitude
+                                                            ? { lat: editingLocation.latitude, lng: editingLocation.longitude }
+                                                            : undefined
+                                                    }
+                                                />
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    Click on the map to set the exact location
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
 
                                 {/* Right Column - Details */}
                                 <div className="lg:col-span-2 space-y-4">

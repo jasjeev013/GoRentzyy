@@ -3,11 +3,11 @@ package com.gorentzyy.backend.services.impl;
 import com.gorentzyy.backend.constants.AppConstants;
 import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.models.Car;
+import com.gorentzyy.backend.models.Location;
 import com.gorentzyy.backend.models.User;
-import com.gorentzyy.backend.payloads.ApiResponseData;
-import com.gorentzyy.backend.payloads.ApiResponseObject;
-import com.gorentzyy.backend.payloads.CarDto;
+import com.gorentzyy.backend.payloads.*;
 import com.gorentzyy.backend.repositories.CarRepository;
+import com.gorentzyy.backend.repositories.LocationRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.CarService;
 import com.gorentzyy.backend.services.CloudinaryService;
@@ -37,27 +37,34 @@ public class CarServiceImpl implements CarService {
     private final CarRepository carRepository;
     private final ModelMapper modelMapper;
     private final CloudinaryService cloudinaryService;
+    private final LocationRepository locationRepository;
 
     private final RedisService redisService;
 
 
     @Autowired
-    public CarServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper, CloudinaryService cloudinaryService, RedisService redisService) {
+    public CarServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper, CloudinaryService cloudinaryService, LocationRepository locationRepository, RedisService redisService) {
         this.userRepository = userRepository;
         this.carRepository = carRepository;
         this.modelMapper = modelMapper;
         this.cloudinaryService = cloudinaryService;
+        this.locationRepository = locationRepository;
         this.redisService = redisService;
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)  // Ensures rollback on all exceptions
+    @Transactional(rollbackFor = Exception.class)
     @Retryable(
-            value = {DatabaseException.class},  // Retry only for DatabaseException
-            maxAttempts = 3,  // Retry 3 times before failing
-            backoff = @Backoff(delay = 2000, multiplier = 2)  // 2 sec delay, increasing exponentially
+            value = {DatabaseException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000, multiplier = 2)
     )
-    public ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto, String email, List<MultipartFile> files) {
+    public ResponseEntity<ApiResponseObject> addNewCar(
+            CarDto carDto,
+            String email,
+            List<MultipartFile> files,
+            LocationDto locationDto) {
+
         try {
             // Step 1: Check if car already exists
             if (carRepository.existsByRegistrationNumber(carDto.getRegistrationNumber())) {
@@ -82,15 +89,23 @@ public class CarServiceImpl implements CarService {
             newCar.setHost(host);
             host.getCars().add(newCar);
 
-            // Step 5: Set timestamps
+            // Step 5: Handle location if provided
+            if (locationDto != null) {
+                Location location = modelMapper.map(locationDto, Location.class);
+                location.setCar(newCar);
+                newCar.setLocation(location);
+                locationRepository.save(location);
+            }
+
+            // Step 6: Set timestamps
             LocalDateTime now = LocalDateTime.now();
             newCar.setCreatedAt(now);
             newCar.setUpdatedAt(now);
 
-            // Step 6: Save the new car first to get the ID
+            // Step 7: Save the new car first to get the ID
             Car savedCar = carRepository.save(newCar);
 
-            // Step 7: Handle file uploads if files are present
+            // Step 8: Handle file uploads if files are present
             if (files != null && !files.isEmpty()) {
                 List<String> photoUrls = new ArrayList<>();
 
@@ -119,8 +134,15 @@ public class CarServiceImpl implements CarService {
                     carDto.getRegistrationNumber(),
                     (files != null) ? files.size() : 0);
 
+            // Prepare response with both car and location data
+            CarResponseDto responseDto = new CarResponseDto();
+            responseDto.setCar(modelMapper.map(savedCar, CarDto.class));
+            if (savedCar.getLocation() != null) {
+                responseDto.setLocation(modelMapper.map(savedCar.getLocation(), LocationDto.class));
+            }
+
             return new ResponseEntity<>(new ApiResponseObject(
-                    "The car was added successfully", true, modelMapper.map(savedCar, CarDto.class)
+                    "The car was added successfully", true, responseDto
             ), HttpStatus.CREATED);
 
         } catch (CarAlreadyExistsException | UserNotFoundException | RoleNotAuthorizedException | InvalidCarDataException ex) {
@@ -133,42 +155,107 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseObject> updateCar( CarDto carDto, Long carId) {
-        // Step 1: Check if the car exists in the database, and if not, throw a CarNotFoundException
-        Car existingCar = carRepository.findById(carId).orElseThrow(() ->
-                new CarNotFoundException("Car with ID " + carId + " does not exist.")
-        );
+    @Transactional
+    public ResponseEntity<ApiResponseObject> updateCar(
+            CarDto carDto,
+            Long carId,
+            List<MultipartFile> files,
+            LocationDto locationDto,
+            String email) {
 
-        // Step 2: Update the car details
-        LocalDateTime now = LocalDateTime.now();
-        existingCar.setUpdatedAt(now);
-        existingCar.setMake(carDto.getMake() != null ? carDto.getMake() : existingCar.getMake());
-        existingCar.setModel(carDto.getModel() != null ? carDto.getModel() : existingCar.getModel());
-        existingCar.setYear(carDto.getYear());
-        existingCar.setColor(carDto.getColor() != null ? carDto.getColor() : existingCar.getColor());
-        existingCar.setCarCategory(carDto.getCarCategory() != null ? carDto.getCarCategory() : existingCar.getCarCategory());
-        existingCar.setCarType(carDto.getCarType() != null ? carDto.getCarType() : existingCar.getCarType());
-        existingCar.setFuelType(carDto.getFuelType());
-        existingCar.setTransmissionMode(carDto.getTransmissionMode());
-        existingCar.setAvailabilityStatus(carDto.getAvailabilityStatus());
-        existingCar.setRentalPricePerDay(carDto.getRentalPricePerDay());
-        existingCar.setRentalPricePerWeek(carDto.getRentalPricePerWeek());
-        existingCar.setRentalPricePerMonth(carDto.getRentalPricePerMonth());
-        existingCar.setMaintenanceDueDate(carDto.getMaintenanceDueDate() != null ? carDto.getMaintenanceDueDate() : existingCar.getMaintenanceDueDate());
-        existingCar.setSeatingCapacity(carDto.getSeatingCapacity());
-        existingCar.setLuggageCapacity(carDto.getLuggageCapacity());
         try {
-            // Step 3: Attempt to save the updated car details to the database
+            // Step 1: Check if the car exists
+            Car existingCar = carRepository.findById(carId).orElseThrow(() ->
+                    new CarNotFoundException("Car with ID " + carId + " does not exist.")
+            );
+
+            // Step 2: Verify ownership
+            if (!existingCar.getHost().getEmail().equals(email)) {
+                throw new RoleNotAuthorizedException("You are not authorized to update this car");
+            }
+
+            // Step 3: Update the car details
+            LocalDateTime now = LocalDateTime.now();
+            existingCar.setUpdatedAt(now);
+            existingCar.setMake(carDto.getMake() != null ? carDto.getMake() : existingCar.getMake());
+            existingCar.setModel(carDto.getModel() != null ? carDto.getModel() : existingCar.getModel());
+            existingCar.setYear(carDto.getYear());
+            existingCar.setColor(carDto.getColor() != null ? carDto.getColor() : existingCar.getColor());
+            existingCar.setCarCategory(carDto.getCarCategory() != null ? carDto.getCarCategory() : existingCar.getCarCategory());
+            existingCar.setCarType(carDto.getCarType() != null ? carDto.getCarType() : existingCar.getCarType());
+            existingCar.setFuelType(carDto.getFuelType());
+            existingCar.setTransmissionMode(carDto.getTransmissionMode());
+            existingCar.setAvailabilityStatus(carDto.getAvailabilityStatus());
+            existingCar.setRentalPricePerDay(carDto.getRentalPricePerDay());
+            existingCar.setRentalPricePerWeek(carDto.getRentalPricePerWeek());
+            existingCar.setRentalPricePerMonth(carDto.getRentalPricePerMonth());
+            existingCar.setMaintenanceDueDate(carDto.getMaintenanceDueDate() != null ? carDto.getMaintenanceDueDate() : existingCar.getMaintenanceDueDate());
+            existingCar.setSeatingCapacity(carDto.getSeatingCapacity());
+            existingCar.setLuggageCapacity(carDto.getLuggageCapacity());
+
+            // Step 4: Handle location update
+            if (locationDto != null) {
+                Location existingLocation = existingCar.getLocation();
+
+                if (existingLocation == null) {
+                    // Create new location if it doesn't exist
+                    Location newLocation = modelMapper.map(locationDto, Location.class);
+                    newLocation.setCar(existingCar);
+                    existingCar.setLocation(newLocation);
+                    locationRepository.save(newLocation);
+                } else {
+                    // Update existing location
+                    existingLocation.setAddress(locationDto.getAddress() != null ? locationDto.getAddress() : existingLocation.getAddress());
+                    existingLocation.setCity(locationDto.getCity() != null ? locationDto.getCity() : existingLocation.getCity());
+                    existingLocation.setLatitude(locationDto.getLatitude());
+                    existingLocation.setLongitude(locationDto.getLongitude());
+                }
+            }
+
+            // Step 5: Handle file uploads if files are present
+            if (files != null && !files.isEmpty()) {
+                List<String> photoUrls = existingCar.getPhotos() != null ?
+                        new ArrayList<>(existingCar.getPhotos()) : new ArrayList<>();
+
+                for (MultipartFile file : files) {
+                    try {
+                        Map uploadedFile = cloudinaryService.upload(file);
+                        String photoUrl = (String) uploadedFile.get("url");
+
+                        if (photoUrl != null) {
+                            photoUrls.add(photoUrl);
+                        } else {
+                            logger.warn("Failed to upload one of the photos for car {}", existingCar.getCarId());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error uploading photo for car {}: {}", existingCar.getCarId(), e.getMessage());
+                        // Continue with other photos even if one fails
+                    }
+                }
+
+                existingCar.setPhotos(photoUrls);
+            }
+
+            // Step 6: Save the updated car
             Car updatedCar = carRepository.save(existingCar);
 
-            // Step 4: Return the response with the updated car information
+            // Prepare response with both car and location data
+            CarResponseDto responseDto = new CarResponseDto();
+            responseDto.setCar(modelMapper.map(updatedCar, CarDto.class));
+            if (updatedCar.getLocation() != null) {
+                responseDto.setLocation(modelMapper.map(updatedCar.getLocation(), LocationDto.class));
+            }
+
             return new ResponseEntity<>(new ApiResponseObject(
-                    "Updated Car Details Successfully", true, modelMapper.map(updatedCar, CarDto.class)
+                    "Car updated successfully", true, responseDto
             ), HttpStatus.OK);
 
+        } catch (CarNotFoundException | RoleNotAuthorizedException ex) {
+            logger.error("Error: {}", ex.getMessage());
+            throw ex;
         } catch (Exception e) {
-            // Step 5: Handle any database-related issues (e.g., saving to DB)
-            throw new DatabaseException("Error while updating car details. Please try again.");
+            logger.error("Unexpected error while updating car: {}", e.getMessage());
+            throw new DatabaseException("Error while updating the car in the database.");
         }
     }
 

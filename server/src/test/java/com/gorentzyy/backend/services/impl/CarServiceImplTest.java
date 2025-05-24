@@ -95,7 +95,7 @@ class CarServiceImplTest {
         when(carRepository.save(any(Car.class))).thenReturn(car);
         when(modelMapper.map(car, CarDto.class)).thenReturn(carDto);
 
-        ResponseEntity<ApiResponseObject> response = carService.addNewCar(carDto, host.getEmail(), List.of());
+        ResponseEntity<ApiResponseObject> response = carService.addNewCar(carDto, host.getEmail(), List.of(),null);
 
         assertNotNull(response);
         assertEquals(201, response.getStatusCodeValue());
@@ -107,7 +107,7 @@ class CarServiceImplTest {
     void testAddNewCar_CarAlreadyExists() {
         when(carRepository.existsByRegistrationNumber(carDto.getRegistrationNumber())).thenReturn(true);
 
-        assertThrows(CarAlreadyExistsException.class, () -> carService.addNewCar(carDto, host.getEmail(),List.of()));
+        assertThrows(CarAlreadyExistsException.class, () -> carService.addNewCar(carDto, host.getEmail(),List.of(),null));
     }
 
     @Test

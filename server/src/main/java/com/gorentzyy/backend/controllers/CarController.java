@@ -3,8 +3,10 @@ package com.gorentzyy.backend.controllers;
 import com.gorentzyy.backend.payloads.ApiResponseData;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.CarDto;
+import com.gorentzyy.backend.payloads.LocationDto;
 import com.gorentzyy.backend.services.CarService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -27,19 +29,29 @@ public class CarController {
     }
 
 //    Working
-    @PreAuthorize("hasRole('HOST')")
-    @PostMapping("/create")
-    public ResponseEntity<ApiResponseObject> addNewCar(@RequestPart("files") List<MultipartFile> files,@Valid @RequestPart("carDto") CarDto carDto, Authentication authentication){
+@PreAuthorize("hasRole('HOST')")
+@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+public ResponseEntity<ApiResponseObject> addNewCar(
+        @RequestPart(value = "files" ,required = false) List<MultipartFile> files,
+        @Valid @RequestPart("carDto") CarDto carDto,
+        @RequestPart(value = "locationDto", required = false) LocationDto locationDto,
+        Authentication authentication) {
 
+    String email = authentication.getName();
+    return carService.addNewCar(carDto, email, files, locationDto);
+}
+
+    @PreAuthorize("hasRole('HOST')")
+    @PutMapping(value = "/update/{carId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponseObject> updateCar(
+            @PathVariable Long carId,
+            @Valid @RequestPart("carDto") CarDto carDto,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @RequestPart(value = "locationDto", required = false) LocationDto locationDto,
+            Authentication authentication) {
 
         String email = authentication.getName();
-        return carService.addNewCar(carDto,email,files);
-    }
-
-    @PreAuthorize("hasRole('HOST')")
-    @PutMapping("/update/{carId}")
-    public ResponseEntity<ApiResponseObject> updateNewCar(@Valid @RequestBody CarDto carDto,@PathVariable Long carId){
-        return carService.updateCar(carDto,carId);
+        return carService.updateCar(carDto, carId, files, locationDto, email);
     }
 
 

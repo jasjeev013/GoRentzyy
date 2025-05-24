@@ -31,10 +31,10 @@ const LoginComponent = () => {
     console.log(result);
 
     if (result.success) {
-      
+
       // if (isAuthenticated) {
-        setIsLoading(false);
-        router.push('/home');
+      setIsLoading(false);
+      router.push('/home');
       // }
     } else {
       setIsLoading(false);

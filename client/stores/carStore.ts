@@ -40,7 +40,6 @@ interface Car {
   features: string;
   importantPoints: string;
   location: {
-    locationId: number;
     city: string;
     address: string;
     latitude: number;
@@ -80,9 +79,14 @@ interface CarState {
   fetchCarById: (carId: number) => Promise<void>; // Add this
   fetchAllCarsOfHost: () => Promise<void>;
   addNewCar: (
-    carData: CarDto, photos: File[]
+    carData: CarDto, 
+    photos: File[]
   ) => Promise<Car>;
-  updateCar: (carId: number, carData: Partial<Car>) => Promise<void>;
+  updateCar: (
+    carId: number, 
+    carData: Partial<CarDto>,
+    photos?: File[]
+  ) => Promise<Car>;
   clearAvailableCars: () => void;
   clearCurrentCar: () => void; // Add this
 }
@@ -159,6 +163,7 @@ export const useCarStore = create<CarState>((set) => ({
     set({ loading: true, error: null });
     try {
       const newCar = await carService.addNewCar(carData, photos);
+      
       set((state) => ({
         hostCars: [...state.hostCars, newCar],
         loading: false,
@@ -170,10 +175,11 @@ export const useCarStore = create<CarState>((set) => ({
     }
   },
 
-  updateCar: async (carId, carData) => {
+   updateCar: async (carId, carData, photos) => {
     set({ loading: true, error: null });
     try {
-      const updatedCar = await carService.updateCar(carId, carData);
+      const updatedCar = await carService.updateCar(carId,carData, photos);
+      
       set((state) => ({
         hostCars: state.hostCars.map((car) =>
           car.carId === carId ? updatedCar : car
@@ -182,7 +188,7 @@ export const useCarStore = create<CarState>((set) => ({
           state.currentCar?.carId === carId ? updatedCar : state.currentCar,
         loading: false,
       }));
-      // return updatedCar;
+      return updatedCar;
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;

@@ -131,25 +131,40 @@ export const carService = {
   },
   fetchAllCarsOfHost: async (): Promise<Car[]> => {
     const response = await api.get("/api/car/getAllSpecific");
+    console.log("Response from fetchAllCarsOfHost:", response.data.data.flat());
     return response.data.data.flat();
   },
 
-  addNewCar: async (carData: CarDto, photos: File[]): Promise<Car> => {
+  addNewCar: async (carData: CarDto & { location?: { city: string; address: string; latitude: number; longitude: number } }, photos: File[]): Promise<Car> => {
     const formData = new FormData();
 
+    // Prepare car data without location (we'll handle it separately)
+    const { location, ...carDataWithoutLocation } = carData;
+    
     // Append car data as JSON
     formData.append(
       "carDto",
-      new Blob([JSON.stringify(carData)], {
+      new Blob([JSON.stringify(carDataWithoutLocation)], {
         type: "application/json",
       })
     );
+
+    
+
+    // Append location data if provided
+    if (location) {
+      formData.append(
+        "locationDto",
+        new Blob([JSON.stringify(location)], {
+          type: "application/json",
+        })
+      );
+    }
 
     // Append each photo file
     photos.forEach((file) => {
       formData.append("files", file);
     });
-
     const response = await api.post("/api/car/create", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -159,8 +174,47 @@ export const carService = {
     return response.data;
   },
 
-  updateCar: async (carId: number, carData: Partial<Car>): Promise<Car> => {
-    const response = await api.put(`/api/car/update/${carId}`, carData);
+  updateCar: async (
+    carId: number, 
+    carData: Partial<CarDto> & { location?: { city?: string; address?: string; latitude?: number; longitude?: number } },
+    photos?: File[]
+  ): Promise<Car> => {
+    const formData = new FormData();
+
+    // Prepare car data without location
+    const { location, ...carDataWithoutLocation } = carData;
+    
+    // Append car data as JSON
+    formData.append(
+      "carDto",
+      new Blob([JSON.stringify(carDataWithoutLocation)], {
+        type: "application/json",
+      })
+    );
+
+    // Append location data if provided
+    if (location) {
+      formData.append(
+        "locationDto",
+        new Blob([JSON.stringify(location)], {
+          type: "application/json",
+        })
+      );
+    }
+    console.log("location", location);
+    // Append photo files if provided
+    if (photos) {
+      photos.forEach((file) => {
+        formData.append("files", file);
+      });
+    }
+
+    const response = await api.put(`/api/car/update/${carId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+console.log("Response from updateCar:", response.data);
     return response.data;
   },
 };

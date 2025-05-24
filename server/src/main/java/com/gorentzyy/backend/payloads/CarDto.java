@@ -95,11 +95,11 @@ public class CarDto implements Serializable {
 
     private LocationDto location;
     private List<ReviewDto> reviews;
+    private List<LocationDto> locations;
 
     /*
     private User host;
     private List<Booking> bookings;
-    private List<Location> locations;
      */
 
 

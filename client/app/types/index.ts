@@ -102,7 +102,6 @@ export interface Host {
 }
 
 export interface Location {
-  locationId: number;
   city: string;
   address: string;
   latitude: number;
@@ -147,3 +146,5 @@ export interface CarDetails {
   location: Location;
   reviews: Review[];
 }
+
+
