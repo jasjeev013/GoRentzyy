@@ -36,9 +36,11 @@ public class ProdSecurityConfig {
     private final JWTTokenGeneratorFilter jwtTokenGeneratorFilter;
     private final JWTTokenValidatorFilter jwtTokenValidatorFilter;
 
+
     public ProdSecurityConfig(JWTTokenGeneratorFilter jwtTokenGeneratorFilter, JWTTokenValidatorFilter jwtTokenValidatorFilter) {
         this.jwtTokenGeneratorFilter = jwtTokenGeneratorFilter;
         this.jwtTokenValidatorFilter = jwtTokenValidatorFilter;
+
     }
 
     @Bean
@@ -74,7 +76,8 @@ public class ProdSecurityConfig {
 
                         // User routes (Authenticated)
                         .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",
-                                "/api/user/delete").authenticated()
+                                "/api/user/delete","/api/user/getOTPEmail","/api/user/verifyOTPEmail",
+                                "/api/user/getOTPPhone").authenticated()
 
                         // Car routes (Only for HOST)
                         .requestMatchers("/api/car/create", "/api/car/update/{carId}",
@@ -96,10 +99,11 @@ public class ProdSecurityConfig {
 
                         // Notification, Payment, Promotion, Review (Authenticated)
                         .requestMatchers("/api/notification/**", "/api/payment/**", "/api/promotion/**",
-                                "/api/review/**").authenticated()
+                                "/api/review/**","/api/payment/create-order","/api/payment/verify").authenticated()
 
                         // All other requests must be authenticated
                         .anyRequest().authenticated()
+
                 );
 //        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 //                .requestMatchers("/api/host/**").hasRole("HOST")

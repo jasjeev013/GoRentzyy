@@ -8,7 +8,7 @@ import { useCarStore } from '../../stores/carStore';
 const page = () => {
 
    const searchParams = useSearchParams();
-    const { cars,fetchAllCars, fetchCarsByCity, fetchCarsByCityAndDate } = useCarStore();
+    const { fetchAllCars, fetchCarsByCity, fetchCarsByCityAndDate } = useCarStore();
 
     const city = searchParams.get('city') || '';
     const startDate = searchParams.get('startDate') || '';

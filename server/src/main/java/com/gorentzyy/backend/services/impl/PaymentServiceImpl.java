@@ -6,17 +6,26 @@ import com.gorentzyy.backend.models.Booking;
 import com.gorentzyy.backend.models.Payment;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.PaymentDto;
+import com.gorentzyy.backend.payloads.PaymentVerificationRequest;
 import com.gorentzyy.backend.repositories.BookingRepository;
 import com.gorentzyy.backend.repositories.PaymentRepository;
 import com.gorentzyy.backend.services.PaymentService;
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
+import org.apache.commons.codec.digest.HmacUtils;
+import org.json.JSONObject;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Service
@@ -27,6 +36,12 @@ public class PaymentServiceImpl implements PaymentService {
     private final BookingRepository bookingRepository;
     private final ModelMapper modelMapper;
 
+    @Value("${razorpay.key.id}")
+    private String razorpayKeyId;
+
+    @Value("${razorpay.key.secret}")
+    private String razorpayKeySecret;
+
     @Autowired
     public PaymentServiceImpl(PaymentRepository paymentRepository, BookingRepository bookingRepository, ModelMapper modelMapper) {
         this.paymentRepository = paymentRepository;
@@ -34,6 +49,95 @@ public class PaymentServiceImpl implements PaymentService {
         this.modelMapper = modelMapper;
     }
 // THe date should be taken on its own
+
+
+    public ResponseEntity<ApiResponseObject> createRazorpayOrder(Double amount, Long bookingId) throws RazorpayException {
+        try {
+            // Validate booking exists
+            Booking booking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+
+            // Create Razorpay order
+            RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+
+            JSONObject orderRequest = new JSONObject();
+            orderRequest.put("amount", amount * 100); // Convert to paise
+            orderRequest.put("currency", "INR");
+            orderRequest.put("receipt", "receipt_" + bookingId);
+            orderRequest.put("payment_capture", 1);
+
+            // Add booking details as notes
+            JSONObject notes = new JSONObject();
+            notes.put("bookingId", bookingId.toString());
+            notes.put("carModel", booking.getCar().getName());
+            orderRequest.put("notes", notes);
+
+            Order order = razorpay.orders.create(orderRequest);
+
+            // Create payment record in PENDING state
+            Payment payment = new Payment();
+            payment.setAmount(amount);
+            payment.setPaymentStatus(AppConstants.PaymentStatus.PENDING);
+            payment.setBooking(booking);
+            payment.setRazorpayOrderId(order.get("id"));
+            payment.setCreatedAt(LocalDateTime.now());
+
+            Payment savedPayment = paymentRepository.save(payment);
+
+            // Return order details to frontend
+            JSONObject response = new JSONObject();
+            response.put("orderId", Optional.ofNullable(order.get("id")));
+            response.put("amount", Optional.ofNullable(order.get("amount")));
+            response.put("currency", Optional.ofNullable(order.get("currency")));
+            response.put("key", razorpayKeyId);
+
+            return new ResponseEntity<>(new ApiResponseObject(
+                    "Razorpay order created", true, response.toMap()),
+                    HttpStatus.CREATED);
+
+        } catch (RazorpayException e) {
+            logger.error("Razorpay error: {}", e.getMessage());
+            throw new PaymentProcessingException("Failed to create Razorpay order");
+        }
+    }
+
+
+    public ResponseEntity<ApiResponseObject> verifyPayment(PaymentVerificationRequest request) {
+        try {
+            // Verify signature
+            String generatedSignature = HmacUtils.hmacSha256Hex(
+                    razorpayKeySecret,
+                    request.getRazorpayOrderId() + "|" + request.getRazorpayPaymentId()
+            );
+
+            if (!generatedSignature.equals(request.getRazorpaySignature())) {
+                throw new PaymentVerificationException("Invalid signature");
+            }
+
+            // Update payment status
+            Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
+                    .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+
+            payment.setPaymentStatus(AppConstants.PaymentStatus.SUCCESSFUL);
+            payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
+            payment.setUpdatedAt(LocalDateTime.now());
+
+            // Update booking status
+            Booking booking = payment.getBooking();
+            booking.setStatus(AppConstants.Status.CONFIRMED);
+
+            paymentRepository.save(payment);
+            bookingRepository.save(booking);
+
+            return new ResponseEntity<>(new ApiResponseObject(
+                    "Payment verified successfully", true, null),
+                    HttpStatus.OK);
+
+        } catch (Exception e) {
+            logger.error("Payment verification failed: {}", e.getMessage());
+            throw new PaymentVerificationException("Payment verification failed");
+        }
+    }
     @Override
     public ResponseEntity<ApiResponseObject> makePayment(PaymentDto paymentDto, Long bookingId) {
         try {

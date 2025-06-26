@@ -1,11 +1,13 @@
 package com.gorentzyy.backend.services.impl;
 
+import com.gorentzyy.backend.constants.AppConstants;
 import com.gorentzyy.backend.constants.EmailConstants;
 import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.models.LoginRequest;
 import com.gorentzyy.backend.models.LoginResponse;
 import com.gorentzyy.backend.models.User;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
+import com.gorentzyy.backend.payloads.NotificationDto;
 import com.gorentzyy.backend.payloads.UserDto;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.*;
@@ -52,10 +54,12 @@ public class UserServiceImpl implements UserService {
     private final JwtUtils jwtUtils;
     private final SMSService smsService;
 
+    private final NotificationService notificationService;
+
 
 
  @Autowired
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, JwtUtils jwtUtils, SMSService smsService) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, JwtUtils jwtUtils, SMSService smsService, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
@@ -65,6 +69,7 @@ public class UserServiceImpl implements UserService {
         this.redisService = redisService;
         this.jwtUtils = jwtUtils;
      this.smsService = smsService;
+     this.notificationService = notificationService;
  }
 
 
@@ -140,7 +145,10 @@ public class UserServiceImpl implements UserService {
                 jwt = jwtUtils.createToken(authentication.getName(),role);
 
                 emailService.sendEmail(authenticationResponse.getName(),EmailConstants.getUserLoginSubject,EmailConstants.getUserLoginBody(authenticationResponse.getName()));
+                notificationService.addServerSideNotification(new NotificationDto("Logged In Successfully","A new login detected", AppConstants.Type.REMINDER,LocalDateTime.now()),authenticationResponse.getName());
+
         }
+
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),jwt,role));
     }
@@ -390,7 +398,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<ApiResponseObject> validateOTPForEmailVerification(String email,String token) {
      if (null!=redisService){
-         String cachedToken = String.valueOf(redisService.get(email,String.class));
+         String cachedToken = String.valueOf(redisService.get(email,String.class).get());
          if (Objects.equals(cachedToken, token)) {
              User existingUser = userRepository.findByEmail(email)
                      .orElseThrow(() -> new UserNotFoundException("User with email: " + email + " not found"));

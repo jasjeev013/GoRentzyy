@@ -217,4 +217,13 @@ export const carService = {
 console.log("Response from updateCar:", response.data);
     return response.data;
   },
+  deleteCar: async (carId: number): Promise<void> => {
+    try {
+      await api.delete(`/api/car/delete/${carId}`);
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to delete car"
+      );
+    }
+  },
 };

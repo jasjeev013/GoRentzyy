@@ -19,13 +19,13 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
+    private String title;
     private String message;
 
     @Enumerated(EnumType.STRING)
     private AppConstants.Type type;
 
-    private boolean isRead;
+
     private LocalDateTime sentAt;
 
 

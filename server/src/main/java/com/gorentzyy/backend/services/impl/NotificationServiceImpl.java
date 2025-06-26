@@ -5,6 +5,7 @@ import com.gorentzyy.backend.exceptions.NotificationNotFoundException;
 import com.gorentzyy.backend.exceptions.UserNotFoundException;
 import com.gorentzyy.backend.models.Notification;
 import com.gorentzyy.backend.models.User;
+import com.gorentzyy.backend.payloads.ApiResponseData;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.NotificationDto;
 import com.gorentzyy.backend.repositories.NotificationRepository;
@@ -17,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -30,6 +33,30 @@ public class NotificationServiceImpl implements NotificationService {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.notificationRepository = notificationRepository;
+    }
+
+
+    @Override
+    public void addServerSideNotification(NotificationDto notificationDto, String email) {
+        User newUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User with ID " + email + " not found"));
+
+        // Map DTO to entity
+        Notification newNotification = modelMapper.map(notificationDto, Notification.class);
+        newNotification.setUser(newUser);
+        newUser.getNotifications().add(newNotification); // Add notification to user's list
+
+        LocalDateTime time = LocalDateTime.now();
+        newNotification.setSentAt(time);
+
+        try {
+            // Save notification directly without saving user separately if no changes to the user
+            Notification savedNotification = notificationRepository.save(newNotification);
+
+//            return true; // Use CREATED (201) instead of OK (200) for resource creation
+        } catch (Exception e) {
+            throw new DatabaseException("Error occurred while adding notification.");
+        }
     }
 
     @Override
@@ -65,7 +92,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .orElseThrow(() -> new NotificationNotFoundException("Notification with ID " + notificationId + " not found"));
 
         // Update notification fields
-        existingNotification.setRead(notificationDto.isRead());
+//        existingNotification.setRead(notificationDto.isRead());
         existingNotification.setMessage(notificationDto.getMessage());
 
         try {
@@ -105,6 +132,17 @@ public class NotificationServiceImpl implements NotificationService {
         } catch (Exception e) {
             throw new DatabaseException("Error occurred while deleting notification.");
         }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseData> getAllNotificationForAUser(String email) {
+        List<Notification> getAllNotifications = notificationRepository.getByUserEmail(email);
+        List<NotificationDto> notificationDtoList = getAllNotifications.stream()
+                .map(notification -> modelMapper.map(notification, NotificationDto.class))
+                .toList();
+        return ResponseEntity.ok(new ApiResponseData(
+                "All cars found", true, Collections.singletonList(notificationDtoList)
+        ));
     }
 
 

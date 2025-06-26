@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import React, { useEffect } from 'react'
 import { useAuth } from '../../../hooks/useAuth';
+import { Avatar, AvatarFallback, AvatarImage } from '../../../components/ui/avatar';
 
 const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
     const { isAuthenticated, role, userData } = useAuth();
@@ -23,13 +24,23 @@ const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
                     height={50}
                     className="hidden dark:block h-10"
                 />
-                <div className="space-x-16 px-10">
+                <div className="flex items-center space-x-16 px-10">
                     <a href="/home" className=" hover:text-gray-400">Home</a>
                     <a href="/rent" className=" hover:text-gray-400">Rent a Car</a>
                     <a href="/fleet" className=" hover:text-gray-400">Fleet</a>
                     {!isAuthenticated && <a href="/login" className=" hover:text-gray-400" >Login</a>}
-                    {isAuthenticated && <a href={`/dashboard/${role === 'ROLE_RENTER' ? 'renter' : 'host'}/${userData?.userId}`}
-                        className=" hover:text-gray-400" >Dashboard</a>}
+                    {isAuthenticated && (
+                        <a
+                            href={`/dashboard/${role === 'ROLE_RENTER' ? 'renter' : 'host'}/${userData?.userId}`}
+                            className="inline-flex items-center hover:text-gray-400"
+                        >
+                            <Avatar className="h-10 w-10 py-">
+                                <AvatarImage src={userData?.profilePicture} />
+                                <AvatarFallback>P</AvatarFallback>
+                            </Avatar>
+                        </a>
+                    )}
+
                 </div>
             </div>
         </>

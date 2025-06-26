@@ -36,6 +36,8 @@ public class SecurityConfig {
     private final JWTTokenGeneratorFilter jwtTokenGeneratorFilter;
     private final JWTTokenValidatorFilter jwtTokenValidatorFilter;
 
+
+
     public SecurityConfig(JWTTokenGeneratorFilter jwtTokenGeneratorFilter, JWTTokenValidatorFilter jwtTokenValidatorFilter) {
         this.jwtTokenGeneratorFilter = jwtTokenGeneratorFilter;
         this.jwtTokenValidatorFilter = jwtTokenValidatorFilter;
@@ -44,7 +46,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("https://your-production-domain.com"));
+        config.setAllowedOrigins(List.of("http://localhost:3000"));
 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));

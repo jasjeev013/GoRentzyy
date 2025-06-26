@@ -9,16 +9,18 @@ import { Badge } from '../../../components/ui/badge';
 import { Textarea } from '../../../components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
 import { useAuthStore } from '../../../stores/authStore';
+import { authService } from '../../api/auth/services';
+import OTPVerificationModal from './OTPVerificationModal';
 
 
 const RenterProfileEdit = () => {
-  const { userData,updateUserData } = useAuthStore();
+  const { userData, updateUserData, token } = useAuthStore();
 
   const [user, setuser] = useState({
     fullName: userData?.fullName,
     address: userData?.address,
-    phoneNumber:  userData?.phoneNumber,
-    email:  userData?.email,
+    phoneNumber: userData?.phoneNumber,
+    email: userData?.email,
     phoneVerified: userData?.phoneNumberVerified,
     emailVerified: userData?.emailVerified,
     profileImage: userData?.profilePicture || '/default-profile.png',
@@ -29,10 +31,10 @@ const RenterProfileEdit = () => {
 
   const [originalData] = useState({ ...user });
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  // const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [phoneOTP, setPhoneOTP] = useState('');
-  const [emailOTP, setEmailOTP] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [showEmailOTPModal, setShowEmailOTPModal] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -56,10 +58,16 @@ const RenterProfileEdit = () => {
     console.log('OTP sent to phone');
   };
 
-  const handleVerifyEmail = () => {
-    setIsEditingEmail(true);
-    // In a real app, you would call an API to send OTP here
-    console.log('OTP sent to email');
+  const handleVerifyEmail = async () => {
+    if (!token) return;
+
+    try {
+      await authService.requestEmailOTP(token);
+      setShowEmailOTPModal(true);
+    } catch (error) {
+      console.error('Failed to send OTP:', error);
+      // Handle error (show toast or message)
+    }
   };
 
   const confirmPhoneVerification = () => {
@@ -69,14 +77,29 @@ const RenterProfileEdit = () => {
     setPhoneOTP('');
   };
 
-  const confirmEmailVerification = () => {
-    // In a real app, you would verify OTP with backend
-    setuser(prev => ({ ...prev, emailVerified: true }));
-    setIsEditingEmail(false);
-    setEmailOTP('');
-  };
+  const handleVerifyOTP = async (otp: string) => {
+    if (!token) return;
 
-  const handleSave =async () => {
+    try {
+      const response = await authService.verifyEmailOTP(token, otp);
+      if (response.status === 'success') {
+        setuser(prev => ({ ...prev, emailVerified: true }));
+        setUserData({
+          ...userData,
+          emailVerified: true,
+        });
+        setShowEmailOTPModal(false);
+      }
+    } catch (error) {
+      console.error('Failed to verify OTP:', error);
+      throw error; // This will be caught in the modal
+    }
+  };
+  const handleResendOTP = async () => {
+    if (!token) return;
+    return authService.requestEmailOTP(token);
+  };
+  const handleSave = async () => {
     // In a real app, you would save to backend here
     await updateUserData(user, file);
     console.log('Saved:', user);
@@ -86,7 +109,7 @@ const RenterProfileEdit = () => {
     setuser({ ...originalData });
     setFile(null);
     setIsEditingPhone(false);
-    setIsEditingEmail(false);
+
   };
 
   return (
@@ -106,7 +129,7 @@ const RenterProfileEdit = () => {
                     {user.fullName.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                <label 
+                <label
                   htmlFor="profile-upload"
                   className="absolute -bottom-3 left-1/2 -translate-x-1/2 cursor-pointer"
                 >
@@ -122,8 +145,8 @@ const RenterProfileEdit = () => {
                   />
                 </label>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="border-gray-600"
                 onClick={() => document.getElementById('profile-upload')?.click()}
               >
@@ -157,7 +180,7 @@ const RenterProfileEdit = () => {
                 />
               </div>
 
-             
+
 
               {/* phoneNumber with Verification */}
               <div className="space-y-2">
@@ -183,8 +206,8 @@ const RenterProfileEdit = () => {
                         onChange={(e) => setPhoneOTP(e.target.value)}
                         className="bg-gray-700 border-gray-600 w-24"
                       />
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         onClick={confirmPhoneVerification}
                         disabled={!phoneOTP}
                       >
@@ -192,8 +215,8 @@ const RenterProfileEdit = () => {
                       </Button>
                     </div>
                   ) : (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="border-gray-600"
                       onClick={handleVerifyPhone}
                     >
@@ -221,27 +244,12 @@ const RenterProfileEdit = () => {
                       <Check className="h-4 w-4" />
                       Verified
                     </Badge>
-                  ) : isEditingEmail ? (
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Enter OTP"
-                        value={emailOTP}
-                        onChange={(e) => setEmailOTP(e.target.value)}
-                        className="bg-gray-700 border-gray-600 w-24"
-                      />
-                      <Button 
-                        size="sm" 
-                        onClick={confirmEmailVerification}
-                        disabled={!emailOTP}
-                      >
-                        Confirm
-                      </Button>
-                    </div>
                   ) : (
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="border-gray-600"
                       onClick={handleVerifyEmail}
+                      disabled={!user.email}
                     >
                       <Mail className="h-4 w-4 mr-2" />
                       Verify
@@ -249,11 +257,19 @@ const RenterProfileEdit = () => {
                   )}
                 </div>
               </div>
-
+              {/* Add the OTP Modal */}
+              {showEmailOTPModal && (
+                <OTPVerificationModal
+                  email={user.email}
+                  onVerify={handleVerifyOTP}
+                  onResend={handleResendOTP}
+                  onClose={() => setShowEmailOTPModal(false)}
+                />
+              )}
               {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-6">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="border-gray-600"
                   onClick={handleCancel}
                 >

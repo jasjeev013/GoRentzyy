@@ -22,10 +22,10 @@ const MainSection = () => {
         transmission: [] as string[],
         luggage: [] as string[],
         minPrice: 0,
-        maxPrice: 10000,
-        minYear: 2000,
-        maxYear: 2023,
-        seatingCapacity: 5,
+        maxPrice: 1000000,
+        minYear: 1995,
+        maxYear: 2025,
+        seatingCapacity: 2,
     });
 
     // Filter and sort cars

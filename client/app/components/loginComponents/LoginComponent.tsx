@@ -9,14 +9,16 @@ import { redirect, useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth';
 
 
+
 const LoginComponent = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
+
 
   useEffect(() => {
     setIsClient(true);
@@ -42,10 +44,16 @@ const LoginComponent = () => {
     }
   };
 
-  const socialLogin = (provider: string) => {
-    // Implement your social login logic here
-    console.log(`Logging in with ${provider}`);
-  };
+  const handleGoogleLogin = async (provider: string) => {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const redirectUri = encodeURIComponent(
+    `${window.location.origin}/api/auth/callback/google`
+  );
+  const scope = encodeURIComponent('email profile');
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${redirectUri}&prompt=consent&client_id=${clientId}&response_type=code&scope=${scope}&access_type=offline`;
+  
+  window.location.href = authUrl;
+};
 
   // Particle component that only renders on client
   const Particle = ({ index }: { index: number }) => {
@@ -284,7 +292,7 @@ const LoginComponent = () => {
             <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-3 py-3 rounded-lg border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              onClick={() => socialLogin('google')}
+              onClick={() => handleGoogleLogin('google')}
               disabled={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
@@ -307,7 +315,7 @@ const LoginComponent = () => {
             <Button
               variant="outline"
               className="w-full flex items-center justify-center gap-3 py-3 rounded-lg border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              onClick={() => socialLogin('github')}
+              onClick={() => handleGoogleLogin('github')}
               disabled={isLoading}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">

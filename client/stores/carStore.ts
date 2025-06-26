@@ -89,6 +89,7 @@ interface CarState {
   ) => Promise<Car>;
   clearAvailableCars: () => void;
   clearCurrentCar: () => void; // Add this
+  deleteCar: (carId: number) => Promise<void>;
 }
 
 export const useCarStore = create<CarState>((set) => ({
@@ -196,4 +197,20 @@ export const useCarStore = create<CarState>((set) => ({
   },
   clearCurrentCar: () => set({ currentCar: null }),
   clearAvailableCars: () => set({ availableCars: [] }),
+  deleteCar: async (carId: number) => {
+    set({ loading: true, error: null });
+    try {
+      await carService.deleteCar(carId);
+      set((state) => ({
+        cars: state.cars.filter(car => car.carId !== carId),
+        availableCars: state.availableCars.filter(car => car.carId !== carId),
+        hostCars: state.hostCars.filter(car => car.carId !== carId),
+        currentCar: state.currentCar?.carId === carId ? null : state.currentCar,
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
 }));

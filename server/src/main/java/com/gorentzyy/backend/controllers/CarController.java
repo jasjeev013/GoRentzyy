@@ -66,8 +66,7 @@ public ResponseEntity<ApiResponseObject> addNewCar(
         return carService.removeCar(carId);
     }
 
-    @GetMapping("/getAllSpecific")
-    public ResponseEntity<ApiResponseData> getAllCarsOfSpecificHost(Authentication authentication){
+    @GetMapping("/getAllSpecific") public ResponseEntity<ApiResponseData> getAllCarsOfSpecificHost(Authentication authentication){
         String email = authentication.getName();
         return carService.getAllCarsForSpecificHost(email);
     }

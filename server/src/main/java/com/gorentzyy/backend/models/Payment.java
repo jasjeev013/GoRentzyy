@@ -33,6 +33,14 @@ public class Payment {
     @Enumerated(EnumType.STRING)
     private AppConstants.RefundStatus refundStatus;
 
+    private String razorpayOrderId;
+
+    private String razorpayPaymentId;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
 
 }
 

@@ -50,10 +50,10 @@ public class BookingDto implements Serializable {
 
     private CarDto car;
     private UserDto renter;
-
+    private PaymentDto payment;
 
 /*
-  private Payment payment;
+
 
     private List<Review> reviews;
 

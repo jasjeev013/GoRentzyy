@@ -61,6 +61,9 @@ export interface CarProps {
     luggageCapacity: number;
     seatingCapacity: number;
     gridView: boolean; // Added gridView prop
+    host:any
+    reviews:any[]
+    location:any
 }
 export interface Car {
 

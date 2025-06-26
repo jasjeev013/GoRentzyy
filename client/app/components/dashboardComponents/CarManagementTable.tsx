@@ -57,13 +57,12 @@ const transmissionModes = [
 
 
 const CarManagementTable = () => {
-    const { hostCars, fetchAllCarsOfHost, addNewCar, updateCar } = useCarStore();
+    const { hostCars, fetchAllCarsOfHost, addNewCar, updateCar, deleteCar } = useCarStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         fetchAllCarsOfHost();
         setCars(hostCars);
-        console.log(hostCars);
     }, [fetchAllCarsOfHost]);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -190,10 +189,22 @@ const CarManagementTable = () => {
         }
     };
 
-    const handleDeleteCar = (id: number) => {
-        setCars(cars.filter(car => car.carId !== id));
-        setIsAddCarModalOpen(false);
-        setEditingCar(null);
+    const handleDeleteCar = async (id: number) => {
+        try {
+            // Call the store's delete method
+            await deleteCar(id);
+
+            // Update local state if needed
+            setCars(cars.filter(car => car.carId !== id));
+
+            // Close modals
+            setIsAddCarModalOpen(false);
+            setEditingCar(null);
+
+            
+        } catch (error) {
+            console.error("Failed to delete car:", error);
+        }
     };
 
     const getStatusBadgeColor = (status: string) => {
@@ -327,17 +338,16 @@ const CarManagementTable = () => {
                     <table className="min-w-full divide-y divide-gray-700">
                         <thead className="bg-gray-700">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">S.No</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Reg No</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Category</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Fuel</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Transmission</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Bookings</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Rating</th>
+                                <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">S.No</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Reg No</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Category</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Fuel</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Transmission</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Rating</th>
                             </tr>
                         </thead>
                         <tbody className="bg-gray-800 divide-y divide-gray-700">
@@ -358,22 +368,22 @@ const CarManagementTable = () => {
                                     }}
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{index + 1}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{car.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.registrationNumber}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.carCategory}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.carType}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.fuelType}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{car.transmissionMode}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">10</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-white">{car.name}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{car.registrationNumber}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{car.carCategory}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{car.carType}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{car.fuelType}</td>
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">{car.transmissionMode}</td>
+
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                                         {car.location?.city || 'N/A'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-4 py-4 whitespace-nowrap">
                                         <Badge className={getStatusBadgeColor(car.availabilityStatus)}>
                                             {car.availabilityStatus}
                                         </Badge>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 flex items-center">
+                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300 flex items-center">
                                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
                                         {calculateAverageRating(car.reviews)}/5
                                     </td>

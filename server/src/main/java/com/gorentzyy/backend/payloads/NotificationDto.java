@@ -1,6 +1,5 @@
 package com.gorentzyy.backend.payloads;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.gorentzyy.backend.constants.AppConstants;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,19 +24,29 @@ public class NotificationDto implements Serializable {
 
     private Long notificationId;
 
+    @NotBlank(message = "Notification title cannot be empty")
+    private String title;
+
     @NotBlank(message = "Notification message cannot be empty")
     private String message;
 
     @NotNull(message = "Notification type is required")
     private AppConstants.Type type;
 
-    private boolean isRead;
 
-    @JsonIgnore
+
+
     @PastOrPresent(message = "Sent date must be in the past or present")
     private LocalDateTime sentAt;
 
     /*
     private User user;
      */
+
+    public NotificationDto(String title, String message, AppConstants.Type type, LocalDateTime sentAt) {
+        this.title = title;
+        this.message = message;
+        this.type = type;
+        this.sentAt = sentAt;
+    }
 }

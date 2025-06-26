@@ -41,6 +41,11 @@ public class PaymentDto implements Serializable {
     /*
     private Booking booking;
     */
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 
 

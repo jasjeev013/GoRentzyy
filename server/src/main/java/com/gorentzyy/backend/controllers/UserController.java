@@ -4,6 +4,7 @@ import com.gorentzyy.backend.models.LoginRequest;
 import com.gorentzyy.backend.models.LoginResponse;
 import com.gorentzyy.backend.models.User;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
+import com.gorentzyy.backend.payloads.OTPValidate;
 import com.gorentzyy.backend.payloads.UserDto;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.UserService;
@@ -82,16 +83,18 @@ public class UserController {
     }
 
     @GetMapping("/getOTPEmail")
-    public ResponseEntity<ApiResponseObject> getOtpForEmailVerification(@RequestParam String email){
+    public ResponseEntity<ApiResponseObject> getOtpForEmailVerification(Authentication authentication){
+        String email = authentication.getName();
         return userService.sendOTPForEmailVerification(email);
     }
 
-    @GetMapping("/verifyOTPEmail")
-    public ResponseEntity<ApiResponseObject> verifyOTPForEmailVerification(@RequestParam String email,@RequestParam String token){
-        return userService.validateOTPForEmailVerification(email,token);
+    @PostMapping("/verifyOTPEmail")
+    public ResponseEntity<ApiResponseObject> verifyOTPForEmailVerification(@RequestBody OTPValidate OTP, Authentication authentication){
+        String email = authentication.getName();
+        return userService.validateOTPForEmailVerification(email,OTP.token());
     }
 
-    @GetMapping("/getOTPPhone")
+    @PostMapping("/getOTPPhone")
     public ResponseEntity<ApiResponseObject> getOTPForPHoneNumberVerification(@RequestParam String phoneNumber){
         return userService.sendOTpForPhoneNumberVerification(phoneNumber);
     }

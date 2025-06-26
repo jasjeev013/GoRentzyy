@@ -15,6 +15,7 @@ import CarManagementTable from '../../../components/dashboardComponents/CarManag
 import BookingManagementTable from '../../../components/dashboardComponents/BookingManagementTable'
 import HostProfileEdit from '../../../components/dashboardComponents/HostProfileEdit'
 import HostDashBoard from '../../../components/dashboardComponents/HostDashBoard'
+import HostNotificationTimeline from '../../../components/dashboardComponents/HostNotificationTimeline'
 
 const data = [
   { name: 'Mon', reserved: 12, rental: 8, done: 10 },
@@ -36,6 +37,7 @@ const popularCars = [
 const DashboardPage = () => {
   const { userData,logout } = useAuth();
   const [activeTab, setActiveTab] = useState('home')
+  const [showNotifications, setShowNotifications] = useState(false);
 
 
 
@@ -51,7 +53,10 @@ const DashboardPage = () => {
                 <h1 className="text-2xl md:text-3xl font-bold">Hey {userData?.fullName}</h1>
               </div>
               <div className="flex items-center space-x-4">
-                <Button variant="ghost" size="icon" className="rounded-full">
+                <Button variant="ghost"
+                  size="icon"
+                  className="rounded-full"
+                  onClick={() => setShowNotifications(!showNotifications)}>
                   <BellIcon className="h-5 w-5" />
                 </Button>
                 <Button variant="ghost" size="icon" className="rounded-full" onClick={() => {
@@ -62,6 +67,10 @@ const DashboardPage = () => {
                 </Button>
               </div>
             </nav>
+
+            {showNotifications && (
+              <HostNotificationTimeline onClose={() => setShowNotifications(false)} />
+            )}
 
             {/* Navigation Tabs */}
             <div className="px-4">

@@ -1,5 +1,6 @@
 package com.gorentzyy.backend.controllers;
 
+import com.gorentzyy.backend.payloads.ApiResponseData;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.NotificationDto;
 import com.gorentzyy.backend.services.NotificationService;
@@ -41,5 +42,11 @@ public class NotificationController {
     @DeleteMapping("/delete/{notificationId}")
     public ResponseEntity<ApiResponseObject> deleteNotification(@PathVariable Long notificationId){
         return notificationService.deleteNotification(notificationId);
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<ApiResponseData> getAllForAUser(Authentication authentication){
+        String email = authentication.getName();
+        return notificationService.getAllNotificationForAUser(email);
     }
 }

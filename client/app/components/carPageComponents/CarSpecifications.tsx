@@ -1,12 +1,30 @@
-import React from 'react';
-import { CarSpecificationsProps } from '../../types';
-
-
+interface CarSpecificationsProps {
+  car: {
+    make: string;
+    model: string;
+    year: number;
+    color: string;
+    transmissionMode: string;
+    fuelType: string;
+    seatingCapacity: number;
+    luggageCapacity: number;
+    insurance: string;
+    roadSideAssistance: boolean | null;
+    fuelPolicy: string;
+    features: string;
+    importantPoints: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
 
 const CarSpecifications = ({ car }: CarSpecificationsProps) => {
+  const formattedCreatedAt = new Date(car.createdAt).toLocaleDateString();
+  const formattedUpdatedAt = new Date(car.updatedAt).toLocaleDateString();
+
   return (
-    <div className="bg-[#DDC9C9] dark:bg-[#252A27CC] rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Car Details</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Specifications</h2>
       
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
@@ -43,28 +61,38 @@ const CarSpecifications = ({ car }: CarSpecificationsProps) => {
         </div>
       </div>
       
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Insurance</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300">{car.insurance}</p>
-      </div>
-      
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Roadside Assistance</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300">{car.roadsideAssistance}</p>
-      </div>
-      
-      <div className="mb-6">
-        <h3 className="font-medium mb-2">Fuel Policy</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-300">{car.fuelPolicy}</p>
-      </div>
-      
-      <div>
-        <h3 className="font-medium mb-2">Important Points</h3>
-        <ul className="list-disc pl-5 space-y-1 text-sm text-gray-600 dark:text-gray-300">
-          {/* { && car.importantPoints?.map((point, index) => (
-            <li key={index}>{point}</li>
-          ))} */}
-        </ul>
+      <div className="space-y-4">
+        <div>
+          <h3 className="font-medium mb-2">Insurance</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{car.insurance}</p>
+        </div>
+        
+        <div>
+          <h3 className="font-medium mb-2">Roadside Assistance</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            {car.roadSideAssistance || 'Not available'}
+          </p>
+        </div>
+        
+        <div>
+          <h3 className="font-medium mb-2">Fuel Policy</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{car.fuelPolicy}</p>
+        </div>
+        
+        <div>
+          <h3 className="font-medium mb-2">Features</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{car.features}</p>
+        </div>
+        
+        <div>
+          <h3 className="font-medium mb-2">Important Points</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{car.importantPoints}</p>
+        </div>
+        
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          <p>Listed on: {formattedCreatedAt}</p>
+          <p>Last updated: {formattedUpdatedAt}</p>
+        </div>
       </div>
     </div>
   );

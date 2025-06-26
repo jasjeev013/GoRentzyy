@@ -2,20 +2,31 @@
 import { useState } from 'react';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { Button } from '../../../components/ui/button';
-import RentalPaymentConfirmation from './RentalPaymentConfirmation';
+import { useAuthStore } from '../../../stores/authStore';
 import { useBookingStore } from '../../../stores/bookingStore';
+import { initiateRazorpayPayment } from '../../../utils/razorpay';
+import { redirect, useRouter } from 'next/navigation';
+
+
 
 interface BookingSummaryProps {
   basePrice: number;
   luggageCapacity: string;
-  doBookingCar: (total:number) => void;
+  doBookingCar: (total: number) => any;
 }
 
-const BookingSummary = ({ basePrice, luggageCapacity,doBookingCar }: BookingSummaryProps) => {
+const BookingSummary = ({ basePrice, luggageCapacity, doBookingCar }: BookingSummaryProps) => {
+  const {isAuthenticated} = useAuthStore();
+
 
   const [includeLuggage, setIncludeLuggage] = useState(false);
   const [includeProtection, setIncludeProtection] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [paymentProcessing, setPaymentProcessing] = useState(false);
+
+
+  const { userData } = useAuthStore();
+  const { createBooking, renterBookings } = useBookingStore();
 
   const gst = basePrice * 0.18;
   const deposit = basePrice * 2;
@@ -26,7 +37,46 @@ const BookingSummary = ({ basePrice, luggageCapacity,doBookingCar }: BookingSumm
   const total = subtotal + gst;
 
 
-  
+
+  const handlePayment = async () => {
+    if (!isAuthenticated) {
+      redirect('/login'); // Redirect to login if not authenticated
+    }
+    setPaymentProcessing(true);
+    try {
+      // First create the booking
+      const newbooking = await doBookingCar(total);
+
+      if (!newbooking) {
+        throw new Error('Booking creation failed');
+      }
+
+      console.log(newbooking);
+      // Initiate Razorpay payment
+      await initiateRazorpayPayment(
+        total,
+        newbooking.bookingId,
+        newbooking.car.name,
+        {
+          name: userData?.fullName,
+          email: userData?.email,
+          phone: userData?.phoneNumber
+        },
+        (response) => {
+          console.log('Payment successful', response);
+          // Handle success (you might want to update booking status here)
+        },
+        (error) => {
+          console.error('Payment failed', error);
+          // Handle error (show toast, etc.)
+        }
+      );
+    } catch (error) {
+      console.error('Booking failed', error);
+    } finally {
+      setPaymentProcessing(false);
+    }
+  };
 
   return (
     <div className="bg-[#DDC9C9] dark:bg-[#252A27CC] rounded-lg shadow-md p-6">
@@ -114,13 +164,13 @@ const BookingSummary = ({ basePrice, luggageCapacity,doBookingCar }: BookingSumm
 
       <Button
         className="w-full mt-6 bg-blue-600 hover:bg-blue-700"
-        disabled={!agreeTerms}
-        onClick={() => doBookingCar(total)}
+        disabled={!agreeTerms || paymentProcessing}
+        onClick={handlePayment}
       >
-        Proceed to Payment
+        {paymentProcessing ? 'Processing...' : 'Proceed to Payment'}
       </Button>
 
-      
+
     </div>
   );
 };

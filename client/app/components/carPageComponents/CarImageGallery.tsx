@@ -1,13 +1,10 @@
-'use client';
-import { useState } from 'react';
-
+import { useState } from "react";
 
 interface CarImageGalleryProps {
   photos: string[];
 }
 
 const CarImageGallery = ({ photos }: CarImageGalleryProps) => {
-  console.log(photos);
   const [mainImage, setMainImage] = useState(photos[0]);
 
   return (
@@ -16,25 +13,23 @@ const CarImageGallery = ({ photos }: CarImageGalleryProps) => {
         <img
           src={mainImage}
           alt="Main car image"
-          height={400}
-          width={800} 
-          // fill
-          className="object-cover"
-          // priority
+          className="w-full h-full object-cover"
         />
       </div>
+      
       <div className="grid grid-cols-4 gap-2">
         {photos.map((photo, index) => (
           <button 
             key={index}
             onClick={() => setMainImage(photo)}
-            className={`relative h-20 rounded-md overflow-hidden ${mainImage === photo ? 'ring-2 ring-blue-500' : ''}`}
+            className={`relative aspect-square rounded-md overflow-hidden transition-all ${
+              mainImage === photo ? 'ring-2 ring-blue-500 scale-105' : 'opacity-80 hover:opacity-100'
+            }`}
           >
             <img
               src={photo}
               alt={`Car thumbnail ${index + 1}`}
-              // fill
-              className="object-cover"
+              className="w-full h-full object-cover"
             />
           </button>
         ))}

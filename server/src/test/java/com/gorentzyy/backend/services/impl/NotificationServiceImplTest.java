@@ -54,11 +54,11 @@ public class NotificationServiceImplTest {
         notification.setMessage("Test Notification");
         notification.setUser(user);
         notification.setSentAt(LocalDateTime.now());
-        notification.setRead(false);
+//        notification.setRead(false);
 
         notificationDto = new NotificationDto();
         notificationDto.setMessage("Test Notification");
-        notificationDto.setRead(false);
+//        notificationDto.setRead(false);
     }
 
     @Test

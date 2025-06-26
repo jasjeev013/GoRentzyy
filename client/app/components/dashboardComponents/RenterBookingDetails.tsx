@@ -144,8 +144,8 @@ const hostBookingDetails = () => {
                   <TableCell className="text-gray-300">₹{booking.totalPrice}</TableCell>
                   <TableCell className="text-gray-300">CREDIT_CARD</TableCell>
                   <TableCell>
-                    <Badge className={`${getPaymentStatusColor("SUCCESSFUL")}`}>
-                      SUCCESSFUL
+                    <Badge className={`${getPaymentStatusColor(booking?.payment?.paymentStatus ?? "PENDING")}`}>
+                      {(booking?.payment?.paymentStatus ?? "PENDING")}
                     </Badge>
                   </TableCell>
                   <TableCell>

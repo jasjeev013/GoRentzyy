@@ -40,6 +40,7 @@
     "next": "15.2.2",
     "next-auth": "^4.24.11",
     "postcss": "^8.5.3",
+    "razorpay": "^2.9.6",
     "react": "^19.0.0",
     "react-day-picker": "8.10.1",
     "react-dom": "^19.0.0",

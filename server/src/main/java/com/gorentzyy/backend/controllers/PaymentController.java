@@ -2,7 +2,10 @@ package com.gorentzyy.backend.controllers;
 
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.PaymentDto;
+import com.gorentzyy.backend.payloads.PaymentOrderRequest;
+import com.gorentzyy.backend.payloads.PaymentVerificationRequest;
 import com.gorentzyy.backend.services.PaymentService;
+import com.razorpay.RazorpayException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +23,15 @@ public class PaymentController {
     public PaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
+    @PostMapping("/create-order")
+    public ResponseEntity<ApiResponseObject> createOrder(@RequestBody PaymentOrderRequest request) throws RazorpayException {
+        return paymentService.createRazorpayOrder(request.getAmount(), request.getBookingId());
+    }
 
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponseObject> verifyPayment(@RequestBody PaymentVerificationRequest request) {
+        return paymentService.verifyPayment(request);
+    }
     @PostMapping("/create/{bookingId}")
     public ResponseEntity<ApiResponseObject> makePayment(@Valid @RequestBody PaymentDto paymentDto, @PathVariable Long bookingId){
         return paymentService.makePayment(paymentDto,bookingId);

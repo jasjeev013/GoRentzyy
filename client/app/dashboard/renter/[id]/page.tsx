@@ -36,7 +36,7 @@ const DashboardPage = () => {
             {/* Top Navigation Bar - Modified */}
             <nav className="p-4 flex justify-between items-center">
               <div className="flex items-center space-x-4">
-                <h1 className="text-2xl md:text-3xl font-bold">Hey {userData.fullName}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold">Hey {userData?.fullName}</h1>
               </div>
               <div className="flex items-center space-x-4">
                 <Button
