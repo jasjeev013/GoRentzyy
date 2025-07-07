@@ -122,24 +122,6 @@
 			<artifactId>razorpay-java</artifactId>
 			<version>1.4.3</version>
 		</dependency>
-
-<!--		&lt;!&ndash; JUnit 5 &ndash;&gt;-->
-<!--		<dependency>-->
-<!--			<groupId>org.junit.jupiter</groupId>-->
-<!--			<artifactId>junit-jupiter-api</artifactId>-->
-<!--			<scope>test</scope>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>org.junit.jupiter</groupId>-->
-<!--			<artifactId>junit-jupiter-engine</artifactId>-->
-<!--			<scope>test</scope>-->
-<!--		</dependency>-->
-
-<!--		<dependency>-->
-<!--			<groupId>org.mockito</groupId>-->
-<!--			<artifactId>mockito-core</artifactId>-->
-<!--			<scope>test</scope>-->
-<!--		</dependency>-->
 		<dependency>
 			<groupId>com.cloudinary</groupId>
 			<artifactId>cloudinary-http5</artifactId>
@@ -180,3 +162,20 @@
 	</build>
 
 </project>
+		<!--		&lt;!&ndash; JUnit 5 &ndash;&gt;-->
+		<!--		<dependency>-->
+		<!--			<groupId>org.junit.jupiter</groupId>-->
+		<!--			<artifactId>junit-jupiter-api</artifactId>-->
+		<!--			<scope>test</scope>-->
+		<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--			<groupId>org.junit.jupiter</groupId>-->
+		<!--			<artifactId>junit-jupiter-engine</artifactId>-->
+		<!--			<scope>test</scope>-->
+		<!--		</dependency>-->
+
+		<!--		<dependency>-->
+		<!--			<groupId>org.mockito</groupId>-->
+		<!--			<artifactId>mockito-core</artifactId>-->
+		<!--			<scope>test</scope>-->
+		<!--		</dependency>-->

@@ -18,7 +18,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                 "Authorization Failed";
 
         String path = request.getRequestURI();
-        response.setHeader("eazybank-denied-reason","Authentication failed");
+        response.setHeader("gorentzyy-denied-reason","Authentication failed");
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType("application/json;charset=UTF-8");
 

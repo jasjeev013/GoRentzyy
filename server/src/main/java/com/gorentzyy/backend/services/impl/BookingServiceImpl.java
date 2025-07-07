@@ -9,6 +9,7 @@ import com.gorentzyy.backend.models.User;
 import com.gorentzyy.backend.payloads.ApiResponseData;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
 import com.gorentzyy.backend.payloads.BookingDto;
+import com.gorentzyy.backend.payloads.BookingDtoRenter;
 import com.gorentzyy.backend.repositories.BookingRepository;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
@@ -56,7 +57,7 @@ public class BookingServiceImpl implements BookingService {
         this.redisService = redisService;
     }
 
-    private double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
+    double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
         long days = ChronoUnit.DAYS.between(startDate, endDate);
         double totalPrice;
 
@@ -296,7 +297,7 @@ public class BookingServiceImpl implements BookingService {
         try {
 
             if (redisService != null) {
-                Optional<List<BookingDto>> cachedBooking = redisService.getList(emailId +"renter", BookingDto.class);
+                Optional<List<BookingDtoRenter>> cachedBooking = redisService.getList(emailId +"renter", BookingDtoRenter.class);
                 if (cachedBooking.isPresent()) {
                     logger.debug("Bookings found in cache for email: {}", emailId);
                     return ResponseEntity.ok(
@@ -321,8 +322,8 @@ public class BookingServiceImpl implements BookingService {
             }
 
             // Step 3: Convert the bookings to DTOs
-            List<BookingDto> bookingDtos = bookings.stream()
-                    .map(booking -> modelMapper.map(booking, BookingDto.class))
+            List<BookingDtoRenter> bookingDtos = bookings.stream()
+                    .map(booking -> modelMapper.map(booking, BookingDtoRenter.class))
                     .toList();
 
             if (null!= redisService) {

@@ -10,6 +10,7 @@ import SevenFAQSection from '../components/homeComponents/SevenFAQSection'
 import EightFooterSection from '../components/homeComponents/EightFooterSection'
 
 
+
 const page = () => {
 
   
@@ -25,6 +26,7 @@ const page = () => {
           <FirstSection />
           <SecondInfiniteScrollSection />
           <ThirdSectionCard />
+  
           <FourCarDetailsSection />
           <FifthFindCarSection />
           <SixthReviewSection />

@@ -61,8 +61,9 @@ const CarManagementTable = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        fetchAllCarsOfHost();
         setCars(hostCars);
+        console.log("Host Cars:", hostCars);
+
     }, [fetchAllCarsOfHost]);
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -201,7 +202,7 @@ const CarManagementTable = () => {
             setIsAddCarModalOpen(false);
             setEditingCar(null);
 
-            
+
         } catch (error) {
             console.error("Failed to delete car:", error);
         }

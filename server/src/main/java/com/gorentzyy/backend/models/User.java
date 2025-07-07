@@ -5,8 +5,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -42,15 +44,16 @@ public class User {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "host", cascade = CascadeType.ALL)
-    private List<Car> cars;
+    @ToString.Exclude
+    private List<Car> cars = new ArrayList<>();
 
     @OneToMany(mappedBy = "renter", cascade = CascadeType.ALL)
-    private List<Booking> bookings;
+    private List<Booking> bookings = new ArrayList<>();
 
     @OneToMany(mappedBy = "reviewer", cascade = CascadeType.ALL)
-    private List<Review> reviews;
+    private List<Review> reviews = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Notification> notifications;
+    private List<Notification> notifications = new ArrayList<>();
 
 }

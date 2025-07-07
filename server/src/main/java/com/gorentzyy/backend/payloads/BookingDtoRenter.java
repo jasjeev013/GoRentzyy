@@ -1,8 +1,7 @@
 package com.gorentzyy.backend.payloads;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.gorentzyy.backend.constants.AppConstants.Status;
+import com.gorentzyy.backend.constants.AppConstants;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
@@ -16,13 +15,11 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookingDto implements Serializable {
-
+public class BookingDtoRenter implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -40,7 +37,7 @@ public class BookingDto implements Serializable {
     private double totalPrice;
 
     @NotNull(message = "Booking status is required")
-    private Status status;
+    private AppConstants.Status status;
 
     @JsonIgnore
     private LocalDateTime createdAt;
@@ -48,18 +45,8 @@ public class BookingDto implements Serializable {
     @JsonIgnore
     private LocalDateTime updatedAt;
 
-    private CarDtoHost car;
+    private CarDto car;
     private UserDto renter;
     private PaymentDto payment;
-
-/*
-
-
-    private List<Review> reviews;
-
-    private List<Promotion> promotions;
-
- */
-
 
 }

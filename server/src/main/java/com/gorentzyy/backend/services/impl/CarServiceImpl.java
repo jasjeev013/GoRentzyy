@@ -38,9 +38,7 @@ public class CarServiceImpl implements CarService {
     private final ModelMapper modelMapper;
     private final CloudinaryService cloudinaryService;
     private final LocationRepository locationRepository;
-
     private final RedisService redisService;
-
 
     @Autowired
     public CarServiceImpl(UserRepository userRepository, CarRepository carRepository, ModelMapper modelMapper, CloudinaryService cloudinaryService, LocationRepository locationRepository, RedisService redisService) {
@@ -54,16 +52,8 @@ public class CarServiceImpl implements CarService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    @Retryable(
-            value = {DatabaseException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 2000, multiplier = 2)
-    )
-    public ResponseEntity<ApiResponseObject> addNewCar(
-            CarDto carDto,
-            String email,
-            List<MultipartFile> files,
-            LocationDto locationDto) {
+    @Retryable(value = {DatabaseException.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000, multiplier = 2))
+    public ResponseEntity<ApiResponseObject> addNewCar(CarDto carDto, String email, List<MultipartFile> files, LocationDto locationDto) {
 
         try {
             // Step 1: Check if car already exists
@@ -145,7 +135,8 @@ public class CarServiceImpl implements CarService {
                     "The car was added successfully", true, responseDto
             ), HttpStatus.CREATED);
 
-        } catch (CarAlreadyExistsException | UserNotFoundException | RoleNotAuthorizedException | InvalidCarDataException ex) {
+        } catch (CarAlreadyExistsException | UserNotFoundException | RoleNotAuthorizedException |
+                 InvalidCarDataException ex) {
             logger.error("Error: {}", ex.getMessage());
             throw ex;  // Handled by GlobalExceptionHandler
         } catch (Exception e) {
@@ -156,12 +147,7 @@ public class CarServiceImpl implements CarService {
 
     @Override
     @Transactional
-    public ResponseEntity<ApiResponseObject> updateCar(
-            CarDto carDto,
-            Long carId,
-            List<MultipartFile> files,
-            LocationDto locationDto,
-            String email) {
+    public ResponseEntity<ApiResponseObject> updateCar(CarDto carDto, Long carId, List<MultipartFile> files, LocationDto locationDto, String email) {
 
         try {
             // Step 1: Check if the car exists
@@ -300,7 +286,7 @@ public class CarServiceImpl implements CarService {
             }
             // Return the response with the car data
             return new ResponseEntity<>(new ApiResponseObject(
-                    "The car is found", true,existingCarDto
+                    "The car is found", true, existingCarDto
             ), HttpStatus.OK);
 
         } catch (CarNotFoundException ex) {
@@ -351,12 +337,13 @@ public class CarServiceImpl implements CarService {
             throw new DatabaseException("An error occurred while deleting the car.");
         }
     }
+
     @Override
     public ResponseEntity<ApiResponseData> getAllCarsForSpecificHost(String email) {
         try {
 
             if (redisService != null) {
-                Optional<List<CarDto>> cachedCars = redisService.getList(email +"SpecificHost", CarDto.class);
+                Optional<List<CarDtoHost>> cachedCars = redisService.getList(email + "SpecificHost", CarDtoHost.class);
                 if (cachedCars.isPresent()) {
                     logger.debug("Bookings found in cache for email Id: {}", email);
                     return ResponseEntity.ok(
@@ -374,7 +361,7 @@ public class CarServiceImpl implements CarService {
             }
 
             // Step 3: Fetch cars for the specific host
-            List<Car> cars = carRepository.findCarsByHostEmail(email);
+            List<Car> cars = carRepository.findCarsByHostEmailWithDetails(email);
 
             // If no cars are found, return a 204 No Content response
             if (cars.isEmpty()) {
@@ -383,11 +370,15 @@ public class CarServiceImpl implements CarService {
             }
 
             // Step 4: Map the car entities to CarDto objects
-            List<CarDto> carDtos = cars.stream()
-                    .map(car -> modelMapper.map(car, CarDto.class))
+            List<CarDtoHost> carDtos = cars.stream()
+                    .map(car -> {
+                        // Force unwrap photos
+                        car.setPhotos(new ArrayList<>(car.getPhotos()));
+                        return modelMapper.map(car, CarDtoHost.class);
+                    })
                     .toList();
 
-            if (null!= redisService) {
+            if (null != redisService) {
                 try {
                     // Cache asynchronously to not block the response
                     CompletableFuture.runAsync(() -> {
@@ -431,6 +422,7 @@ public class CarServiceImpl implements CarService {
                 "All cars found", true, Collections.singletonList(carDtos)
         ));
     }
+
     @Override
     public ResponseEntity<ApiResponseData> getAllCarsForSpecificCity(String city) {
         List<Car> cars = carRepository.findCarsByLocation_City(city);
@@ -443,8 +435,8 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseData> getAllCarsForMakeAndModel(String make,String model) {
-        List<Car> cars = carRepository.findCarsByMakeAndModel(make,model);
+    public ResponseEntity<ApiResponseData> getAllCarsForMakeAndModel(String make, String model) {
+        List<Car> cars = carRepository.findCarsByMakeAndModel(make, model);
         List<CarDto> carDtos = cars.stream()
                 .map(car -> modelMapper.map(car, CarDto.class))
                 .toList();
@@ -454,8 +446,8 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public ResponseEntity<ApiResponseData> getAllCarsForSpecificCityWithNotHavingStartDateANdEndDate(String city, LocalDateTime startDate, LocalDateTime endDate) {
-        List<Car> cars = carRepository.findAvailableCarsInCityBetweenDates(city,startDate,endDate);
+    public ResponseEntity<ApiResponseData> getAllCarsForSpecificCityWithNotHavingStartDateANdEndDate(String city,LocalDateTime startDate, LocalDateTime endDate) {
+        List<Car> cars = carRepository.findAvailableCarsInCityBetweenDates(city, startDate, endDate);
         List<CarDto> carDtos = cars.stream()
                 .map(car -> modelMapper.map(car, CarDto.class))
                 .toList();
@@ -470,7 +462,7 @@ public class CarServiceImpl implements CarService {
                 new UserNotFoundException("User with Email ID " + carId + " does not exist.")
         );
         System.out.println(files);
-        for (MultipartFile file:files){
+        for (MultipartFile file : files) {
             Map savedPhoto = cloudinaryService.upload(file);
 
             String photoUrl = (String) savedPhoto.get("url");
@@ -481,7 +473,7 @@ public class CarServiceImpl implements CarService {
             }
         }
         carRepository.save(existingCar);
-        return new ResponseEntity<>(new ApiResponseObject("Uploaded all photos",true,null),HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(new ApiResponseObject("Uploaded all photos", true, null), HttpStatus.ACCEPTED);
     }
 
 }

@@ -154,6 +154,7 @@ export const useCarStore = create<CarState>((set) => ({
     set({ loading: true, error: null });
     try {
       const cars = await carService.fetchAllCarsOfHost();
+
       set({ hostCars: cars, loading: false });
     } catch (error) {
       set({ error: error.message, loading: false });

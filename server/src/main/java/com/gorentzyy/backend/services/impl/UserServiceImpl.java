@@ -21,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -44,21 +43,15 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
-
     private final CloudinaryService cloudinaryService;
     private final EmailService emailService;
-
     private final AuthenticationManager authenticationManager;
     private final RedisService redisService;
-
     private final JwtUtils jwtUtils;
     private final SMSService smsService;
-
     private final NotificationService notificationService;
 
-
-
- @Autowired
+    @Autowired
     public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, JwtUtils jwtUtils, SMSService smsService, NotificationService notificationService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
@@ -68,24 +61,16 @@ public class UserServiceImpl implements UserService {
         this.authenticationManager = authenticationManager;
         this.redisService = redisService;
         this.jwtUtils = jwtUtils;
-     this.smsService = smsService;
-     this.notificationService = notificationService;
- }
-
-
+        this.smsService = smsService;
+        this.notificationService = notificationService;
+    }
 
     @Override
     public ResponseEntity<ApiResponseObject> createNewUser(UserDto userDto) {
-        // Validate user input (check if the user already exists by email)
-//        Set<ConstraintViolation<UserDto>> violations = validator.validate(userDto,UserDto.class);
-//        if (!violations.isEmpty()) {
-//            throw new ConstraintViolationException(violations);
-//        }
         if (userRepository.existsByEmail(userDto.getEmail())) {
             logger.error("User already exists with email: {}", userDto.getEmail());
             throw new UserAlreadyExistsException("A user with this email already exists.");
         }
-
         // Map DTO to Entity
         User newUser = modelMapper.map(userDto, User.class);
         System.out.println(newUser);
@@ -101,24 +86,17 @@ public class UserServiceImpl implements UserService {
             // Hash the password before saving the user
             String hashedPassword = passwordEncoder.encode(newUser.getPassword());
             newUser.setPassword(hashedPassword);
-        } catch (BadCredentialsException e) {
-            logger.error("Failed to hash password for user: {}", userDto.getEmail());
+        } catch (Exception e) {  // Changed from BadCredentialsException to Exception
+            logger.error("Failed to hash password for user: {}", userDto.getEmail(), e);
             throw new PasswordHashingException("Failed to hash password.");
         }
 
         try {
-            // Save the user to the database
             User savedUser = userRepository.save(newUser);
-
-            // Map the saved user back to DTO for response
             UserDto savedUserDto = modelMapper.map(savedUser, UserDto.class);
-
-            // Return a successful response
             ApiResponseObject response = new ApiResponseObject(
                     "User Created Successfully", true, savedUserDto);
-
             emailService.sendEmail(savedUser.getEmail(), EmailConstants.getNewUserCreatedSubject, EmailConstants.getNewUserCreatedBody(savedUserDto.getFullName()));
-
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (DataIntegrityViolationException | DatabaseException | ObjectOptimisticLockingFailureException e) {
             logger.error("Database integrity violation when saving user: {}", userDto.getEmail());
@@ -135,22 +113,17 @@ public class UserServiceImpl implements UserService {
         String role = "";
         Authentication authentication = UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.username(),
                 loginRequest.password());
-
-        Authentication authenticationResponse =  authenticationManager.authenticate(authentication);
-        if (null != authenticationResponse &&  authenticationResponse.isAuthenticated()){
-
-                 role = authenticationResponse.getAuthorities().stream().map(
-                        GrantedAuthority::getAuthority
-                ).collect(Collectors.joining(","));
-                jwt = jwtUtils.createToken(authentication.getName(),role);
-
-                emailService.sendEmail(authenticationResponse.getName(),EmailConstants.getUserLoginSubject,EmailConstants.getUserLoginBody(authenticationResponse.getName()));
-                notificationService.addServerSideNotification(new NotificationDto("Logged In Successfully","A new login detected", AppConstants.Type.REMINDER,LocalDateTime.now()),authenticationResponse.getName());
-
+        Authentication authenticationResponse = authenticationManager.authenticate(authentication);
+        if (null != authenticationResponse && authenticationResponse.isAuthenticated()) {
+            role = authenticationResponse.getAuthorities().stream().map(
+                    GrantedAuthority::getAuthority
+            ).collect(Collectors.joining(","));
+            jwt = jwtUtils.createToken(authentication.getName(), role);
+            emailService.sendEmail(authenticationResponse.getName(), EmailConstants.getUserLoginSubject, EmailConstants.getUserLoginBody(authenticationResponse.getName()));
+            notificationService.addServerSideNotification(new NotificationDto("Logged In Successfully", "A new login detected", AppConstants.Type.REMINDER, LocalDateTime.now()), authenticationResponse.getName());
         }
-
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(),jwt,role));
+                .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(), jwt, role));
     }
 
     @Override
@@ -158,17 +131,13 @@ public class UserServiceImpl implements UserService {
         User existingUser = userRepository.findByEmail(emailId).orElseThrow(() ->
                 new UserNotFoundException("User with Email ID " + emailId + " does not exist.")
         );
-
         Map savedPhoto = cloudinaryService.upload(file);
-
         existingUser.setProfilePicture((String) savedPhoto.get("url"));
         userRepository.save(existingUser);
-
         return new ResponseEntity<>(new ApiResponseObject(
                 "Profile photo added successfully", true, null
         ), HttpStatus.ACCEPTED);
     }
-
 
     @Override
     public ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId, MultipartFile multipartFile) {
@@ -176,8 +145,6 @@ public class UserServiceImpl implements UserService {
         User existingUser = userRepository.findByEmail(emailId).orElseThrow(() ->
                 new UserNotFoundException("User with Email ID " + emailId + " does not exist.")
         );
-
-        // Update the user details
         LocalDateTime now = LocalDateTime.now();
         existingUser.setCreatedAt(now);
         existingUser.setUpdatedAt(now);
@@ -186,9 +153,8 @@ public class UserServiceImpl implements UserService {
         existingUser.setAddress(userDto.getAddress());
 
         try {
-            // Handle profile photo upload if file is present
+
             if (multipartFile != null && !multipartFile.isEmpty()) {
-                // Validate file type and size
                 if (!multipartFile.getContentType().startsWith("image/")) {
                     throw new InvalidFileTypeException("Only image files are allowed");
                 }
@@ -196,7 +162,6 @@ public class UserServiceImpl implements UserService {
                     throw new FileSizeExceededException("File size exceeds maximum limit of 5MB");
                 }
 
-                // Upload to Cloudinary
                 Map uploadResult = cloudinaryService.upload(multipartFile);
                 String photoUrl = (String) uploadResult.get("url");
 
@@ -236,6 +201,7 @@ public class UserServiceImpl implements UserService {
             throw new DatabaseException("An unexpected error occurred while updating the user.");
         }
     }
+
     // Redis Enabled
     @Override
     public ResponseEntity<ApiResponseObject> getUserById(Long userId) {
@@ -292,6 +258,7 @@ public class UserServiceImpl implements UserService {
             throw new DatabaseException("An error occurred while retrieving the user.");
         }
     }
+
     @Override
     public ResponseEntity<ApiResponseObject> deleteUserByEmail(String email) {
 
@@ -331,6 +298,7 @@ public class UserServiceImpl implements UserService {
             throw new DatabaseException("An error occurred while deleting the user.");
         }
     }
+
     // Redis Enabled
     @Override
     public ResponseEntity<ApiResponseObject> getUserByEmail(String email) {
@@ -389,35 +357,34 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<ApiResponseObject> sendOTPForEmailVerification(String email) {
         String token = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 999999));
         // Put in redis for this email
-        redisService.set(email,token,Duration.ofMinutes(2));
+        redisService.set(email, token, Duration.ofMinutes(2));
 
-        emailService.sendEmail(email,"Here's your OTP for GORentzyy","OTP: "+token);
-        return new ResponseEntity<>(new ApiResponseObject("OTP Sent successfully",true,null),HttpStatus.OK);
+        emailService.sendEmail(email, "Here's your OTP for GORentzyy", "OTP: " + token);
+        return new ResponseEntity<>(new ApiResponseObject("OTP Sent successfully", true, null), HttpStatus.OK);
     }
 
     @Override
-    public ResponseEntity<ApiResponseObject> validateOTPForEmailVerification(String email,String token) {
-     if (null!=redisService){
-         String cachedToken = String.valueOf(redisService.get(email,String.class).get());
-         if (Objects.equals(cachedToken, token)) {
-             User existingUser = userRepository.findByEmail(email)
-                     .orElseThrow(() -> new UserNotFoundException("User with email: " + email + " not found"));
+    public ResponseEntity<ApiResponseObject> validateOTPForEmailVerification(String email, String token) {
+        if (null != redisService) {
+            String cachedToken = String.valueOf(redisService.get(email, String.class).get());
+            if (Objects.equals(cachedToken, token)) {
+                User existingUser = userRepository.findByEmail(email)
+                        .orElseThrow(() -> new UserNotFoundException("User with email: " + email + " not found"));
 
-             existingUser.setEmailVerified(true);
-             userRepository.save(existingUser);
-             emailService.sendEmail(email,"Verified Email Successfully","Email is validated Successfully");
+                existingUser.setEmailVerified(true);
+                userRepository.save(existingUser);
+                emailService.sendEmail(email, "Verified Email Successfully", "Email is validated Successfully");
 
-             return new ResponseEntity<>(new ApiResponseObject("Email Verified Successfully", true, null), HttpStatus.OK);
-         }
-         else return new ResponseEntity<>(new ApiResponseObject("OTP Expired",false,null),HttpStatus.NOT_FOUND);
-     }
-     return new ResponseEntity<>(new ApiResponseObject("Internal Server Error",false,null),HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<>(new ApiResponseObject("Email Verified Successfully", true, null), HttpStatus.OK);
+            } else return new ResponseEntity<>(new ApiResponseObject("OTP Expired", false, null), HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(new ApiResponseObject("Internal Server Error", false, null), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> sendOTpForPhoneNumberVerification(String phoneNumber) {
-     smsService.sendSMS(phoneNumber,"Hello from GoRentzyy");
-        return new ResponseEntity<>(new ApiResponseObject("Message Sent",true,null),HttpStatus.OK);
+        smsService.sendSMS(phoneNumber, "Hello from GoRentzyy");
+        return new ResponseEntity<>(new ApiResponseObject("Message Sent", true, null), HttpStatus.OK);
     }
 
     @Override

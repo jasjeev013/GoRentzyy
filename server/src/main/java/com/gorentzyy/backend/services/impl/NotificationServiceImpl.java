@@ -44,7 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
         // Map DTO to entity
         Notification newNotification = modelMapper.map(notificationDto, Notification.class);
         newNotification.setUser(newUser);
-        newUser.getNotifications().add(newNotification); // Add notification to user's list
+//        newUser.getNotifications().add(newNotification); // Add notification to user's list
 
         LocalDateTime time = LocalDateTime.now();
         newNotification.setSentAt(time);

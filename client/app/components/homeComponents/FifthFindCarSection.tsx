@@ -39,7 +39,7 @@ const FifthFindCarSection = () => {
 
     return (
         <>
-            <div className=" mt-20">
+            <div className=" mt-10">
 
                 <h1 className="text-6xl font-bold text-center mt-12">
                     Discover Wherever You Want

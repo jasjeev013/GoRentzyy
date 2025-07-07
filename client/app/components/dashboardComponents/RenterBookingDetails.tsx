@@ -16,37 +16,29 @@ const paymentStatuses = ["SUCCESSFUL", "FAILED", "PENDING"];
 
 const hostBookingDetails = () => {
 
-  const { renterBookings,fetchRenterBookings } = useBookingStore();
+  const { renterBookings, fetchRenterBookings } = useBookingStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        await fetchRenterBookings()
-        setBookings(renterBookings);
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
-      }
-    };
-
-    fetchBookings();
+    setBookings(renterBookings);
     console.log("Bookings:", renterBookings);
-  }, [fetchRenterBookings]);
+
+  }, []);
 
   const [bookings, setBookings] = useState([]);
 
   const filteredBookings = bookings
-  .filter(booking => {
-    const matchesSearch =
-      booking?.car.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking?.car.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking?.car.host.fullName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPaymentMethod = paymentMethodFilter ? booking.paymentMethod === paymentMethodFilter : true;
-    const matchesPaymentStatus = paymentStatusFilter ? booking.paymentStatus === paymentStatusFilter : true;
-    return matchesSearch && matchesPaymentMethod && matchesPaymentStatus;
-  });
+    .filter(booking => {
+      const matchesSearch =
+        booking?.car.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking?.car.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking?.car.host.fullName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesPaymentMethod = paymentMethodFilter ? booking.paymentMethod === paymentMethodFilter : true;
+      const matchesPaymentStatus = paymentStatusFilter ? booking.paymentStatus === paymentStatusFilter : true;
+      return matchesSearch && matchesPaymentMethod && matchesPaymentStatus;
+    });
 
   const formatDateTime = (dateTimeString: string) => {
     const date = new Date(dateTimeString);

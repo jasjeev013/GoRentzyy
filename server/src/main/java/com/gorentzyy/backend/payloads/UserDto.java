@@ -19,9 +19,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDto implements Serializable {
-
-
-
     @Serial
     private static final long serialVersionUID = 1L;
 

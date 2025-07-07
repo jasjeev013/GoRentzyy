@@ -40,6 +40,7 @@ public class ReviewServiceImpl implements ReviewService {
         this.modelMapper = modelMapper;
         this.reviewRepository = reviewRepository;
     }
+
     @Override
     @Transactional
     public ResponseEntity<ApiResponseObject> createReview(ReviewDto reviewDto, String emailId, Long carId) {
@@ -56,8 +57,8 @@ public class ReviewServiceImpl implements ReviewService {
         review.setCar(car);
 
         // Add the review to renter and booking
-        renter.getReviews().add(review);
-        car.getReviews().add(review);
+//        renter.getReviews().add(review);
+//        car.getReviews().add(review);
 
         // Save the review
         Review savedReview = reviewRepository.save(review);
@@ -69,14 +70,14 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
 
-
     @Override
     @Transactional
-    public ResponseEntity<ApiResponseObject> updateReview(ReviewDto reviewDto, Long reviewId,String email) {
+    public ResponseEntity<ApiResponseObject> updateReview(ReviewDto reviewDto, Long reviewId, String email) {
         Review existingReview = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new ReviewNotFoundException("Review with ID " + reviewId + " not found"));
 
-        if (!Objects.equals(existingReview.getCar().getHost().getEmail(), email)) throw new RuntimeException("Owner of this car can only update review");
+        if (!Objects.equals(existingReview.getCar().getHost().getEmail(), email))
+            throw new RuntimeException("Owner of this car can only update review");
         existingReview.setComments(reviewDto.getComments());
         existingReview.setRating(reviewDto.getRating());
 
@@ -110,17 +111,16 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 
-// No Content thing
-@Override
-public ResponseEntity<ApiResponseObject> deleteReview(Long reviewId) {
-    Review existingReview = reviewRepository.findById(reviewId)
-            .orElseThrow(() -> new ReviewNotFoundException("Review with ID " + reviewId + " not found"));
+    // No Content thing
+    @Override
+    public ResponseEntity<ApiResponseObject> deleteReview(Long reviewId) {
+        Review existingReview = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ReviewNotFoundException("Review with ID " + reviewId + " not found"));
 
-    reviewRepository.delete(existingReview);
+        reviewRepository.delete(existingReview);
 
-    return new ResponseEntity<>(new ApiResponseObject("Review deleted successfully", true, null), HttpStatus.NO_CONTENT);
-}
-
+        return new ResponseEntity<>(new ApiResponseObject("Review deleted successfully", true, null), HttpStatus.NO_CONTENT);
+    }
 
 
 }

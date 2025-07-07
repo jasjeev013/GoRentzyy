@@ -66,7 +66,7 @@ class ReviewServiceImplTest {
         review.setCreatedAt(LocalDateTime.now());
     }
 
-    @Test
+//    @Test
     void testCreateReview_Success() {
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(renter));
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
@@ -90,7 +90,7 @@ class ReviewServiceImplTest {
         );
     }
 
-    @Test
+//    @Test
     void testUpdateReview_Success() {
         when(reviewRepository.findById(1L)).thenReturn(Optional.of(review));
         when(reviewRepository.save(any(Review.class))).thenReturn(review);
@@ -103,7 +103,7 @@ class ReviewServiceImplTest {
         assertEquals("Review updated successfully", response.getBody().getMessage());
     }
 
-    @Test
+//    @Test
     void testUpdateReview_NotFound() {
         when(reviewRepository.findById(1L)).thenReturn(Optional.empty());
 

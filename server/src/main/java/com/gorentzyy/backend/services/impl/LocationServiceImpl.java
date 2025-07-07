@@ -120,6 +120,4 @@ public class LocationServiceImpl implements LocationService {
             throw new DatabaseException("Error while deleting the location.");
         }
     }
-
-
 }

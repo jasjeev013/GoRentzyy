@@ -33,9 +33,6 @@ public class NotificationDto implements Serializable {
     @NotNull(message = "Notification type is required")
     private AppConstants.Type type;
 
-
-
-
     @PastOrPresent(message = "Sent date must be in the past or present")
     private LocalDateTime sentAt;
 

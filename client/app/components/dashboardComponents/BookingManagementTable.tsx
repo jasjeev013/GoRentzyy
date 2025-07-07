@@ -24,8 +24,9 @@ const BookingManagementTable = () => {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
 
   useEffect(() => {
-    fetchHostBookings();
     setBookings(hostBookings);
+      console.log("Host Bookings:", hostBookings);
+
   }, [fetchHostBookings]);
 
   const [bookings, setBookings] = useState([]);

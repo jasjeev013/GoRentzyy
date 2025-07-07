@@ -4,6 +4,7 @@ import com.gorentzyy.backend.constants.AppConstants;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ public class Car {
 
     @ManyToOne
     @JoinColumn(name = "host_id")
+    @ToString.Exclude
     private User host;
 
     private String name;
@@ -32,7 +34,7 @@ public class Car {
     @Column(unique = true, nullable = false)
     private String registrationNumber;
 
-    @ElementCollection
+    @ElementCollection()
     private List<String> photos = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
@@ -69,14 +71,14 @@ public class Car {
     private String importantPoints;
 
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL)
-    private List<Booking> bookings;
+    private List<Booking> bookings = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "car", cascade = CascadeType.ALL)
-    private List<Review> reviews;
+    private List<Review> reviews = new ArrayList<>();
 
     @ManyToMany(mappedBy = "cars")
-    private List<Promotion> promotions;
+    private List<Promotion> promotions = new ArrayList<>();
 
     @OneToOne
     @JoinTable(
@@ -85,6 +87,8 @@ public class Car {
             inverseJoinColumns = @JoinColumn(name = "location_id")
     )
     private Location location;
+
+
 
 
 }

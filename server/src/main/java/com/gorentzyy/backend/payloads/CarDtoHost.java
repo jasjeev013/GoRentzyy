@@ -1,6 +1,5 @@
 package com.gorentzyy.backend.payloads;
 
-
 import com.gorentzyy.backend.constants.AppConstants;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -11,18 +10,19 @@ import lombok.Setter;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CarDto implements Serializable {
+public class CarDtoHost implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private UserDto host;
+//    private UserDto host;
 
     private Long carId;
     @NotBlank(message = "Car name is required")
@@ -45,7 +45,7 @@ public class CarDto implements Serializable {
     @Size(min = 5, max = 15, message = "Registration number must be between 5 and 15 characters")
     private String registrationNumber;
 
-    private List<String> photos;
+    private List<String> photos = new ArrayList<>();
 
     @NotNull(message = "Category is required")
     private AppConstants.CarCategory carCategory;
@@ -103,3 +103,4 @@ public class CarDto implements Serializable {
 
 
 }
+

@@ -59,26 +59,21 @@ public class RedisServiceImpl implements RedisService {
     public <T> Optional<List<T>> getList(String key, Class<T> elementClass) {
         try {
             Object value = redisTemplate.opsForValue().get(key);
-            if (value == null) {
+            if (value == null || !(value instanceof String json)) {
                 return Optional.empty();
             }
 
-            // Handle the case where the value is already a List
-            if (value instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<T> result = (List<T>) value;
-                return Optional.of(result);
-            }
-
-            // Handle JSON serialized case
             JavaType type = objectMapper.getTypeFactory()
                     .constructCollectionType(List.class, elementClass);
-            return Optional.ofNullable(objectMapper.convertValue(value, type));
+
+            List<T> list = objectMapper.readValue(json, type);
+            return Optional.of(list);
         } catch (Exception e) {
             log.error("Redis getList operation failed for key: {}", key, e);
             return Optional.empty();
         }
     }
+
 
     /**
      * Stores a list of objects in Redis with optional TTL
@@ -88,15 +83,17 @@ public class RedisServiceImpl implements RedisService {
      */
     public <T> void setList(String key, List<T> value, Duration ttl) {
         try {
+            String json = objectMapper.writeValueAsString(value);
             ValueOperations<String, Object> ops = redisTemplate.opsForValue();
             if (ttl != null) {
-                ops.set(key, value, ttl);
+                ops.set(key, json, ttl);
             } else {
-                ops.set(key, value);
+                ops.set(key, json);
             }
         } catch (Exception e) {
             log.error("Redis setList operation failed for key: {}", key, e);
             throw new RuntimeException("Redis operation failed", e);
         }
     }
+
 }
