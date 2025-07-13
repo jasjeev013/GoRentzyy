@@ -7,6 +7,9 @@ import { Label } from '../../../components/ui/label';
 import { motion } from 'framer-motion';
 import { redirect, useRouter } from 'next/navigation';
 import { useAuth } from '../../../hooks/useAuth';
+import ForgotPasswordModal from './ForgotPasswordModal';
+import OTPVerificationPopup from '../dashboardComponents/OTPVerificationPopupComponent';
+import { toast } from 'sonner';
 
 
 
@@ -18,6 +21,8 @@ const LoginComponent = () => {
   const [isClient, setIsClient] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
 
 
   useEffect(() => {
@@ -30,33 +35,38 @@ const LoginComponent = () => {
     setIsLoading(true);
 
     const result = await login(username, password);
-    console.log(result);
+
 
     if (result.success) {
-
-      // if (isAuthenticated) {
-      setIsLoading(false);
-      router.push('/home');
-      // }
+      console.log('Login successful:', result);
+      if (result.emailVerified) {
+        setIsLoading(false);
+        toast.success('Login successful!');
+        router.push('/home');
+      }else{
+        setIsLoading(false);
+        toast.info('Please verify your email to continue.');
+        setShowOTPVerification(true);
+      }
     } else {
+      console.error('Login failed:', result.error);
       setIsLoading(false);
       setError(result.error);
     }
   };
 
   const handleGoogleLogin = async (provider: string) => {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const redirectUri = encodeURIComponent(
-    `${window.location.origin}/api/auth/callback/google`
-  );
-  const scope = encodeURIComponent('email profile');
-  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${redirectUri}&prompt=consent&client_id=${clientId}&response_type=code&scope=${scope}&access_type=offline`;
-  
-  window.location.href = authUrl;
-};
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const redirectUri = encodeURIComponent(
+      `${window.location.origin}/api/auth/callback/google`
+    );
+    const scope = encodeURIComponent('email profile');
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?redirect_uri=${redirectUri}&prompt=consent&client_id=${clientId}&response_type=code&scope=${scope}&access_type=offline`;
 
-  // Particle component that only renders on client
-  const Particle = ({ index }: { index: number }) => {
+    window.location.href = authUrl;
+  };
+
+  const Particle = ({ }: { index: number }) => {
     if (!isClient) return null;
 
     const size = Math.random() * 10 + 5;
@@ -164,7 +174,7 @@ const LoginComponent = () => {
           </motion.p>
         </div>
 
-        {/* Form */}
+ 
         <motion.form
           onSubmit={handleSubmit}
           initial={{ opacity: 0 }}
@@ -172,7 +182,6 @@ const LoginComponent = () => {
           transition={{ delay: 0.4 }}
           className="space-y-6"
         >
-          {/* Form fields remain the same */}
           <div className="space-y-3">
             <Label htmlFor="username" className="text-gray-700 dark:text-gray-300">
               Username
@@ -206,6 +215,7 @@ const LoginComponent = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
                 className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                onClick={() => setShowForgotPassword(true)}
               >
                 Forgot password?
               </motion.button>
@@ -326,6 +336,23 @@ const LoginComponent = () => {
           </motion.div>
         </div>
       </motion.div>
+      {showForgotPassword && (
+        <ForgotPasswordModal
+          onClose={() => setShowForgotPassword(false)}
+          onLoginClick={() => setShowForgotPassword(false)}
+        />
+      )}
+
+      {showOTPVerification && (
+        <OTPVerificationPopup
+          email={username} // or the email from registration form
+          onClose={() => setShowOTPVerification(false)}
+          onVerificationSuccess={() => {
+            setShowOTPVerification(false);
+            router.push('/home'); 
+          }}
+        />
+      )}
     </motion.div>
   );
 };

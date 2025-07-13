@@ -1,3 +1,4 @@
+// /app/components/dashboardComponents/CarManagementTable.tsx
 "use client";
 import React, { useEffect, useState, useRef } from 'react';
 import { Search, Plus, Edit, Trash2, X, Check, ChevronDown, Star } from 'lucide-react';

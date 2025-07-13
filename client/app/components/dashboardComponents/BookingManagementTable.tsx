@@ -1,3 +1,4 @@
+// app/components/dashboardComponents/BookingManagementTable.tsx
 "use client";
 import React, { useEffect, useState } from 'react';
 import { Search, ChevronDown, MoreVertical } from 'lucide-react';

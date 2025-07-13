@@ -6,19 +6,15 @@ import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.models.Booking;
 import com.gorentzyy.backend.models.Car;
 import com.gorentzyy.backend.models.User;
-import com.gorentzyy.backend.payloads.ApiResponseData;
-import com.gorentzyy.backend.payloads.ApiResponseObject;
-import com.gorentzyy.backend.payloads.BookingDto;
-import com.gorentzyy.backend.payloads.BookingDtoRenter;
+import com.gorentzyy.backend.payloads.*;
 import com.gorentzyy.backend.repositories.BookingRepository;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.BookingService;
 import com.gorentzyy.backend.services.EmailService;
 import com.gorentzyy.backend.services.RedisService;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,9 +32,11 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@Slf4j
 public class BookingServiceImpl implements BookingService {
 
-    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
+    private static final String CACHE_KEY_PREFIX = "booking:";
+    private static final Duration CACHE_TTL = Duration.ofMinutes(10);
 
     private final BookingRepository bookingRepository;
     private final CarRepository carRepository;
@@ -48,7 +46,9 @@ public class BookingServiceImpl implements BookingService {
     private final RedisService redisService;
 
     @Autowired
-    public BookingServiceImpl(BookingRepository bookingRepository, CarRepository carRepository, UserRepository userRepository, ModelMapper modelMapper, EmailService emailService, RedisService redisService) {
+    public BookingServiceImpl(BookingRepository bookingRepository, CarRepository carRepository,
+                              UserRepository userRepository, ModelMapper modelMapper,
+                              EmailService emailService, RedisService redisService) {
         this.bookingRepository = bookingRepository;
         this.carRepository = carRepository;
         this.userRepository = userRepository;
@@ -57,7 +57,398 @@ public class BookingServiceImpl implements BookingService {
         this.redisService = redisService;
     }
 
-    double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @Retryable(
+            value = {DatabaseException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
+    public ResponseEntity<ApiResponseObject> createBooking(BookingDto bookingDto, String emailId, Long carId) {
+        log.info("Creating booking for car ID: {} by user: {}", carId, emailId);
+
+        try {
+            // Validate car exists
+            Car car = carRepository.findById(carId)
+                    .orElseThrow(() -> {
+                        log.error("Car not found with ID: {}", carId);
+                        return new CarNotFoundException("Car not found with ID: " + carId);
+                    });
+            log.debug("Car found with ID: {}", carId);
+
+            // Validate user exists and is a renter
+            User renter = userRepository.findByEmail(emailId)
+                    .orElseThrow(() -> {
+                        log.error("User not found with email: {}", emailId);
+                        return new UserNotFoundException("User not found with Email ID: " + emailId);
+                    });
+
+            if (renter.getRole() == AppConstants.Role.HOST) {
+                log.error("Host attempted to book a car. Email: {}", emailId);
+                throw new RoleNotAuthorizedException("Hosts are not allowed to book cars.");
+            }
+            log.debug("Valid renter found with email: {}", emailId);
+
+            // Check booking conflicts
+            if (isCarAlreadyBooked(carId, bookingDto.getStartDate(), bookingDto.getEndDate())) {
+                log.warn("Booking conflict detected for car ID: {} between {} and {}",
+                        carId, bookingDto.getStartDate(), bookingDto.getEndDate());
+                throw new BookingConflictException("This car is already booked for the selected date range.");
+            }
+
+            // Create and save booking
+            Booking booking = modelMapper.map(bookingDto, Booking.class);
+            booking.setCar(car);
+            booking.setRenter(renter);
+            booking.setCreatedAt(LocalDateTime.now());
+            booking.setUpdatedAt(LocalDateTime.now());
+            booking.setTotalPrice(calculateTotalPrice(car, booking.getStartDate(), booking.getEndDate()));
+
+            log.debug("Calculated total price: {}", booking.getTotalPrice());
+
+            Booking savedBooking = bookingRepository.save(booking);
+            log.info("Booking created successfully with ID: {}", savedBooking.getBookingId());
+
+            // Update relationships
+            car.getBookings().add(savedBooking);
+            renter.getBookings().add(savedBooking);
+
+            // Send confirmation emails asynchronously
+            sendBookingConfirmationEmails(savedBooking, car, renter);
+
+            // Invalidate relevant caches
+            invalidateBookingCaches(savedBooking);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponseObject(
+                            "Booking has been established",
+                            true,
+                            modelMapper.map(savedBooking, BookingDto.class)
+                    ));
+
+        } catch (CarNotFoundException | UserNotFoundException |
+                 RoleNotAuthorizedException | BookingConflictException e) {
+            throw e; // Re-throw specific exceptions
+        } catch (Exception e) {
+            log.error("Unexpected error creating booking for car ID: {} by user: {}", carId, emailId, e);
+            throw new DatabaseException("Error while saving the booking to the database.");
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> updateBooking(BookingDto bookingDto, Long bookingId) {
+        log.info("Updating booking with ID: {}", bookingId);
+
+        try {
+            Booking existingBooking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() -> {
+                        log.error("Booking not found with ID: {}", bookingId);
+                        return new BookingNotFoundException("Booking with ID " + bookingId + " does not exist.");
+                    });
+            log.debug("Found booking with ID: {}", bookingId);
+
+            // Only update status if provided
+            if (bookingDto.getStatus() != null) {
+                existingBooking.setStatus(bookingDto.getStatus());
+                existingBooking.setUpdatedAt(LocalDateTime.now());
+                log.debug("Updated booking status to: {}", bookingDto.getStatus());
+            }
+
+            Booking updatedBooking = bookingRepository.save(existingBooking);
+            log.info("Booking with ID {} updated successfully", bookingId);
+
+            // Invalidate caches
+            invalidateBookingCaches(updatedBooking);
+
+            return ResponseEntity.status(HttpStatus.ACCEPTED)
+                    .body(new ApiResponseObject(
+                            "Booking updated successfully",
+                            true,
+                            modelMapper.map(updatedBooking, BookingDto.class)
+                    ));
+
+        } catch (BookingNotFoundException e) {
+            throw e; // Re-throw specific exception
+        } catch (Exception e) {
+            log.error("Unexpected error updating booking with ID: {}", bookingId, e);
+            throw new DatabaseException("Error while updating the booking. Please try again.");
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> getBookingById(Long bookingId) {
+        log.info("Fetching booking with ID: {}", bookingId);
+
+        try {
+            // Try cache first
+            String cacheKey = CACHE_KEY_PREFIX + bookingId;
+            if (redisService != null) {
+                Optional<BookingDto> cachedBooking = redisService.get(cacheKey, BookingDto.class);
+                if (cachedBooking.isPresent()) {
+                    log.debug("Cache hit for booking ID: {}", bookingId);
+                    return ResponseEntity.ok(
+                            new ApiResponseObject("Booking found in cache", true, cachedBooking.get())
+                    );
+                }
+            }
+
+            // Cache miss - fetch from database
+            Booking booking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() -> {
+                        log.error("Booking not found with ID: {}", bookingId);
+                        return new BookingNotFoundException("Booking with ID " + bookingId + " does not exist.");
+                    });
+            log.debug("Found booking with ID: {}", bookingId);
+
+            BookingDto bookingDto = modelMapper.map(booking, BookingDto.class);
+
+            // Cache asynchronously
+            cacheBookingData(cacheKey, bookingDto);
+
+            return ResponseEntity.ok(
+                    new ApiResponseObject(
+                            "Booking fetched successfully",
+                            true,
+                            bookingDto
+                    ));
+
+        } catch (BookingNotFoundException e) {
+            throw e; // Re-throw specific exception
+        } catch (Exception e) {
+            log.error("Unexpected error fetching booking with ID: {}", bookingId, e);
+            throw new DatabaseException("Error while fetching the booking. Please try again.");
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> cancelBooking(Long bookingId) {
+        log.info("Cancelling booking with ID: {}", bookingId);
+
+        try {
+            Booking booking = bookingRepository.findById(bookingId)
+                    .orElseThrow(() -> {
+                        log.error("Booking not found with ID: {}", bookingId);
+                        return new BookingNotFoundException("Booking with ID " + bookingId + " does not exist.");
+                    });
+            log.debug("Found booking with ID: {}", bookingId);
+
+            if (booking.getStatus() == AppConstants.Status.CONFIRMED) {
+                log.warn("Attempt to cancel already confirmed booking with ID: {}", bookingId);
+                throw new InvalidBookingStateException("Booking has already been completed and cannot be cancelled.");
+            }
+
+            bookingRepository.delete(booking);
+            log.info("Booking with ID {} cancelled successfully", bookingId);
+
+            // Invalidate caches
+            invalidateBookingCaches(booking);
+
+            return ResponseEntity.ok(
+                    new ApiResponseObject(
+                            "Booking cancelled successfully",
+                            true,
+                            null
+                    ));
+
+        } catch (BookingNotFoundException | InvalidBookingStateException e) {
+            throw e; // Re-throw specific exceptions
+        } catch (Exception e) {
+            log.error("Unexpected error cancelling booking with ID: {}", bookingId, e);
+            throw new DatabaseException("Error while cancelling the booking. Please try again.");
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseData> getBookingsByRenter(String emailId) {
+        log.info("Fetching bookings for renter: {}", emailId);
+
+        try {
+            // Try cache first
+            String cacheKey = CACHE_KEY_PREFIX + "renter:" + emailId;
+            if (redisService != null) {
+                Optional<List<BookingDtoRenter>> cachedBookings = redisService.getList(cacheKey, BookingDtoRenter.class);
+                if (cachedBookings.isPresent() && !cachedBookings.get().isEmpty()) {
+                    log.debug("Cache hit for renter bookings: {}", emailId);
+                    return ResponseEntity.ok(
+                            new ApiResponseData(
+                                    "Bookings found in cache",
+                                    true,
+                                    Collections.singletonList(cachedBookings.get())
+                            )
+                    );
+                }
+            }
+
+            // Cache miss - fetch from database
+            User renter = userRepository.findByEmail(emailId)
+                    .orElseThrow(() -> {
+                        log.error("Renter not found with email: {}", emailId);
+                        return new UserNotFoundException("User not found with id: " + emailId);
+                    });
+            log.debug("Found renter with email: {}", emailId);
+
+            List<Booking> bookings = bookingRepository.findByRenter(renter);
+
+            if (bookings.isEmpty()) {
+                log.info("No bookings found for renter: {}", emailId);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body(new ApiResponseData(
+                                "No bookings found for the renter",
+                                false,
+                                Collections.emptyList()
+                        ));
+            }
+
+            List<BookingDtoRenter> bookingDtos = bookings.stream()
+                    .map(booking -> modelMapper.map(booking, BookingDtoRenter.class))
+                    .toList();
+
+            // Cache asynchronously
+            cacheBookingList(cacheKey, bookingDtos);
+
+            return ResponseEntity.ok(
+                    new ApiResponseData(
+                            "All bookings fetched successfully",
+                            true,
+                            Collections.singletonList(bookingDtos)
+                    ));
+
+        } catch (UserNotFoundException e) {
+            throw e; // Re-throw specific exception
+        } catch (Exception e) {
+            log.error("Unexpected error fetching bookings for renter: {}", emailId, e);
+            throw new DatabaseException("Error while fetching bookings. Please try again.");
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseData> getBookingsByCar(Long carId) {
+        log.info("Fetching bookings for car ID: {}", carId);
+
+        try {
+            // Try cache first
+            String cacheKey = CACHE_KEY_PREFIX + "car:" + carId;
+            if (redisService != null) {
+                Optional<List<BookingDto>> cachedBookings = redisService.getList(cacheKey, BookingDto.class);
+                if (cachedBookings.isPresent() && !cachedBookings.get().isEmpty()) {
+                    log.debug("Cache hit for car bookings: {}", carId);
+                    return ResponseEntity.ok(
+                            new ApiResponseData(
+                                    "Bookings found in cache",
+                                    true,
+                                    Collections.singletonList(cachedBookings.get())
+                            )
+                    );
+                }
+            }
+
+            // Cache miss - fetch from database
+            Car car = carRepository.findById(carId)
+                    .orElseThrow(() -> {
+                        log.error("Car not found with ID: {}", carId);
+                        return new CarNotFoundException("Car not found with id: " + carId);
+                    });
+            log.debug("Found car with ID: {}", carId);
+
+            List<Booking> bookings = bookingRepository.findByCar(car);
+
+            if (bookings.isEmpty()) {
+                log.info("No bookings found for car ID: {}", carId);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body(new ApiResponseData(
+                                "No bookings found for this car",
+                                false,
+                                Collections.emptyList()
+                        ));
+            }
+
+            List<BookingDto> bookingDtos = bookings.stream()
+                    .map(booking -> modelMapper.map(booking, BookingDto.class))
+                    .toList();
+
+            // Cache asynchronously
+            cacheBookingList(cacheKey, bookingDtos);
+
+            return ResponseEntity.ok(
+                    new ApiResponseData(
+                            "All bookings fetched successfully",
+                            true,
+                            Collections.singletonList(bookingDtos)
+                    ));
+
+        } catch (CarNotFoundException e) {
+            throw e; // Re-throw specific exception
+        } catch (Exception e) {
+            log.error("Unexpected error fetching bookings for car ID: {}", carId, e);
+            throw new DatabaseException("Error while fetching bookings. Please try again.");
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseData> getBookingsByHost(String emailId) {
+        log.info("Fetching bookings for host: {}", emailId);
+
+        try {
+            // Try cache first
+            String cacheKey = CACHE_KEY_PREFIX + "host:" + emailId;
+            if (redisService != null) {
+                Optional<List<BookingDto>> cachedBookings = redisService.getList(cacheKey, BookingDto.class);
+                if (cachedBookings.isPresent() && !cachedBookings.get().isEmpty()) {
+                    log.debug("Cache hit for host bookings: {}", emailId);
+                    return ResponseEntity.ok(
+                            new ApiResponseData(
+                                    "Bookings found in cache",
+                                    true,
+                                    Collections.singletonList(cachedBookings.get())
+                            )
+                    );
+                }
+            }
+
+            // Cache miss - fetch from database
+            User host = userRepository.findByEmail(emailId)
+                    .orElseThrow(() -> {
+                        log.error("Host not found with email: {}", emailId);
+                        return new UserNotFoundException("User not found with Email id: " + emailId);
+                    });
+            log.debug("Found host with email: {}", emailId);
+
+            List<Booking> bookings = bookingRepository.findByCarHost(host);
+
+            if (bookings.isEmpty()) {
+                log.info("No bookings found for host: {}", emailId);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                        .body(new ApiResponseData(
+                                "No bookings found for this host",
+                                false,
+                                Collections.emptyList()
+                        ));
+            }
+
+            List<BookingDto> bookingDtos = bookings.stream()
+                    .map(booking -> modelMapper.map(booking, BookingDto.class))
+                    .toList();
+
+            // Cache asynchronously
+            cacheBookingList(cacheKey, bookingDtos);
+
+            return ResponseEntity.ok(
+                    new ApiResponseData(
+                            "All bookings fetched successfully",
+                            true,
+                            Collections.singletonList(bookingDtos)
+                    ));
+
+        } catch (UserNotFoundException e) {
+            throw e; // Re-throw specific exception
+        } catch (Exception e) {
+            log.error("Unexpected error fetching bookings for host: {}", emailId, e);
+            throw new DatabaseException("Error while fetching bookings. Please try again.");
+        }
+    }
+
+    // Helper methods
+    protected double calculateTotalPrice(Car car, LocalDateTime startDate, LocalDateTime endDate) {
         long days = ChronoUnit.DAYS.between(startDate, endDate);
         double totalPrice;
 
@@ -78,413 +469,76 @@ public class BookingServiceImpl implements BookingService {
 
     private boolean isCarAlreadyBooked(Long carId, LocalDateTime startDate, LocalDateTime endDate) {
         List<Booking> existingBookings = bookingRepository.findByCarIdAndDateRange(carId, startDate, endDate);
-
         return !existingBookings.isEmpty();
     }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    @Retryable(
-            value = {DatabaseException.class},  // Retry only for DatabaseException
-            maxAttempts = 3,  // Retry 3 times before failing
-            backoff = @Backoff(delay = 2000, multiplier = 2)  // 2 sec delay, increasing exponentially
-    )
-    public ResponseEntity<ApiResponseObject> createBooking(BookingDto bookingDto, String emailId, Long carId) {
-        try {
-            // Step 1: Validate car existence
-            Car car = carRepository.findById(carId).orElseThrow(() -> {
-                logger.error("Car with ID {} not found for booking.", carId);
-                return new CarNotFoundException("Car not found with ID: " + carId);
+    private void sendBookingConfirmationEmails(Booking booking, Car car, User renter) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Email to renter
+                emailService.sendEmail(
+                        renter.getEmail(),
+                        EmailConstants.bookingConfirmedOfRenterSubject(car.getName()),
+                        EmailConstants.bookingConfirmedOfRenterBody
+                );
+
+                // Email to host
+                emailService.sendEmail(
+                        car.getHost().getEmail(),
+                        EmailConstants.bookingConfirmedOfSpecificCarOfHostSubject(car.getName(), renter.getFullName()),
+                        EmailConstants.bookingConfirmedOfRenterBody
+                );
+
+                log.info("Booking confirmation emails sent for booking ID: {}", booking.getBookingId());
+            } catch (Exception e) {
+                log.error("Failed to send booking confirmation emails for booking ID: {}", booking.getBookingId(), e);
+            }
+        });
+    }
+
+    private void invalidateBookingCaches(Booking booking) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                // Invalidate individual booking cache
+                if (redisService != null) {
+                    redisService.delete(CACHE_KEY_PREFIX + booking.getBookingId());
+
+                    // Invalidate related caches
+                    redisService.delete(CACHE_KEY_PREFIX + "renter:" + booking.getRenter().getEmail());
+                    redisService.delete(CACHE_KEY_PREFIX + "car:" + booking.getCar().getCarId());
+                    redisService.delete(CACHE_KEY_PREFIX + "host:" + booking.getCar().getHost().getEmail());
+
+                    log.debug("Invalidated caches for booking ID: {}", booking.getBookingId());
+                }
+            } catch (Exception e) {
+                log.error("Failed to invalidate caches for booking ID: {}", booking.getBookingId(), e);
+            }
+        });
+    }
+
+    private void cacheBookingData(String cacheKey, BookingDto bookingDto) {
+        if (redisService != null) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    redisService.set(cacheKey, bookingDto, CACHE_TTL);
+                    log.debug("Cached booking data for key: {}", cacheKey);
+                } catch (Exception e) {
+                    log.error("Failed to cache booking data for key: {}", cacheKey, e);
+                }
             });
+        }
+    }
 
-            logger.info("Car with ID {} found for booking.", carId);
-
-            // Step 2: Validate renter existence
-            User renter = userRepository.findByEmail(emailId).orElseThrow(() -> {
-                logger.error("User with Email ID {} not found for booking.", emailId);
-                return new UserNotFoundException("User not found with Email ID: " + emailId);
+    private <T> void cacheBookingList(String cacheKey, List<T> bookingList) {
+        if (redisService != null) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    redisService.setList(cacheKey, bookingList, CACHE_TTL);
+                    log.debug("Cached booking list for key: {}", cacheKey);
+                } catch (Exception e) {
+                    log.error("Failed to cache booking list for key: {}", cacheKey, e);
+                }
             });
-
-            // Ensure only RENTERS can book a car (not hosts)
-            if (renter.getRole() == AppConstants.Role.HOST) {
-                logger.error("User with Email ID {} is not authorized to book cars.", emailId);
-                throw new RoleNotAuthorizedException("Hosts are not allowed to book cars.");
-            }
-
-            logger.info("Renter with Email ID {} found for booking.", emailId);
-
-            // Step 3: Prevent booking conflicts
-            if (isCarAlreadyBooked(carId, bookingDto.getStartDate(), bookingDto.getEndDate())) {
-                logger.warn("Car ID {} is already booked for the selected date range.", carId);
-                throw new BookingConflictException("This car is already booked for the selected date range.");
-            }
-
-            // Step 4: Map BookingDto to Booking entity
-            Booking booking = modelMapper.map(bookingDto, Booking.class);
-            booking.setCar(car);
-            booking.setRenter(renter);
-
-            // Set creation and update timestamps
-            LocalDateTime now = LocalDateTime.now();
-            booking.setCreatedAt(now);
-            booking.setUpdatedAt(now);
-
-            // Step 5: Calculate and set the total price based on the booking duration
-            booking.setTotalPrice(calculateTotalPrice(car, booking.getStartDate(), booking.getEndDate()));
-            logger.info("Total price calculated for booking: {}", booking.getTotalPrice());
-
-            // Step 6: Save the booking
-            Booking savedBooking = bookingRepository.save(booking);
-
-            // Step 7: Associate booking with car and renter
-            car.getBookings().add(savedBooking);
-            renter.getBookings().add(savedBooking);
-
-            // Step 8: Return success response with booking details
-            logger.info("Booking created successfully with ID {}", savedBooking.getBookingId());
-
-            emailService.sendEmail(renter.getEmail(),EmailConstants.bookingConfirmedOfRenterSubject(car.getName()), EmailConstants.bookingConfirmedOfRenterBody);
-            emailService.sendEmail(car.getHost().getEmail(),EmailConstants.bookingConfirmedOfSpecificCarOfHostSubject(car.getName(),renter.getFullName()),EmailConstants.bookingConfirmedOfRenterBody);
-
-
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "Booking has been established", true, modelMapper.map(savedBooking, BookingDto.class)
-            ), HttpStatus.CREATED);
-
-        } catch (CarNotFoundException | UserNotFoundException | RoleNotAuthorizedException | BookingConflictException ex) {
-            // Log and rethrow specific exceptions
-            logger.error("Error creating booking: {}", ex.getMessage());
-            throw ex;  // These are expected exceptions handled by GlobalExceptionHandler
-
-        } catch (Exception ex) {
-            // Log unexpected errors
-            logger.error("Unexpected error while creating booking: {}", ex.getMessage());
-            throw new DatabaseException("Error while saving the booking to the database.");
         }
     }
-
-    // Status is being changed
-    @Override
-    public ResponseEntity<ApiResponseObject> updateBooking(BookingDto bookingDto, Long bookingId) {
-        try {
-            // Step 1: Check if the booking exists
-            Booking existingBooking = bookingRepository.findById(bookingId).orElseThrow(() ->
-                    new BookingNotFoundException("Booking with ID " + bookingId + " does not exist.")
-            );
-            logger.info("Booking with ID {} found for update.", bookingId);
-
-            // Step 2: Only update the status field (Keep startDate & endDate unchanged)
-            if (bookingDto.getStatus() != null) {
-                existingBooking.setStatus(bookingDto.getStatus());
-            }
-
-            // Update the last modified timestamp
-            existingBooking.setUpdatedAt(LocalDateTime.now());
-
-            // Step 3: Save the updated booking
-            Booking updatedBooking = bookingRepository.save(existingBooking);
-            logger.info("Booking with ID {} successfully updated.", bookingId);
-
-            // Step 4: Return the success response
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "Booking updated successfully", true, modelMapper.map(updatedBooking, BookingDto.class)
-            ), HttpStatus.ACCEPTED);
-
-        } catch (BookingNotFoundException ex) {
-            logger.error("Error updating booking: {}", ex.getMessage());
-            throw ex;
-
-        } catch (Exception ex) {
-            logger.error("Unexpected error while updating booking: {}", ex.getMessage());
-            throw new DatabaseException("Error while updating the booking. Please try again.");
-        }
-    }
-
-
-    @Override
-    public ResponseEntity<ApiResponseObject> getBookingById(Long bookingId) {
-        try {
-
-            if (redisService != null) {
-                Optional<BookingDto> cachedBookings = redisService.get(String.valueOf(bookingId), BookingDto.class);
-                if (cachedBookings.isPresent()) {
-                    logger.debug("Booking found in cache for bookingId: {}", bookingId);
-                    return ResponseEntity.ok(
-                            new ApiResponseObject("Booking found in cache", true, cachedBookings.get())
-                    );
-                }
-            }
-            // Step 1: Check if the booking exists by ID
-            Booking existingBooking = bookingRepository.findById(bookingId).orElseThrow(() ->
-                    new BookingNotFoundException("Booking with ID " + bookingId + " does not exist.")
-            );
-            logger.info("Booking with ID {} fetched successfully.", bookingId);
-
-            BookingDto exisitingBookingDto = modelMapper.map(existingBooking, BookingDto.class);
-            if (null!= redisService) {
-                try {
-                    // Cache asynchronously to not block the response
-                    CompletableFuture.runAsync(() -> {
-                        redisService.set(String.valueOf(bookingId), exisitingBookingDto, Duration.ofMinutes(10));
-                        logger.debug("Cached user data for userId: {}", bookingId);
-                    });
-                } catch (Exception e) {
-                    logger.error("Failed to cache user data for userId: {}", bookingId, e);
-                    // Don't fail the request if caching fails
-                }
-            }
-            // Step 2: Return the successful response with the booking data
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "Booking fetched successfully", true, exisitingBookingDto
-            ), HttpStatus.OK);
-
-        } catch (BookingNotFoundException ex) {
-            // Log and rethrow the exception to be handled by your global exception handler
-            logger.error("Error fetching booking with ID {}: {}", bookingId, ex.getMessage());
-            throw ex;  // Exception will be handled by the global exception handler
-
-        } catch (Exception ex) {
-            // Log unexpected errors
-            logger.error("Unexpected error while fetching booking with ID {}: {}", bookingId, ex.getMessage());
-            throw new DatabaseException("Error while fetching the booking. Please try again.");
-        }
-    }
-
-    @Override
-    public ResponseEntity<ApiResponseObject> cancelBooking(Long bookingId) {
-        try {
-            // Step 1: Check if the booking exists
-            Booking existingBooking = bookingRepository.findById(bookingId).orElseThrow(() ->
-                    new BookingNotFoundException("Booking with ID " + bookingId + " does not exist.")
-            );
-
-            logger.info("Booking with ID {} found for cancellation.", bookingId);
-
-            // Step 2: Optionally, check if the booking can be cancelled (e.g., if it's already completed)
-            if (existingBooking.getStatus() == AppConstants.Status.CONFIRMED) {
-                throw new InvalidBookingStateException("Booking has already been completed and cannot be cancelled.");
-            }
-
-            // Step 3: Delete the booking (cancel the booking)
-            bookingRepository.delete(existingBooking);
-
-            logger.info("Booking with ID {} cancelled successfully.", bookingId);
-
-            // Step 4: Return success response
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "Booking cancelled successfully", true, null
-            ), HttpStatus.OK);  // Use HttpStatus.NO_CONTENT for successful deletions
-
-        } catch (BookingNotFoundException ex) {
-            // Log the error and rethrow the exception for global handling
-            logger.error("Error cancelling booking with ID {}: {}", bookingId, ex.getMessage());
-            throw ex;
-
-        } catch (InvalidBookingStateException ex) {
-            // Log the specific error related to invalid state (e.g., already completed)
-            logger.error("Error cancelling booking with ID {}: {}", bookingId, ex.getMessage());
-            throw ex;
-
-        } catch (Exception ex) {
-            // Log any unexpected errors
-            logger.error("Unexpected error while cancelling booking with ID {}: {}", bookingId, ex.getMessage());
-            throw new DatabaseException("Error while cancelling the booking. Please try again.");
-        }
-    }
-
-    @Override
-    public ResponseEntity<ApiResponseData> getBookingsByRenter(String emailId) {
-        try {
-
-            if (redisService != null) {
-                Optional<List<BookingDtoRenter>> cachedBooking = redisService.getList(emailId +"renter", BookingDtoRenter.class);
-                if (cachedBooking.isPresent()) {
-                    logger.debug("Bookings found in cache for email: {}", emailId);
-                    return ResponseEntity.ok(
-                            new ApiResponseData("Bookings found in cache", true, Collections.singletonList(cachedBooking))
-                    );
-                }
-            }
-            // Step 1: Check if the renter exists
-            User renter = userRepository.findByEmail(emailId).orElseThrow(() ->
-                    new UserNotFoundException("User not found with id: " + emailId)
-            );
-            logger.info("Renter with ID {} found.", emailId);
-
-            // Step 2: Fetch bookings for the renter
-            List<Booking> bookings = bookingRepository.findByRenter(renter);
-
-            if (bookings.isEmpty()) {
-                logger.info("No bookings found for renter with ID {}", emailId);
-                return new ResponseEntity<>(new ApiResponseData(
-                        "No bookings found for the renter", false, Collections.emptyList()
-                ), HttpStatus.NO_CONTENT);  // HTTP 204 when there are no bookings
-            }
-
-            // Step 3: Convert the bookings to DTOs
-            List<BookingDtoRenter> bookingDtos = bookings.stream()
-                    .map(booking -> modelMapper.map(booking, BookingDtoRenter.class))
-                    .toList();
-
-            if (null!= redisService) {
-                try {
-                    // Cache asynchronously to not block the response
-                    CompletableFuture.runAsync(() -> {
-                        redisService.setList(emailId +"renter", bookingDtos, Duration.ofMinutes(10));
-                        logger.debug("Cached user data for email Id: {}", emailId);
-                    });
-                } catch (Exception e) {
-                    logger.error("Failed to cache user data for email: {}", emailId, e);
-                    // Don't fail the request if caching fails
-                }
-            }
-
-            // Step 4: Return the response with the list of bookings
-            return new ResponseEntity<>(new ApiResponseData(
-                    "All bookings fetched successfully", true, Collections.singletonList(bookingDtos)
-            ), HttpStatus.OK);
-
-        } catch (UserNotFoundException ex) {
-            // Log and rethrow the exception
-            logger.error("Error fetching bookings for renter with ID {}: {}", emailId, ex.getMessage());
-            throw ex;
-
-        } catch (Exception ex) {
-            // Log unexpected errors
-            logger.error("Unexpected error while fetching bookings for renter with ID {}: {}", emailId, ex.getMessage());
-            throw new DatabaseException("Error while fetching bookings. Please try again.");
-        }
-    }
-
-    @Override
-    public ResponseEntity<ApiResponseData> getBookingsByCar(Long carId) {
-        try {
-
-            if (redisService != null) {
-                Optional<List<BookingDto>> cachedBooking = redisService.getList(carId +"car", BookingDto.class);
-                if (cachedBooking.isPresent()) {
-                    logger.debug("Bookings found in cache for car Id: {}", carId);
-                    return ResponseEntity.ok(
-                            new ApiResponseData("Bookings found in cache", true, Collections.singletonList(cachedBooking))
-                    );
-                }
-            }
-            // Step 1: Validate if the car exists
-            Car car = carRepository.findById(carId).orElseThrow(() ->
-                    new CarNotFoundException("Car not found with id: " + carId)
-            );
-            logger.info("Car with ID {} found.", carId);
-
-            // Step 2: Fetch bookings for the car
-            List<Booking> bookings = bookingRepository.findByCar(car);
-
-            if (bookings.isEmpty()) {
-                logger.info("No bookings found for car with ID {}", carId);
-                return new ResponseEntity<>(new ApiResponseData(
-                        "No bookings found for this car", false, Collections.emptyList()
-                ), HttpStatus.NO_CONTENT);  // Return 204 if no bookings are found
-            }
-
-            // Step 3: Convert bookings to BookingDto objects
-            List<BookingDto> bookingDtos = bookings.stream()
-                    .map(booking -> modelMapper.map(booking, BookingDto.class))
-                    .toList();
-
-            if (null!= redisService) {
-                try {
-                    // Cache asynchronously to not block the response
-                    CompletableFuture.runAsync(() -> {
-                        redisService.setList(carId + "car", bookingDtos, Duration.ofMinutes(10));
-                        logger.debug("Cached user data for car Id: {}", carId);
-                    });
-                } catch (Exception e) {
-                    logger.error("Failed to cache user data for car Id: {}", carId, e);
-                    // Don't fail the request if caching fails
-                }
-            }
-
-            // Step 4: Return the list of booking DTOs with success message
-            return new ResponseEntity<>(new ApiResponseData(
-                    "All bookings fetched successfully", true, Collections.singletonList(bookingDtos)
-            ), HttpStatus.OK);
-
-        } catch (CarNotFoundException ex) {
-            // Log and rethrow the exception for global handling
-            logger.error("Error fetching bookings for car with ID {}: {}", carId, ex.getMessage());
-            throw ex;
-
-        } catch (Exception ex) {
-            // Log unexpected errors
-            logger.error("Unexpected error while fetching bookings for car with ID {}: {}", carId, ex.getMessage());
-            throw new DatabaseException("Error while fetching bookings. Please try again.");
-        }
-    }
-
-    @Override
-    public ResponseEntity<ApiResponseData> getBookingsByHost(String emailId) {
-        try {
-
-
-            if (redisService != null) {
-                Optional<List<BookingDto>> cachedBooking = redisService.getList(emailId +"host", BookingDto.class);
-                if (cachedBooking.isPresent()) {
-                    logger.debug("Bookings found in cache for email Id: {}", emailId);
-                    return ResponseEntity.ok(
-                            new ApiResponseData("Bookings found in cache", true, Collections.singletonList(cachedBooking))
-                    );
-                }
-            }
-            // Step 1: Validate that the host exists
-            User host = userRepository.findByEmail(emailId).orElseThrow(() ->
-                    new UserNotFoundException("User not found with Email id: " + emailId)
-            );
-            logger.info("Host with ID {} found.", emailId);
-
-            // Step 2: Fetch bookings associated with the host's cars
-            List<Booking> bookings = bookingRepository.findByCarHost(host);
-
-            if (bookings.isEmpty()) {
-                logger.info("No bookings found for host with ID {}", emailId);
-                return new ResponseEntity<>(new ApiResponseData(
-                        "No bookings found for this host", false, Collections.emptyList()
-                ), HttpStatus.NO_CONTENT);  // HTTP 204 when no bookings found
-            }
-
-            // Step 3: Convert bookings to BookingDto objects
-            List<BookingDto> bookingDtos = bookings.stream()
-                    .map(booking -> modelMapper.map(booking, BookingDto.class))
-                    .toList();
-
-            if (null!= redisService) {
-                try {
-                    // Cache asynchronously to not block the response
-                    CompletableFuture.runAsync(() -> {
-                        redisService.setList(emailId + "car", bookingDtos, Duration.ofMinutes(10));
-                        logger.debug("Cached user data for email Id: {}", emailId);
-                    });
-                } catch (Exception e) {
-                    logger.error("Failed to cache user data for email Id: {}", emailId, e);
-                    // Don't fail the request if caching fails
-                }
-            }
-
-            // Step 4: Return the response with the list of bookings
-            return new ResponseEntity<>(new ApiResponseData(
-                    "All bookings fetched successfully", true, Collections.singletonList(bookingDtos)
-            ), HttpStatus.OK);
-
-        } catch (UserNotFoundException ex) {
-            // Log and rethrow the exception
-            logger.error("Error fetching bookings for host with ID {}: {}", emailId, ex.getMessage());
-            throw ex;
-
-        } catch (Exception ex) {
-            // Log unexpected errors
-            logger.error("Unexpected error while fetching bookings for host with ID {}: {}", emailId, ex.getMessage());
-            throw new DatabaseException("Error while fetching bookings. Please try again.");
-        }
-    }
-
-
-
 }

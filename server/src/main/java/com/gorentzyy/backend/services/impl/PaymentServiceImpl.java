@@ -23,18 +23,23 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PaymentServiceImpl.class);
+    private static final String CURRENCY = "INR";
+    private static final String PAYMENT_CAPTURE = "1";
+
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
     private final ModelMapper modelMapper;
+    private final RazorpayClient razorpayClient;
 
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
@@ -43,244 +48,317 @@ public class PaymentServiceImpl implements PaymentService {
     private String razorpayKeySecret;
 
     @Autowired
-    public PaymentServiceImpl(PaymentRepository paymentRepository, BookingRepository bookingRepository, ModelMapper modelMapper) {
+    public PaymentServiceImpl(PaymentRepository paymentRepository,
+                              BookingRepository bookingRepository,
+                              ModelMapper modelMapper) throws RazorpayException {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
         this.modelMapper = modelMapper;
+        this.razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
     }
-// THe date should be taken on its own
 
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponseObject> createRazorpayOrder(Double amount, Long bookingId) {
+        logger.info("Creating Razorpay order for booking ID: {}", bookingId);
 
-    public ResponseEntity<ApiResponseObject> createRazorpayOrder(Double amount, Long bookingId) throws RazorpayException {
         try {
-            // Validate booking exists
-            Booking booking = bookingRepository.findById(bookingId)
-                    .orElseThrow(() -> new BookingNotFoundException("Booking not found"));
+            validateAmount(amount);
+            Booking booking = getBookingById(bookingId);
 
-            // Create Razorpay order
-            RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+            JSONObject orderRequest = buildOrderRequest(amount, booking);
+            Order order = razorpayClient.orders.create(orderRequest);
 
-            JSONObject orderRequest = new JSONObject();
-            orderRequest.put("amount", amount * 100); // Convert to paise
-            orderRequest.put("currency", "INR");
-            orderRequest.put("receipt", "receipt_" + bookingId);
-            orderRequest.put("payment_capture", 1);
+            Payment payment = createPaymentRecord(amount, booking, order);
+            paymentRepository.save(payment);
 
-            // Add booking details as notes
-            JSONObject notes = new JSONObject();
-            notes.put("bookingId", bookingId.toString());
-            notes.put("carModel", booking.getCar().getName());
-            orderRequest.put("notes", notes);
+            logger.info("Successfully created Razorpay order ID: {} for booking ID: {}",
+                    order.get("id"), bookingId);
 
-            Order order = razorpay.orders.create(orderRequest);
+            return buildOrderResponse(order);
 
-            // Create payment record in PENDING state
-            Payment payment = new Payment();
-            payment.setAmount(amount);
-            payment.setPaymentStatus(AppConstants.PaymentStatus.PENDING);
-            payment.setBooking(booking);
-            payment.setRazorpayOrderId(order.get("id"));
-            payment.setCreatedAt(LocalDateTime.now());
-
-            Payment savedPayment = paymentRepository.save(payment);
-
-            // Return order details to frontend
-            JSONObject response = new JSONObject();
-            response.put("orderId", Optional.ofNullable(order.get("id")));
-            response.put("amount", Optional.ofNullable(order.get("amount")));
-            response.put("currency", Optional.ofNullable(order.get("currency")));
-            response.put("key", razorpayKeyId);
-
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "Razorpay order created", true, response.toMap()),
-                    HttpStatus.CREATED);
-
+        } catch (BookingNotFoundException | InvalidPaymentAmountException e) {
+            throw e;
         } catch (RazorpayException e) {
-            logger.error("Razorpay error: {}", e.getMessage());
+            logger.error("Razorpay API error for booking ID: {}", bookingId, e);
             throw new PaymentProcessingException("Failed to create Razorpay order");
+        } catch (Exception e) {
+            logger.error("Unexpected error creating order for booking ID: {}", bookingId, e);
+            throw new PaymentProcessingException("Failed to process payment");
         }
     }
 
-
+    @Override
+    @Transactional
     public ResponseEntity<ApiResponseObject> verifyPayment(PaymentVerificationRequest request) {
+        logger.info("Verifying payment for order ID: {}", request.getRazorpayOrderId());
+
         try {
-            // Verify signature
-            String generatedSignature = HmacUtils.hmacSha256Hex(
-                    razorpayKeySecret,
-                    request.getRazorpayOrderId() + "|" + request.getRazorpayPaymentId()
+            validateVerificationRequest(request);
+            verifyPaymentSignature(request);
+
+            Payment payment = getPaymentByOrderId(request.getRazorpayOrderId());
+            updatePaymentStatus(payment, request);
+
+            Booking booking = payment.getBooking();
+            updateBookingStatus(booking);
+
+            logger.info("Successfully verified payment for order ID: {}", request.getRazorpayOrderId());
+
+            return ResponseEntity.ok(new ApiResponseObject(
+                    "Payment verified successfully",
+                    true,
+                    null)
             );
 
-            if (!generatedSignature.equals(request.getRazorpaySignature())) {
-                throw new PaymentVerificationException("Invalid signature");
-            }
-
-            // Update payment status
-            Payment payment = paymentRepository.findByRazorpayOrderId(request.getRazorpayOrderId())
-                    .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
-
-            payment.setPaymentStatus(AppConstants.PaymentStatus.SUCCESSFUL);
-            payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
-            payment.setUpdatedAt(LocalDateTime.now());
-
-            // Update booking status
-            Booking booking = payment.getBooking();
-            booking.setStatus(AppConstants.Status.CONFIRMED);
-
-            paymentRepository.save(payment);
-            bookingRepository.save(booking);
-
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "Payment verified successfully", true, null),
-                    HttpStatus.OK);
-
+        } catch (PaymentVerificationException | PaymentNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            logger.error("Payment verification failed: {}", e.getMessage());
+            logger.error("Error verifying payment for order ID: {}", request.getRazorpayOrderId(), e);
             throw new PaymentVerificationException("Payment verification failed");
         }
     }
+
     @Override
+    @Transactional
     public ResponseEntity<ApiResponseObject> makePayment(PaymentDto paymentDto, Long bookingId) {
+        logger.info("Processing direct payment for booking ID: {}", bookingId);
+
         try {
-            // Step 1: Validate if the booking exists
-            Booking existingBooking = bookingRepository.findById(bookingId)
-                    .orElseThrow(() -> new BookingNotFoundException("Booking with ID " + bookingId + " not found."));
+            validatePaymentDto(paymentDto);
+            Booking booking = getBookingById(bookingId);
 
-            logger.info("Booking with ID {} found.", bookingId);
-
-            // Step 2: Validate payment amount (assuming positive and non-zero amounts are required)
-            if (paymentDto.getAmount() <= 0) {
-                throw new InvalidPaymentAmountException("Payment amount must be greater than zero.");
-            }
-
-            // Step 3: Map PaymentDto to Payment entity
-            Payment payment = modelMapper.map(paymentDto, Payment.class);
-
-            // Step 4: Link the payment to the existing booking and vice versa
-            existingBooking.setPayment(payment);
-            payment.setBooking(existingBooking);
-
-
-            // Step 5: Save the payment and update booking status if necessary
+            Payment payment = createPaymentFromDto(paymentDto, booking);
             Payment savedPayment = paymentRepository.save(payment);
 
-            // Optional: If payment is successful, update the booking status
-            existingBooking.setStatus(AppConstants.Status.CONFIRMED);  // Or appropriate status
-            bookingRepository.save(existingBooking);
+            if (paymentDto.getPaymentStatus() == AppConstants.PaymentStatus.SUCCESSFUL) {
+                updateBookingStatus(booking);
+            }
 
-            // Step 6: Return the success response with the saved payment details
-            logger.info("Payment for booking with ID {} processed successfully.", bookingId);
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The Payment Added Successfully", true, modelMapper.map(savedPayment, PaymentDto.class)),
-                    HttpStatus.CREATED);
+            logger.info("Successfully processed payment ID: {} for booking ID: {}",
+                    savedPayment.getPaymentId(), bookingId);
 
-        } catch (BookingNotFoundException | InvalidPaymentAmountException ex) {
-            // Let known business exceptions propagate
-            throw ex;
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponseObject(
+                            "Payment processed successfully",
+                            true,
+                            modelMapper.map(savedPayment, PaymentDto.class))
+                    );
+
+        } catch (BookingNotFoundException | InvalidPaymentAmountException e) {
+            throw e;
         } catch (Exception e) {
-            logger.error("Error processing payment for booking with ID {}: {}", bookingId, e.getMessage());
-            throw new PaymentProcessingException("Failed to process the payment due to an unexpected error.");
+            logger.error("Error processing payment for booking ID: {}", bookingId, e);
+            throw new PaymentProcessingException("Failed to process payment");
         }
-
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ApiResponseObject> updatePaymentStatus(Long paymentId, PaymentDto paymentDto) {
+        logger.info("Updating payment status for payment ID: {}", paymentId);
+
         try {
-            // Step 1: Check if the payment exists in the database
-            Payment existingPayment = paymentRepository.findById(paymentId)
-                    .orElseThrow(() -> new PaymentNotFoundException("Payment with ID " + paymentId + " not found."));
+            validatePaymentStatus(paymentDto);
+            Payment payment = getPaymentById(paymentId);
 
-            logger.info("Payment with ID {} found. Updating status...", paymentId);
+            updatePaymentFromDto(payment, paymentDto);
+            Payment savedPayment = paymentRepository.save(payment);
 
-            // Step 2: Validate the new payment status using the PaymentStatus enum
-            if (paymentDto.getPaymentStatus() == null) {
-                throw new InvalidPaymentStatusException("Payment status cannot be null.");
-            }
+            logger.info("Successfully updated payment ID: {}", paymentId);
 
+            return ResponseEntity.ok(new ApiResponseObject(
+                    "Payment status updated successfully",
+                    true,
+                    modelMapper.map(savedPayment, PaymentDto.class))
+            );
 
-            // Step 3: Update the payment status
-            existingPayment.setPaymentStatus(paymentDto.getPaymentStatus());
-            existingPayment.setRefundStatus(paymentDto.getRefundStatus());
-
-            // Step 4: Save the updated payment record
-            Payment savedPayment = paymentRepository.save(existingPayment);
-
-            logger.info("Payment status updated successfully for Payment ID {}", paymentId);
-
-            // Step 5: Return success response
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The payment has been updated successfully.", true, modelMapper.map(savedPayment, PaymentDto.class)),
-                    HttpStatus.OK);
-
-        } catch (PaymentNotFoundException ex) {
-            // Log and rethrow the exception for centralized handling
-            logger.error("Payment not found for ID {}: {}", paymentId, ex.getMessage());
-            throw ex;
-        } catch (InvalidPaymentStatusException ex) {
-            // Handle invalid payment status
-            logger.error("Invalid payment status provided for Payment ID {}: {}", paymentId, ex.getMessage());
-            throw ex;
+        } catch (PaymentNotFoundException | InvalidPaymentStatusException e) {
+            throw e;
         } catch (Exception e) {
-            // Log unexpected errors and throw a generic exception
-            logger.error("Error updating payment status for Payment ID {}: {}", paymentId, e.getMessage());
-            throw new PaymentProcessingException("Failed to update payment status due to an unexpected error.");
+            logger.error("Error updating payment ID: {}", paymentId, e);
+            throw new PaymentProcessingException("Failed to update payment status");
         }
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> getPayment(Long paymentId) {
+        logger.info("Fetching payment with ID: {}", paymentId);
+
         try {
-            // Fetch the existing payment
-            Payment existingPayment = paymentRepository.findById(paymentId)
-                    .orElseThrow(() -> new PaymentNotFoundException("Payment with ID " + paymentId + " not found."));
+            Payment payment = getPaymentById(paymentId);
 
-            // Log the request (optional)
-            logger.info("Payment with ID {} fetched successfully.", paymentId);
+            logger.info("Successfully retrieved payment ID: {}", paymentId);
 
-            // Return the response with payment details
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The payment is found successfully", true, modelMapper.map(existingPayment, PaymentDto.class)),
-                    HttpStatus.OK);
+            return ResponseEntity.ok(new ApiResponseObject(
+                    "Payment retrieved successfully",
+                    true,
+                    modelMapper.map(payment, PaymentDto.class))
+            );
 
-        } catch (PaymentNotFoundException ex) {
-            // Specific exception handling (will be caught by Global Exception Handler if you have one)
-            logger.error("Payment not found for ID {}: {}", paymentId, ex.getMessage());
-            throw ex;  // Rethrow to be caught by the global handler
+        } catch (PaymentNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            // Handle any unexpected exceptions
-            logger.error("Error fetching payment for ID {}: {}", paymentId, e.getMessage());
-            throw new DatabaseException("An unexpected error occurred while fetching the payment.");
+            logger.error("Error fetching payment ID: {}", paymentId, e);
+            throw new DatabaseException("Failed to retrieve payment");
         }
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ApiResponseObject> removePayment(Long paymentId) {
+        logger.info("Deleting payment with ID: {}", paymentId);
+
         try {
-            // Fetch the payment by ID
-            Payment existingPayment = paymentRepository.findById(paymentId)
-                    .orElseThrow(() -> new PaymentNotFoundException("Payment with ID " + paymentId + " not found."));
+            Payment payment = getPaymentById(paymentId);
+            paymentRepository.delete(payment);
 
-            // Log the deletion attempt
-            logger.info("Attempting to delete Payment with ID: {}", paymentId);
+            logger.info("Successfully deleted payment ID: {}", paymentId);
 
-            // Delete the payment from the repository
-            paymentRepository.delete(existingPayment);
+            return ResponseEntity.ok()
+                    .body(new ApiResponseObject(
+                            "Payment deleted successfully",
+                            true,
+                            null)
+                    );
 
-            // Log successful deletion
-            logger.info("Payment with ID {} deleted successfully.", paymentId);
-
-            // Return a success response
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The Payment is deleted successfully", true, null), HttpStatus.NO_CONTENT);  // Consider using 204 status for deletion
-
-        } catch (PaymentNotFoundException ex) {
-            // Handle specific PaymentNotFoundException (will be caught by your global exception handler)
-            logger.error("Payment not found for ID {}: {}", paymentId, ex.getMessage());
-            throw ex;  // Rethrow to let the global handler handle it
+        } catch (PaymentNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            // Handle any other unexpected exceptions (e.g., database issues)
-            logger.error("Error deleting payment with ID {}: {}", paymentId, e.getMessage());
-            throw new DatabaseException("An unexpected error occurred while deleting the payment.");
+            logger.error("Error deleting payment ID: {}", paymentId, e);
+            throw new DatabaseException("Failed to delete payment");
         }
+    }
+
+    // Helper methods
+    private Booking getBookingById(Long bookingId) {
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> {
+                    logger.error("Booking not found with ID: {}", bookingId);
+                    return new BookingNotFoundException("Booking not found");
+                });
+    }
+
+    private Payment getPaymentById(Long paymentId) {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(() -> {
+                    logger.error("Payment not found with ID: {}", paymentId);
+                    return new PaymentNotFoundException("Payment not found");
+                });
+    }
+
+    private Payment getPaymentByOrderId(String orderId) {
+        return paymentRepository.findByRazorpayOrderId(orderId)
+                .orElseThrow(() -> {
+                    logger.error("Payment not found for order ID: {}", orderId);
+                    return new PaymentNotFoundException("Payment not found");
+                });
+    }
+
+    private void validateAmount(Double amount) {
+        if (amount == null || amount <= 0) {
+            logger.error("Invalid payment amount: {}", amount);
+            throw new InvalidPaymentAmountException("Payment amount must be positive");
+        }
+    }
+
+    private void validatePaymentDto(PaymentDto paymentDto) {
+        if (paymentDto == null) {
+            throw new InvalidPaymentDataException("Payment data cannot be null");
+        }
+        validateAmount(paymentDto.getAmount());
+    }
+
+    private void validatePaymentStatus(PaymentDto paymentDto) {
+        if (paymentDto.getPaymentStatus() == null) {
+            logger.error("Null payment status provided");
+            throw new InvalidPaymentStatusException("Payment status cannot be null");
+        }
+    }
+
+    private void validateVerificationRequest(PaymentVerificationRequest request) {
+        if (request == null || !StringUtils.hasText(request.getRazorpayOrderId()) ||
+                !StringUtils.hasText(request.getRazorpayPaymentId()) ||
+                !StringUtils.hasText(request.getRazorpaySignature())) {
+            logger.error("Invalid verification request");
+            throw new PaymentVerificationException("Invalid verification data");
+        }
+    }
+
+    private void verifyPaymentSignature(PaymentVerificationRequest request) {
+        String generatedSignature = HmacUtils.hmacSha256Hex(
+                razorpayKeySecret,
+                request.getRazorpayOrderId() + "|" + request.getRazorpayPaymentId()
+        );
+
+        if (!generatedSignature.equals(request.getRazorpaySignature())) {
+            logger.error("Payment signature verification failed");
+            throw new PaymentVerificationException("Invalid signature");
+        }
+    }
+
+    private JSONObject buildOrderRequest(Double amount, Booking booking) {
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", amount * 100); // Convert to paise
+        orderRequest.put("currency", CURRENCY);
+        orderRequest.put("receipt", "receipt_" + booking.getBookingId());
+        orderRequest.put("payment_capture", PAYMENT_CAPTURE);
+
+        JSONObject notes = new JSONObject();
+        notes.put("bookingId", booking.getBookingId().toString());
+        notes.put("carModel", booking.getCar().getName());
+        orderRequest.put("notes", notes);
+
+        return orderRequest;
+    }
+
+    private Payment createPaymentRecord(Double amount, Booking booking, Order order) {
+        Payment payment = new Payment();
+        payment.setAmount(amount);
+        payment.setPaymentStatus(AppConstants.PaymentStatus.PENDING);
+        payment.setBooking(booking);
+        payment.setRazorpayOrderId(order.get("id"));
+        payment.setCreatedAt(LocalDateTime.now());
+        return payment;
+    }
+
+    private Payment createPaymentFromDto(PaymentDto paymentDto, Booking booking) {
+        Payment payment = modelMapper.map(paymentDto, Payment.class);
+        payment.setBooking(booking);
+        payment.setCreatedAt(LocalDateTime.now());
+        return payment;
+    }
+
+    private void updatePaymentFromDto(Payment payment, PaymentDto paymentDto) {
+        payment.setPaymentStatus(paymentDto.getPaymentStatus());
+        payment.setRefundStatus(paymentDto.getRefundStatus());
+        payment.setUpdatedAt(LocalDateTime.now());
+    }
+
+    private void updatePaymentStatus(Payment payment, PaymentVerificationRequest request) {
+        payment.setPaymentStatus(AppConstants.PaymentStatus.SUCCESSFUL);
+        payment.setRazorpayPaymentId(request.getRazorpayPaymentId());
+        payment.setUpdatedAt(LocalDateTime.now());
+        paymentRepository.save(payment);
+    }
+
+    private void updateBookingStatus(Booking booking) {
+        booking.setStatus(AppConstants.Status.CONFIRMED);
+        bookingRepository.save(booking);
+    }
+
+    private ResponseEntity<ApiResponseObject> buildOrderResponse(Order order) {
+        JSONObject response = new JSONObject();
+        response.put("orderId", Optional.ofNullable(order.get("id")));
+        response.put("amount", Optional.ofNullable(order.get("amount")));
+        response.put("currency", Optional.ofNullable(order.get("currency")));
+        response.put("key", razorpayKeyId);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponseObject(
+                        "Razorpay order created",
+                        true,
+                        response.toMap())
+                );
     }
 }

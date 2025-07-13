@@ -4,6 +4,7 @@ import CarListing from './CarListing';
 import FiltersLeftbar from './FiltersLeftbar';
 import { useCarStore } from '../../../stores/carStore';
 import { Loader2 } from 'lucide-react';
+import CarListingSkeleton from './CarListingSkeleton';
 
 const MainSection = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -28,6 +29,7 @@ const MainSection = () => {
         seatingCapacity: 2,
     });
 
+
     // Filter and sort cars
     const filteredCars = useMemo(() => {
         let result = [...displayCars];
@@ -38,10 +40,10 @@ const MainSection = () => {
             result = result.filter(car =>
                 car.name.toLowerCase().includes(term) ||
                 car.make.toLowerCase().includes(term) ||
-                car.model.toLowerCase().includes(term) 
+                car.model.toLowerCase().includes(term)
             );
         }
-    
+
 
 
         // Apply filters
@@ -92,9 +94,7 @@ const MainSection = () => {
     return (
         <div className="min-h-screen">
             {loading ? (
-                <div className="flex justify-center items-center h-64">
-                    <Loader2 className="h-12 w-12 animate-spin" />
-                </div>
+                <CarListingSkeleton />
             ) : (
                 <>
                     {/* Search Bar Section */}

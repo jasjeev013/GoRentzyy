@@ -9,6 +9,7 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -39,6 +40,12 @@ public class User {
     private String socialLoginId;
 
     private String profilePicture;
+
+    @Column(name = "password_reset_token",length = 512)
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_token_expiry")
+    private Date passwordResetTokenExpiry;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

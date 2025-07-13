@@ -3,9 +3,7 @@ package com.gorentzyy.backend.controllers;
 import com.gorentzyy.backend.models.LoginRequest;
 import com.gorentzyy.backend.models.LoginResponse;
 import com.gorentzyy.backend.models.User;
-import com.gorentzyy.backend.payloads.ApiResponseObject;
-import com.gorentzyy.backend.payloads.OTPValidate;
-import com.gorentzyy.backend.payloads.UserDto;
+import com.gorentzyy.backend.payloads.*;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.UserService;
 import jakarta.validation.Valid;
@@ -24,6 +22,8 @@ public class UserController {
 
     private final UserService userService;
     private final UserRepository userRepository;
+
+
 
     @Autowired
     public UserController(UserService userService, UserRepository userRepository) {
@@ -97,6 +97,20 @@ public class UserController {
     @PostMapping("/getOTPPhone")
     public ResponseEntity<ApiResponseObject> getOTPForPHoneNumberVerification(@RequestParam String phoneNumber){
         return userService.sendOTpForPhoneNumberVerification(phoneNumber);
+    }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponseObject> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        return userService.forgotPassword(request);
+    }
+
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<ApiResponseObject> validateResetToken(@RequestParam String token) {
+        return userService.validateResetToken(token);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponseObject> resetPassword(@RequestBody ResetPasswordRequest request) {
+        return userService.resetPassword(request);
     }
 
 

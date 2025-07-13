@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../../components/ui/avat
 
 const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
     const { isAuthenticated, role, userData } = useAuth();
-
     return (
         <>
             <div className={`flex  items-center justify-self-center justify-between text-black dark:text-white animate-slide-down sticky z-50 transition-all duration-300 ${isScrolled ? 'bg-[#C8FFE1] dark:bg-[#252A27CC] dark:backdrop-blur-sm rounded-lg shadow-xl py-2 top-5 px-7 w-[calc(100%-170px)] ' : 'py-4 mt-4 top-0 px-7 w-full'}`}>

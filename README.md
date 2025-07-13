@@ -95,7 +95,7 @@ For any inquiries, please contact [your-email@example.com](mailto:your-email@exa
 14. Test Coverage reports 
 15. Added Cloudinary Image Service - with multiple file at one time uploading
 16. Email Service Added
-<!-- 17. OpenAuth ID - Google - Github  -->
+17. OpenAuth ID - Google - Github 
 <!-- 18. Cron Jobs  -->
 <!-- 19. Kafka Implementation  -->
 20. Redis Implementation

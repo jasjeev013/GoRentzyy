@@ -11,7 +11,7 @@ import { redirect, useRouter } from 'next/navigation';
 
 interface BookingSummaryProps {
   basePrice: number;
-  luggageCapacity: string;
+  luggageCapacity: number;
   doBookingCar: (total: number) => any;
 }
 

@@ -1,8 +1,6 @@
 package com.gorentzyy.backend.services.impl;
 
-import com.gorentzyy.backend.exceptions.CarNotFoundException;
-import com.gorentzyy.backend.exceptions.DatabaseException;
-import com.gorentzyy.backend.exceptions.LocationNotFoundException;
+import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.models.Car;
 import com.gorentzyy.backend.models.Location;
 import com.gorentzyy.backend.payloads.ApiResponseObject;
@@ -10,114 +8,198 @@ import com.gorentzyy.backend.payloads.LocationDto;
 import com.gorentzyy.backend.repositories.CarRepository;
 import com.gorentzyy.backend.repositories.LocationRepository;
 import com.gorentzyy.backend.services.LocationService;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
 
 @Service
+@Slf4j
 public class LocationServiceImpl implements LocationService {
+
+  
 
     private final CarRepository carRepository;
     private final ModelMapper modelMapper;
     private final LocationRepository locationRepository;
 
-
     @Autowired
-    public LocationServiceImpl(CarRepository carRepository, ModelMapper modelMapper, LocationRepository locationRepository) {
+    public LocationServiceImpl(CarRepository carRepository,
+                               ModelMapper modelMapper,
+                               LocationRepository locationRepository) {
         this.carRepository = carRepository;
         this.modelMapper = modelMapper;
         this.locationRepository = locationRepository;
     }
 
-
-
     @Override
-    public ResponseEntity<ApiResponseObject> addLocation(LocationDto locationDto, Long carId,String email) {
-        // Check if the car exists
-        Car car = carRepository.findById(carId).orElseThrow(() ->
-                new CarNotFoundException("Car with ID " + carId + " does not exist.")
-        );
-
-        if (!Objects.equals(car.getHost().getEmail(), email)){
-            throw new RuntimeException("Owner of this car can only set Location");
-        }
-
-
-        // Map DTO to Entity
-        Location newLocation = modelMapper.map(locationDto, Location.class);
-        newLocation.setCar(car);
-        car.setLocation(newLocation);  // Associating car with location
+    @Transactional
+    public ResponseEntity<ApiResponseObject> addLocation(LocationDto locationDto, Long carId, String email) {
+        log.info("Adding location for car ID: {} by user: {}", carId, email);
 
         try {
-            // Save the location and rely on cascading to save the car if configured
-            Location savedLocation = locationRepository.save(newLocation);
+            validateLocationDto(locationDto);
 
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The Location has been created", true, modelMapper.map(savedLocation, LocationDto.class)),
-                    HttpStatus.CREATED); // Use CREATED (201) for new resources
+            Car car = carRepository.findById(carId)
+                    .orElseThrow(() -> {
+                        log.error("Car not found with ID: {}", carId);
+                        return new CarNotFoundException("Car with ID " + carId + " does not exist.");
+                    });
+
+            validateCarOwnership(car, email, "add location");
+
+            if (car.getLocation() != null) {
+                log.warn("Car ID: {} already has a location", carId);
+                throw new LocationAlreadyExistsException("Car already has a location assigned");
+            }
+
+            Location newLocation = modelMapper.map(locationDto, Location.class);
+            newLocation.setCar(car);
+            car.setLocation(newLocation);
+
+            Location savedLocation = locationRepository.save(newLocation);
+            log.info("Successfully added location ID: {} for car ID: {}", savedLocation.getLocationId(), carId);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponseObject(
+                            "Location created successfully",
+                            true,
+                            modelMapper.map(savedLocation, LocationDto.class)));
+
+
+        } catch (CarNotFoundException | LocationAlreadyExistsException |
+                 InvalidLocationDataException e) {
+            throw e;
         } catch (Exception e) {
-            throw new DatabaseException("Error while saving the location.");
+            log.error("Error adding location for car ID: {}", carId, e);
+            throw new DatabaseException("Error while saving the location");
         }
     }
 
     @Override
-    public ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto, Long locationId,String email) {
-        // Find the existing location
-        Location existingLocation = locationRepository.findById(locationId).orElseThrow(() ->
-                new LocationNotFoundException("Location with ID " + locationId + " does not exist.")
-        );
-
-        if (!Objects.equals(existingLocation.getCar().getHost().getEmail(), email)) throw new RuntimeException("Owner of this car can only update Location");
-
-        // Update the existing location with new values
-        existingLocation.setAddress(locationDto.getAddress()==null?existingLocation.getAddress():locationDto.getAddress());
-        existingLocation.setCity(locationDto.getCity()==null?existingLocation.getCity():locationDto.getCity());
-        existingLocation.setLatitude(locationDto.getLatitude());
-        existingLocation.setLongitude(locationDto.getLongitude());
+    @Transactional
+    public ResponseEntity<ApiResponseObject> updateLocation(LocationDto locationDto, Long locationId, String email) {
+        log.info("Updating location ID: {} by user: {}", locationId, email);
 
         try {
-            // Save the updated location
-            Location updatedLocation = locationRepository.save(existingLocation);
+            validateLocationDto(locationDto);
 
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The Location is updated", true, modelMapper.map(updatedLocation, LocationDto.class)),
-                    HttpStatus.ACCEPTED); // Use ACCEPTED (202) for updates
+            Location existingLocation = locationRepository.findById(locationId)
+                    .orElseThrow(() -> {
+                        log.error("Location not found with ID: {}", locationId);
+                        return new LocationNotFoundException("Location with ID " + locationId + " does not exist.");
+                    });
+
+            validateCarOwnership(existingLocation.getCar(), email, "update location");
+
+            updateLocationFields(existingLocation, locationDto);
+
+            Location updatedLocation = locationRepository.save(existingLocation);
+            log.info("Successfully updated location ID: {}", locationId);
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ApiResponseObject(
+                            "Location updated successfully",
+                            true,
+                            modelMapper.map(updatedLocation, LocationDto.class)
+                    ));
+
+        } catch (LocationNotFoundException | InvalidLocationDataException e) {
+            throw e;
         } catch (Exception e) {
-            throw new DatabaseException("Error while updating the location.");
+            log.error("Error updating location ID: {}", locationId, e);
+            throw new DatabaseException("Error while updating the location");
         }
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> getLocation(Long locationId) {
-        // Find the location by ID
-        Location existingLocation = locationRepository.findById(locationId).orElseThrow(() ->
-                new LocationNotFoundException("Location with ID " + locationId + " does not exist.")
-        );
-
-        return new ResponseEntity<>(new ApiResponseObject(
-                "The Location is retrieved", true, modelMapper.map(existingLocation, LocationDto.class)),
-                HttpStatus.OK);
-    }
-
-// Not able to delete the location
-    @Override
-    public ResponseEntity<ApiResponseObject> deleteLocation(Long locationId) {
-        // Find the location to delete
-        Location existingLocation = locationRepository.findById(locationId).orElseThrow(() ->
-                new LocationNotFoundException("Location with ID " + locationId + " does not exist.")
-        );
+        log.info("Fetching location with ID: {}", locationId);
 
         try {
-            // Delete the location
-            locationRepository.delete(existingLocation);
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The location is deleted successfully", true, null), HttpStatus.OK);
+            Location location = locationRepository.findById(locationId)
+                    .orElseThrow(() -> {
+                        log.error("Location not found with ID: {}", locationId);
+                        return new LocationNotFoundException("Location with ID " + locationId + " does not exist.");
+                    });
+
+            log.info("Successfully retrieved location ID: {}", locationId);
+
+            return ResponseEntity.ok(new ApiResponseObject(
+                    "Location retrieved successfully",
+                    true,
+                    modelMapper.map(location, LocationDto.class))
+            );
+
+        } catch (LocationNotFoundException e) {
+            throw e;
         } catch (Exception e) {
-            throw new DatabaseException("Error while deleting the location.");
+            log.error("Error fetching location ID: {}", locationId, e);
+            throw new DatabaseException("Error while retrieving the location");
         }
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<ApiResponseObject> deleteLocation(Long locationId) {
+        log.info("Deleting location with ID: {}", locationId);
+
+        try {
+            Location location = locationRepository.findById(locationId)
+                    .orElseThrow(() -> {
+                        log.error("Location not found with ID: {}", locationId);
+                        return new LocationNotFoundException("Location with ID " + locationId + " does not exist.");
+                    });
+
+            locationRepository.delete(location);
+            log.info("Successfully deleted location ID: {}", locationId);
+
+            return ResponseEntity.ok(new ApiResponseObject(
+                    "Location deleted successfully",
+                    true,
+                    null)
+            );
+
+        } catch (LocationNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error deleting location ID: {}", locationId, e);
+            throw new DatabaseException("Error while deleting the location");
+        }
+    }
+
+    private void validateLocationDto(LocationDto locationDto) {
+        if (locationDto == null) {
+            throw new InvalidLocationDataException("Location data cannot be null");
+        }
+        if (!StringUtils.hasText(locationDto.getAddress())) {
+            throw new InvalidLocationDataException("Address cannot be empty");
+        }
+        if (!StringUtils.hasText(locationDto.getCity())) {
+            throw new InvalidLocationDataException("City cannot be empty");
+        }
+    }
+
+    private void validateCarOwnership(Car car, String email, String operation) {
+        if (!Objects.equals(car.getHost().getEmail(), email)) {
+            log.warn("Unauthorized {} attempt by {} for car ID: {}", operation, email, car.getCarId());
+            throw new UnauthorizedAccessException("Only the car owner can " + operation);
+        }
+    }
+
+    private void updateLocationFields(Location location, LocationDto locationDto) {
+        if (StringUtils.hasText(locationDto.getAddress())) {
+            location.setAddress(locationDto.getAddress());
+        }
+        if (StringUtils.hasText(locationDto.getCity())) {
+            location.setCity(locationDto.getCity());
+        }
+
     }
 }

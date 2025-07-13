@@ -15,6 +15,7 @@ import { useAuthStore } from '../../../stores/authStore';
 import HostInfo from '../../components/rentComponents/HostInfo';
 import ReviewsSection from '../../components/rentComponents/ReviewsSection';
 import LocationMap from '../../components/rentComponents/LocationMap';
+import CarPageSkeleton from '../../components/carPageComponents/CarPageSkeleton';
 
 const page = () => {
   const { id } = useParams();
@@ -55,9 +56,7 @@ const page = () => {
   };
   if (loading) {
     return (
-      <div className="w-full min-h-screen flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin" />
-      </div>
+      <CarPageSkeleton/>
     );
   }
   if (error) {

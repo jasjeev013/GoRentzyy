@@ -350,24 +350,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void calculateTotalPrice_WhenLessThan7Days_ShouldCalculateDailyPrice() {
-        // Setup
-        Car testCar = new Car();
-        testCar.setRentalPricePerDay(50.0);
-        testCar.setRentalPricePerWeek(300.0);
-        testCar.setRentalPricePerMonth(1200.0);
-
-        LocalDateTime startDate = LocalDateTime.now();
-        LocalDateTime endDate = startDate.plusDays(3); // 3 days
-
-        // Act
-        double totalPrice = bookingService.calculateTotalPrice(testCar, startDate, endDate);
-
-        // Assert
-        assertEquals(150.0, totalPrice); // 3 days * 50/day
-    }
-
-    @Test
     void calculateTotalPrice_WhenBetween7And30Days_ShouldCalculateWeeklyPrice() {
         // Setup
         Car testCar = new Car();

@@ -8,6 +8,9 @@ public interface RedisService {
 
     <T> Optional<T> get(String key, Class<T> responseClass);
     void set(String key, Object o, Duration ttl);
+    void delete(String key);
+    Boolean hasKey(String key);
+    Boolean expire(String key, Duration ttl);
 
     <T> Optional<List<T>> getList(String key, Class<T> elementClass);
     

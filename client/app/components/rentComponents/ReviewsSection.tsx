@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star, StarHalf, User } from 'lucide-react';
 import { useAuthStore } from '../../../stores/authStore';
 import { api } from '../../../app/api/config';
+import { reviewService } from '../../api/review/service';
 
 interface Review {
   reviewId: number;
@@ -25,6 +26,7 @@ const ReviewsSection = ({ reviews, carId }: ReviewsSectionProps) => {
     rating: 5,
     comment: ''
   });
+  const {addReview} = reviewService;
   const [submitting, setSubmitting] = useState(false);
   const [allReviews, setAllReviews] = useState(reviews);
 
@@ -34,20 +36,20 @@ const ReviewsSection = ({ reviews, carId }: ReviewsSectionProps) => {
 
     setSubmitting(true);
     try {
-      const response = await api.post(`/api/review/create/${carId}`, {
+      const response = await addReview(carId, {
         rating: newReview.rating,
         comments: newReview.comment
       });
-
-      setAllReviews([...allReviews, {
+      console.log('Review submitted:', response);
+      /*setAllReviews([...allReviews, {
         ...response.data,
         user: {
           fullName: userData?.fullName || 'You',
           profilePicture: userData?.profilePicture
         }
-      }]);
+      }]);*/
 
-      setNewReview({ rating: 5, comment: '' });
+      // setNewReview({ rating: 5, comment: '' });
     } catch (error) {
       console.error('Failed to submit review:', error);
     } finally {

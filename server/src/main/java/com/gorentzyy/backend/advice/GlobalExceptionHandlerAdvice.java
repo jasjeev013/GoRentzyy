@@ -124,9 +124,77 @@ public class GlobalExceptionHandlerAdvice {
         return new ResponseEntity<>(new ErrorResponse("Invalid InvalidFileTypeException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
     @ExceptionHandler(FileSizeExceededException.class)
-    public ResponseEntity<ErrorResponse> handleFileSizeExceededException(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleFileSizeExceededException(FileSizeExceededException ex) {
         logger.error("Unhandled Exception: {}", ex.getMessage());
         return new ResponseEntity<>(new ErrorResponse("Invalid FileSizeExceededException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid AuthenticationException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(InvalidFileException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFileException(InvalidFileException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid InvalidFileException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(EmailSendingException.class)
+    public ResponseEntity<ErrorResponse> handleEmailSendingException(EmailSendingException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid EmailSendingException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(LocationAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleLocationAlreadyExistsException(LocationAlreadyExistsException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid LocationAlreadyExistsException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(InvalidLocationDataException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidLocationDataException(InvalidLocationDataException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid InvalidLocationDataException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid UnauthorizedAccessException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(InvalidNotificationDataException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidNotificationDataException(InvalidNotificationDataException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid InvalidNotificationDataException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(OAuthAuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleOAuthAuthenticationException(OAuthAuthenticationException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid InvalidNotificationDataException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(InvalidPaymentDataException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPaymentDataException(InvalidPaymentDataException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid InvalidPaymentDataException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(RedisOperationException.class)
+    public ResponseEntity<ErrorResponse> handleRedisOperationException(RedisOperationException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid RedisOperationException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(DuplicateReviewException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateReviewException(DuplicateReviewException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid DuplicateReviewException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    @ExceptionHandler(InvalidReviewException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidReviewException(InvalidReviewException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid InvalidReviewException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }    @ExceptionHandler(ReviewProcessingException.class)
+    public ResponseEntity<ErrorResponse> handleReviewProcessingException(ReviewProcessingException ex) {
+        logger.error("Unhandled Exception: {}", ex.getMessage());
+        return new ResponseEntity<>(new ErrorResponse("Invalid ReviewProcessingException", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

@@ -1,87 +1,35 @@
-[
-    {
-        "bookingId": 14,
-        "startDate": "2025-10-20T04:30:00",
-        "endDate": "2026-05-27T04:30:00",
-        "totalPrice": 70009000,
-        "status": "CONFIRMED",
-        "car": {
-            "host": {
-                "userId": 1,
-                "fullName": "Jasjeev Singh Kohli",
-                "email": "jasjeev1@gmail.com",
-                "phoneNumber": "9013511256",
-                "address": "Vishnu garden",
-                "role": "HOST",
-                "emailVerified": true,
-                "phoneNumberVerified": false,
-                "profilePicture": "http://res.cloudinary.com/dt8ndepvi/image/upload/v1747830476/e8kbdw6hrc7xngsk4in0.jpg",
-                "createdAt": "2025-05-21T17:57:49.202466",
-                "updatedAt": "2025-05-21T17:57:49.202466"
-            },
-            "carId": 4,
-            "name": "Porchse 911",
-            "make": "Porsche",
-            "model": "911",
-            "year": 2019,
-            "color": "Silver",
-            "registrationNumber": "MAS23912S",
-            "photos": [
-                "http://res.cloudinary.com/dt8ndepvi/image/upload/v1748088767/fqwlkcjvouaddsetswp0.jpg",
-                "http://res.cloudinary.com/dt8ndepvi/image/upload/v1748088769/cas1gzht7yvhyaonflqa.jpg"
-            ],
-            "carCategory": "SEDAN",
-            "carType": "ECONOMY",
-            "fuelType": "PETROL",
-            "transmissionMode": "AUTOMATIC",
-            "seatingCapacity": 10,
-            "luggageCapacity": 10,
-            "rentalPricePerDay": 1000,
-            "rentalPricePerWeek": 100000,
-            "rentalPricePerMonth": 10000000,
-            "availabilityStatus": "AVAILABLE",
-            "maintenanceDueDate": "2025-08-29T20:43:00",
-            "createdAt": "2025-05-24T17:42:42.371144",
-            "updatedAt": "2025-05-24T19:35:02.146178",
-            "insurance": "Comprehensive Insurance",
-            "roadSideAssistance": null,
-            "fuelPolicy": "Full To full Policy",
-            "features": "GPS,Bluetooth",
-            "importantPoints": "No smoking",
-            "location": {
-                "locationId": 2,
-                "city": "New Delhi",
-                "address": "123 Main Street ",
-                "latitude": 25.893812204878866,
-                "longitude": 82.02149334766864
-            },
-            "reviews": []
-        },
-        "renter": {
-            "userId": 3,
-            "fullName": "Ayush Verma",
-            "email": "ayush1@gmail.com",
-            "phoneNumber": "90321834533",
-            "address": "JamnaParr",
-            "role": "RENTER",
-            "emailVerified": false,
-            "phoneNumberVerified": false,
-            "profilePicture": "http://res.cloudinary.com/dt8ndepvi/image/upload/v1747906999/ajx2monbtmthsccsxq1w.jpg",
-            "createdAt": "2025-05-22T14:51:05.214027",
-            "updatedAt": "2025-05-22T14:51:05.214027"
-        },
-        "payment": {
-            "paymentId": 8,
-            "paymentDate": null,
-            "amount": 1180,
-            "paymentMethod": null,
-            "paymentStatus": "SUCCESSFUL",
-            "refundStatus": null,
-            "razorpayOrderId": "order_QlSw97SJroWj8V",
-            "razorpayPaymentId": "pay_QlSwjJkNHEZ9oM",
-            "createdAt": "2025-06-25T20:12:19.808997",
-            "updatedAt": "2025-06-25T20:13:12.343496"
-        }
-    },
-    // More bookings
-]
+@PreAuthorize("hasAuthority('ROLE_RENTER')")
+    @PostMapping("/create/{carId}")
+    public ResponseEntity<ApiResponseObject> createReview(@Valid @RequestBody ReviewDto reviewDto, Authentication authentication, @PathVariable Long carId){
+        String email = authentication.getName();
+        System.out.println(authentication.getAuthorities());
+        return reviewService.createReview(reviewDto,email,carId);
+    }
+
+    
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReviewDto implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private Long reviewId;
+
+    @Min(value = 1, message = "Rating must be at least 1")
+    @Max(value = 5, message = "Rating cannot be more than 5")
+    private int rating;
+
+    @Size(max = 500, message = "Comments cannot exceed 500 characters")
+    private String comments;
+
+    @PastOrPresent(message = "Review date must be in the past or present")
+    private LocalDateTime createdAt;
+
+/*
+    private Booking booking;
+    private User reviewer;
+  */
+}

@@ -1,26 +1,17 @@
 // /auth/service.ts
 import axios from "axios";
 import { api } from "../config";
+import { ApiResponseObject, LoginResponse, RegisterDto, UserDto } from "../../types";
 
-interface LoginResponse {
-  status: string;
-  jwtToken: string;
-  role: string;
-}
 
-interface UserData {
-  userId: number;
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-  role: string;
-  createdAt: string;
-  updatedAt: string;
-  emailVerified: boolean;
-  phoneNumberVerified: boolean;
-  profilePicture: string;
-}
+
+
+const axiosInstance = axios.create({
+      baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
 export const authService = {
   login: async (username: string, password: string): Promise<LoginResponse> => {
@@ -29,33 +20,26 @@ export const authService = {
     return response.data;
   },
 
-  getUserData: async (token: string): Promise<UserData> => {
+  getUserData: async (token: string): Promise<ApiResponseObject<UserDto>> => {
     const response = await api.get("/api/user/get", {
       headers: {
         Authorization: token,
       },
     });
 
-    return response.data.object;
+    return response.data;
   },
 
-  register: async (userData: {
-    fullName: string;
-    email: string;
-    phoneNumber: string;
-    address: string;
-    role: string;
-    password: string;
-  }): Promise<UserData> => {
+  register: async (userData: RegisterDto): Promise<ApiResponseObject<UserDto>> => {
     const response = await api.post("/api/user/create", userData);
-    return response.data.object;
+    return response.data;
   },
 
   updateUserData: async (
-    userData: Partial<UserData>,
+    userData: Partial<UserDto>,
     image: File | null,
     token: string
-  ): Promise<UserData> => {
+  ): Promise<ApiResponseObject<UserDto>> => {
     const formData = new FormData();
 
     // Append user data as JSON
@@ -78,17 +62,12 @@ export const authService = {
       },
     });
 
-    return response.data.object;
+    return response.data;
   },
   exchangeCodeForToken: async (code: string) => {
     console.log("Google OAuth callback received 5");
 
-    const axiosInstance = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    
 
     try {
       const response = await axiosInstance.post("/api/google/callback", {
@@ -109,7 +88,7 @@ export const authService = {
     return response.data;
   },
 
-  verifyEmailOTP: async (token: string, otp: string): Promise<{ status: string }> => {
+  verifyEmailOTP: async (token: string, otp: string): Promise<{ result: boolean }> => {
     const response = await api.post(
       "/api/user/verifyOTPEmail",
       { token: otp },
@@ -119,6 +98,25 @@ export const authService = {
         },
       }
     );
+    console.log('OTP verification response:', response.data);
+    return response.data.result;
+  },
+
+   forgotPassword: async (email: string): Promise<{ result: boolean }> => {
+    const response = await axiosInstance.post("/api/user/forgot-password", { email });
     return response.data;
   },
+
+  validateResetToken: async (token: string): Promise<{ result: boolean }> => {
+    const response = await axiosInstance.get(`/api/user/validate-reset-token?token=${token}`);
+    return response.data;
+  },
+
+  resetPassword: async (token: string, newPassword: string): Promise<{ result: boolean  }> => {
+    const response = await axiosInstance.post("/api/user/reset-password", { 
+      token, 
+      newPassword 
+    });
+    return response.data;
+  }
 };

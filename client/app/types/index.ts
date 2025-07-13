@@ -7,7 +7,7 @@ export enum CarCategory {
   SUV = "SUV",
   CROSSOVER = "CROSSOVER",
   PICKUP_TRUCK = "PICKUP_TRUCK",
-  MINIVAN = "MINIVAN"
+  MINIVAN = "MINIVAN",
 }
 
 export enum CarType {
@@ -17,7 +17,7 @@ export enum CarType {
   SUPERCAR = "SUPERCAR",
   ELECTRIC = "ELECTRIC",
   HYBRID = "HYBRID",
-  OFF_ROAD = "OFF_ROAD"
+  OFF_ROAD = "OFF_ROAD",
 }
 
 export enum FuelType {
@@ -25,62 +25,60 @@ export enum FuelType {
   DIESEL = "DIESEL",
   ELECTRIC = "ELECTRIC",
   CNG = "CNG",
-  OTHER = "OTHER"
+  OTHER = "OTHER",
 }
 
 export enum AvailabilityStatus {
   AVAILABLE = "AVAILABLE",
   RESERVED = "RESERVED",
-  UNDER_MAINTENANCE = "UNDER_MAINTENANCE"
+  UNDER_MAINTENANCE = "UNDER_MAINTENANCE",
 }
 
 export enum TransmissionMode {
   MANUAL = "MANUAL",
   AUTOMATIC = "AUTOMATIC",
-  IMT = "IMT"
+  IMT = "IMT",
 }
 
 export interface CarListingProps {
-    cars: any[];
-    sortOption: string;
-    onSortChange: (option: string) => void;
+  cars: any[];
+  sortOption: string;
+  onSortChange: (option: string) => void;
 }
 
 export interface CarProps {
-    carId: number;
-    photos: string[];
-    name: string;
-    carCategory: string;
-    carType: string;
-    availabilityStatus: string;
-    rentalPricePerDay: number;
-    rentalPricePerWeek: number;
-    rentalPricePerMonth: number;
-    transmissionMode: string;
-    fuelType: string;
-    luggageCapacity: number;
-    seatingCapacity: number;
-    gridView: boolean; // Added gridView prop
-    host:any
-    reviews:any[]
-    location:any
+  carId: number;
+  photos: string[];
+  name: string;
+  carCategory: string;
+  carType: string;
+  availabilityStatus: string;
+  rentalPricePerDay: number;
+  rentalPricePerWeek: number;
+  rentalPricePerMonth: number;
+  transmissionMode: string;
+  fuelType: string;
+  luggageCapacity: number;
+  seatingCapacity: number;
+  gridView: boolean; // Added gridView prop
+  host: any;
+  reviews: any[];
+  location: any;
 }
 export interface Car {
-
-    carId: number;
-    photos: string[];
-    name: string;
-    carCategory: string;
-    carType: string;
-    availabilityStatus: string;
-    rentalPricePerDay: number;
-    rentalPricePerWeek: number;
-    rentalPricePerMonth: number;
-    transmissionMode: string;
-    fuelType: string;
-    luggageCapacity: number;
-    seatingCapacity: number;
-    
+  carId: number;
+  photos: string[];
+  name: string;
+  carCategory: string;
+  carType: string;
+  availabilityStatus: string;
+  rentalPricePerDay: number;
+  rentalPricePerWeek: number;
+  rentalPricePerMonth: number;
+  transmissionMode: string;
+  fuelType: string;
+  luggageCapacity: number;
+  seatingCapacity: number;
 }
 
 export interface BookingDetailsProps {
@@ -99,7 +97,7 @@ export interface Host {
   email: string;
   phoneNumber: string;
   address: string;
-  role: 'HOST' | 'RENTER'; 
+  role: "HOST" | "RENTER";
   createdAt: string;
   updatedAt: string;
 }
@@ -150,4 +148,46 @@ export interface CarDetails {
   reviews: Review[];
 }
 
+// ----------------------------------------------------------------------
 
+export interface LoginResponse {
+  status: string;
+  jwtToken: string;
+  role: string;
+  emailVerify: boolean;
+}
+
+export interface RegisterDto {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  role: string;
+  password: string;
+}
+
+export interface ApiResponseObject<T> {
+  message: string;
+  result: boolean;
+  object: T;
+}
+
+export interface ApiResponseData<T> {
+  message: string;
+  result: boolean;
+  data: T[];
+}
+
+export interface UserDto {
+  userId: number;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  role: string;
+  emailVerified: boolean;
+  phoneNumberVerified: boolean;
+  profilePicture: string;
+  createdAt: string;
+  updatedAt: string;
+}

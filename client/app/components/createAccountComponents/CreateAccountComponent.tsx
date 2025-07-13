@@ -6,18 +6,14 @@ import { Button } from '../../../components/ui/button';
 import { Label } from '../../../components/ui/label';
 import { signIn } from 'next-auth/react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { useRegister } from '../../../hooks/useRegister';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../../../components/ui/select';
+import { redirect, useRouter } from 'next/navigation';
+import {Select, SelectContent,SelectItem,SelectTrigger,SelectValue,} from '../../../components/ui/select';
+import OTPVerificationPopup from '../dashboardComponents/OTPVerificationPopupComponent';
+import { useAuth } from '../../../hooks/useAuth';
 
 const CreateAccountComponent = () => {
   const router = useRouter();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,7 +25,8 @@ const CreateAccountComponent = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
-  const { register } = useRegister();
+  const [showOTPVerification, setShowOTPVerification] = useState(false);
+  const {register} = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,8 +57,8 @@ const CreateAccountComponent = () => {
     if (!passwordMatch || !formData.role) return;
 
     setIsLoading(true);
-    
-    const result = await register({
+
+    const response = await register({
       fullName: formData.name,
       email: formData.email,
       phoneNumber: formData.phone,
@@ -69,11 +66,12 @@ const CreateAccountComponent = () => {
       role: formData.role,
       address: formData.address
     });
-    
-    if (result.success) {
-      router.back();
+
+    if (response.success) {
+       setShowOTPVerification(true);
+      // router.back();
     }
-    
+
     setIsLoading(false);
   };
 
@@ -369,6 +367,15 @@ const CreateAccountComponent = () => {
           </motion.div>
         </div>
       </motion.div>
+      {showOTPVerification && (
+        <OTPVerificationPopup
+          email={formData.email} // or the email from registration form
+          onClose={() => setShowOTPVerification(false)}
+          onVerificationSuccess={() => {
+            redirect('/home'); // Redirect to home after successful verification
+          }}
+        />
+      )}
     </div>
   );
 };

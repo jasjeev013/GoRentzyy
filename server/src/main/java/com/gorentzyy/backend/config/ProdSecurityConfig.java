@@ -72,7 +72,7 @@ public class ProdSecurityConfig {
                         // Public routes
                         .requestMatchers("/api/user/create","/api/car/getByC","/api/car/getByCT","/api/car/get/{carId}",
                                 "/api/car/getByMM","/api/car/getAll","/api/google/callback",
-                                "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email").permitAll()
+                                "/api/user/login", "/api/test/","/api/cloudinary/upload","/api/test/email","/api/user/forgot-password","/api/user/validate-reset-token","/api/user/reset-password","/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         // User routes (Authenticated)
                         .requestMatchers("/api/user/update", "/api/user/get", "/api/user/get/{userId}",

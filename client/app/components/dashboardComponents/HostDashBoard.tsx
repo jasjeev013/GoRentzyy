@@ -1,3 +1,4 @@
+// app/components/dashboardComponents/HostDashBoard.tsx
 import React from 'react'
 import { CarIcon, UsersIcon, GaugeIcon, CalendarCheckIcon, TrendingUpIcon, TrendingDownIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '../../../components/ui/avatar'
@@ -108,7 +109,6 @@ const HostDashBoard = ({ hostCars, hostBookings }) => {
                 />
             </div>
 
-      // In the Chart Section of HostDashBoard.tsx
             <div className="bg-gray-800 rounded-lg p-4 mb-6">
                 <h2 className="text-xl font-bold mb-4">Bookings last 7 days</h2>
                 <div className="h-80">

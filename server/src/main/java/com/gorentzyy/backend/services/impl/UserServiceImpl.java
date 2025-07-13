@@ -6,21 +6,21 @@ import com.gorentzyy.backend.exceptions.*;
 import com.gorentzyy.backend.models.LoginRequest;
 import com.gorentzyy.backend.models.LoginResponse;
 import com.gorentzyy.backend.models.User;
-import com.gorentzyy.backend.payloads.ApiResponseObject;
-import com.gorentzyy.backend.payloads.NotificationDto;
-import com.gorentzyy.backend.payloads.UserDto;
+import com.gorentzyy.backend.payloads.*;
 import com.gorentzyy.backend.repositories.UserRepository;
 import com.gorentzyy.backend.services.*;
 import com.gorentzyy.backend.utils.JwtUtils;
+import org.hibernate.service.spi.ServiceException;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,8 +30,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
@@ -39,7 +39,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final String CACHE_KEY_PREFIX = "user:";
+    private static final Duration CACHE_TTL = Duration.ofMinutes(10);
+
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
@@ -51,8 +54,18 @@ public class UserServiceImpl implements UserService {
     private final SMSService smsService;
     private final NotificationService notificationService;
 
+    @Value("${app.reset-password.expiry-millis}")
+    private long resetTokenExpiryMillis;
+
+    @Value("${app.reset-password.deep-link-base}")
+    private String deepLinkBase;
+
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService, EmailService emailService, AuthenticationManager authenticationManager, RedisService redisService, JwtUtils jwtUtils, SMSService smsService, NotificationService notificationService) {
+    public UserServiceImpl(UserRepository userRepository, ModelMapper modelMapper,
+                           PasswordEncoder passwordEncoder, CloudinaryService cloudinaryService,
+                           EmailService emailService, AuthenticationManager authenticationManager,
+                           RedisService redisService, JwtUtils jwtUtils, SMSService smsService,
+                           NotificationService notificationService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
@@ -67,39 +80,58 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<ApiResponseObject> createNewUser(UserDto userDto) {
-        if (userRepository.existsByEmail(userDto.getEmail())) {
-            logger.error("User already exists with email: {}", userDto.getEmail());
-            throw new UserAlreadyExistsException("A user with this email already exists.");
-        }
-        // Map DTO to Entity
-        User newUser = modelMapper.map(userDto, User.class);
-        System.out.println(newUser);
-        // Set the createdAt and updatedAt fields
-        LocalDateTime now = LocalDateTime.now();
-        newUser.setCreatedAt(now);
-        newUser.setUpdatedAt(now);
-
-        newUser.setEmailVerified(false);
-        newUser.setPhoneNumberVerified(false);
+        logger.info("Attempting to create new user with email: {}", userDto.getEmail());
 
         try {
-            // Hash the password before saving the user
-            String hashedPassword = passwordEncoder.encode(newUser.getPassword());
-            newUser.setPassword(hashedPassword);
-        } catch (Exception e) {  // Changed from BadCredentialsException to Exception
-            logger.error("Failed to hash password for user: {}", userDto.getEmail(), e);
-            throw new PasswordHashingException("Failed to hash password.");
-        }
+            // Validate email uniqueness
+            if (userRepository.existsByEmail(userDto.getEmail())) {
+                logger.warn("User creation failed - email already exists: {}", userDto.getEmail());
+                throw new UserAlreadyExistsException("A user with this email already exists.");
+            }
 
-        try {
+            // Map DTO to Entity
+            User newUser = modelMapper.map(userDto, User.class);
+            LocalDateTime now = LocalDateTime.now();
+
+            // Set user properties
+            newUser.setCreatedAt(now);
+            newUser.setUpdatedAt(now);
+            newUser.setEmailVerified(false);
+            newUser.setPhoneNumberVerified(false);
+
+            // Hash password
+            try {
+                String hashedPassword = passwordEncoder.encode(newUser.getPassword());
+                newUser.setPassword(hashedPassword);
+            } catch (Exception e) {
+                logger.error("Password hashing failed for user: {}", userDto.getEmail(), e);
+                throw new PasswordHashingException("Failed to hash password.");
+            }
+
+            // Save user
             User savedUser = userRepository.save(newUser);
             UserDto savedUserDto = modelMapper.map(savedUser, UserDto.class);
-            ApiResponseObject response = new ApiResponseObject(
-                    "User Created Successfully", true, savedUserDto);
-            emailService.sendEmail(savedUser.getEmail(), EmailConstants.getNewUserCreatedSubject, EmailConstants.getNewUserCreatedBody(savedUserDto.getFullName()));
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (DataIntegrityViolationException | DatabaseException | ObjectOptimisticLockingFailureException e) {
-            logger.error("Database integrity violation when saving user: {}", userDto.getEmail());
+
+            // Send welcome email asynchronously
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendEmail(savedUser.getEmail(),
+                            EmailConstants.getNewUserCreatedSubject,
+                            EmailConstants.getNewUserCreatedBody(savedUserDto.getFullName()));
+                    logger.info("Welcome email sent to: {}", savedUser.getEmail());
+                } catch (Exception e) {
+                    logger.error("Failed to send welcome email to: {}", savedUser.getEmail(), e);
+                }
+            });
+
+            logger.info("User created successfully with email: {}", userDto.getEmail());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(new ApiResponseObject("User Created Successfully", true, savedUserDto));
+
+        } catch (UserAlreadyExistsException | PasswordHashingException e) {
+            throw e; // Re-throw specific exceptions
+        } catch (DataIntegrityViolationException e) {
+            logger.error("Database integrity violation when saving user: {}", userDto.getEmail(), e);
             throw new DatabaseException("Database integrity violation occurred while saving the user.");
         } catch (Exception e) {
             logger.error("Unexpected error during user creation for email: {}", userDto.getEmail(), e);
@@ -109,58 +141,126 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity<LoginResponse> loginUser(LoginRequest loginRequest) {
-        String jwt = "";
-        String role = "";
-        Authentication authentication = UsernamePasswordAuthenticationToken.unauthenticated(loginRequest.username(),
-                loginRequest.password());
-        Authentication authenticationResponse = authenticationManager.authenticate(authentication);
-        if (null != authenticationResponse && authenticationResponse.isAuthenticated()) {
-            role = authenticationResponse.getAuthorities().stream().map(
-                    GrantedAuthority::getAuthority
-            ).collect(Collectors.joining(","));
-            jwt = jwtUtils.createToken(authentication.getName(), role);
-            emailService.sendEmail(authenticationResponse.getName(), EmailConstants.getUserLoginSubject, EmailConstants.getUserLoginBody(authenticationResponse.getName()));
-            notificationService.addServerSideNotification(new NotificationDto("Logged In Successfully", "A new login detected", AppConstants.Type.REMINDER, LocalDateTime.now()), authenticationResponse.getName());
+        logger.info("Login attempt for username: {}", loginRequest.username());
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.username(),
+                            loginRequest.password()
+                    )
+            );
+
+            if (!authentication.isAuthenticated()) {
+                logger.warn("Authentication failed for username: {}", loginRequest.username());
+                throw new BadCredentialsException("Invalid username or password");
+            }
+
+            // Generate JWT token
+            String role = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.joining(","));
+
+            String jwt = jwtUtils.createToken(authentication.getName(), role);
+
+            // Send login notification asynchronously
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendEmail(authentication.getName(),
+                            EmailConstants.getUserLoginSubject,
+                            EmailConstants.getUserLoginBody(authentication.getName()));
+
+                    notificationService.addServerSideNotification(
+                            new NotificationDto("Logged In Successfully",
+                                    "A new login detected",
+                                    AppConstants.Type.REMINDER,
+                                    LocalDateTime.now()),
+                            authentication.getName());
+
+                    logger.info("Login notifications sent for user: {}", authentication.getName());
+                } catch (Exception e) {
+                    logger.error("Failed to send login notifications for user: {}", authentication.getName(), e);
+                }
+            });
+
+            boolean emailVerified = userRepository.isEmailVerifiedByEmail(authentication.getName())
+                    .orElse(false);
+
+            logger.info("User {} logged in successfully", loginRequest.username());
+            return ResponseEntity.ok(new LoginResponse(
+                    HttpStatus.OK.getReasonPhrase(),
+                    jwt,
+                    role,
+                    emailVerified));
+
+        } catch (BadCredentialsException e) {
+            logger.warn("Invalid login attempt for username: {}", loginRequest.username());
+            throw new AuthenticationException("Invalid username or password");
+        } catch (Exception e) {
+            logger.error("Unexpected error during login for username: {}", loginRequest.username(), e);
+            throw new AuthenticationException("Login failed due to technical error");
         }
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(), jwt, role));
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> updateProfilePhoto(MultipartFile file, String emailId) {
-        User existingUser = userRepository.findByEmail(emailId).orElseThrow(() ->
-                new UserNotFoundException("User with Email ID " + emailId + " does not exist.")
-        );
-        Map savedPhoto = cloudinaryService.upload(file);
-        existingUser.setProfilePicture((String) savedPhoto.get("url"));
-        userRepository.save(existingUser);
-        return new ResponseEntity<>(new ApiResponseObject(
-                "Profile photo added successfully", true, null
-        ), HttpStatus.ACCEPTED);
+        logger.info("Updating profile photo for user: {}", emailId);
+
+        try {
+            User existingUser = userRepository.findByEmail(emailId)
+                    .orElseThrow(() -> new UserNotFoundException("User with Email ID " + emailId + " does not exist."));
+
+            // Validate file
+            if (file == null || file.isEmpty()) {
+                logger.warn("Empty file provided for user: {}", emailId);
+                throw new InvalidFileException("Profile photo file is required");
+            }
+
+            // Upload new photo
+            Map uploadResult = cloudinaryService.upload(file);
+            String photoUrl = (String) uploadResult.get("url");
+
+            if (photoUrl == null) {
+                logger.error("Cloudinary upload failed for user: {}", emailId);
+                throw new CloudinaryUploadException("Failed to upload profile photo");
+            }
+
+            // Update user
+            existingUser.setProfilePicture(photoUrl);
+            userRepository.save(existingUser);
+
+            // Invalidate cache
+            invalidateUserCache(emailId);
+
+            logger.info("Profile photo updated successfully for user: {}", emailId);
+            return ResponseEntity.accepted()
+                    .body(new ApiResponseObject("Profile photo added successfully", true, null));
+
+        } catch (UserNotFoundException | InvalidFileException | CloudinaryUploadException e) {
+            throw e; // Re-throw specific exceptions
+        } catch (Exception e) {
+            logger.error("Error updating profile photo for user: {}", emailId, e);
+            throw new DatabaseException("Error updating profile photo");
+        }
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> updateUserByEmail(UserDto userDto, String emailId, MultipartFile multipartFile) {
-        // Check if user exists by email
-        User existingUser = userRepository.findByEmail(emailId).orElseThrow(() ->
-                new UserNotFoundException("User with Email ID " + emailId + " does not exist.")
-        );
-        LocalDateTime now = LocalDateTime.now();
-        existingUser.setCreatedAt(now);
-        existingUser.setUpdatedAt(now);
-        existingUser.setFullName(userDto.getFullName());
-        existingUser.setPhoneNumber(userDto.getPhoneNumber());
-        existingUser.setAddress(userDto.getAddress());
+        logger.info("Updating user profile for email: {}", emailId);
 
         try {
+            User existingUser = userRepository.findByEmail(emailId)
+                    .orElseThrow(() -> new UserNotFoundException("User with Email ID " + emailId + " does not exist."));
 
+            // Update basic info
+            existingUser.setUpdatedAt(LocalDateTime.now());
+            existingUser.setFullName(userDto.getFullName());
+            existingUser.setPhoneNumber(userDto.getPhoneNumber());
+            existingUser.setAddress(userDto.getAddress());
+
+            // Handle profile photo update if provided
             if (multipartFile != null && !multipartFile.isEmpty()) {
-                if (!multipartFile.getContentType().startsWith("image/")) {
-                    throw new InvalidFileTypeException("Only image files are allowed");
-                }
-                if (multipartFile.getSize() > 5 * 1024 * 1024) { // 5MB limit
-                    throw new FileSizeExceededException("File size exceeds maximum limit of 5MB");
-                }
+                validateProfilePhoto(multipartFile);
 
                 Map uploadResult = cloudinaryService.upload(multipartFile);
                 String photoUrl = (String) uploadResult.get("url");
@@ -169,226 +269,456 @@ public class UserServiceImpl implements UserService {
                     throw new CloudinaryUploadException("Failed to upload profile photo");
                 }
 
-                // Delete old photo from Cloudinary if exists
-                /*if (existingUser.getProfilePicture() != null) {
-                    try {
-                        cloudinaryService.delete(existingUser.getProfilePicture());
-                    } catch (Exception e) {
-                        logger.warn("Failed to delete old profile picture from Cloudinary", e);
-                    }
-                }*/
-
                 existingUser.setProfilePicture(photoUrl);
             }
 
-            // Save the updated user
+            // Save updated user
             User updatedUser = userRepository.save(existingUser);
             UserDto savedUserDto = modelMapper.map(updatedUser, UserDto.class);
 
-            // Return a response with updated user information
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "User updated successfully",
-                    true,
-                    savedUserDto
-            ), HttpStatus.ACCEPTED);
+            // Invalidate cache
+            invalidateUserCache(emailId);
 
-        } catch (DataIntegrityViolationException e) {
-            throw new DatabaseException("Error while updating user in the database.");
-        } catch (InvalidFileTypeException | FileSizeExceededException | CloudinaryUploadException e) {
+            logger.info("User profile updated successfully for email: {}", emailId);
+            return ResponseEntity.accepted()
+                    .body(new ApiResponseObject("User updated successfully", true, savedUserDto));
+
+        } catch (UserNotFoundException | InvalidFileTypeException |
+                 FileSizeExceededException | CloudinaryUploadException e) {
             throw e; // Re-throw specific exceptions
+        } catch (DataIntegrityViolationException e) {
+            logger.error("Database error updating user: {}", emailId, e);
+            throw new DatabaseException("Error while updating user in the database.");
         } catch (Exception e) {
-            logger.error("Error updating user profile", e);
+            logger.error("Unexpected error updating user: {}", emailId, e);
             throw new DatabaseException("An unexpected error occurred while updating the user.");
         }
     }
 
-    // Redis Enabled
     @Override
     public ResponseEntity<ApiResponseObject> getUserById(Long userId) {
-
-        // Log the incoming request
-        logger.info("Fetching user with ID: {}", userId);
+        logger.info("Fetching user by ID: {}", userId);
 
         try {
-
+            // Try cache first
+            String cacheKey = CACHE_KEY_PREFIX + userId;
             if (redisService != null) {
-                Optional<UserDto> cachedUser = redisService.get(String.valueOf(userId), UserDto.class);
+                Optional<UserDto> cachedUser = redisService.get(cacheKey, UserDto.class);
                 if (cachedUser.isPresent()) {
-                    logger.debug("User found in cache for userId: {}", userId);
+                    logger.debug("Cache hit for user ID: {}", userId);
                     return ResponseEntity.ok(
                             new ApiResponseObject("User found in cache", true, cachedUser.get())
                     );
                 }
             }
-            // Check if the user exists by userId
-            User existingUser = userRepository.findById(userId).orElseThrow(() ->
-                    new UserNotFoundException("User with ID " + userId + " does not exist.")
-            );
 
-            // Log the successful user retrieval
-            logger.info("User with ID {} found.", userId);
+            // Cache miss - fetch from database
+            User existingUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User with ID " + userId + " does not exist."));
 
-            UserDto exisitingUserDto = modelMapper.map(existingUser, UserDto.class);
+            UserDto userDto = modelMapper.map(existingUser, UserDto.class);
+
+            // Cache the result asynchronously
             if (redisService != null) {
-                try {
-                    // Cache asynchronously to not block the response
-                    CompletableFuture.runAsync(() -> {
-                        redisService.set(String.valueOf(userId), exisitingUserDto, Duration.ofMinutes(10));
-                        logger.debug("Cached user data for userId: {}", userId);
-                    });
-                } catch (Exception e) {
-                    logger.error("Failed to cache user data for userId: {}", userId, e);
-                    // Don't fail the request if caching fails
-                }
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        redisService.set(cacheKey, userDto, CACHE_TTL);
+                        logger.debug("Cached user data for ID: {}", userId);
+                    } catch (Exception e) {
+                        logger.error("Failed to cache user data for ID: {}", userId, e);
+                    }
+                });
             }
 
-            // Return a response with user information
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "The user is found", true, exisitingUserDto
-            ), HttpStatus.OK);
+            logger.info("Successfully retrieved user with ID: {}", userId);
+            return ResponseEntity.ok(
+                    new ApiResponseObject("The user is found", true, userDto)
+            );
 
-        } catch (UserNotFoundException ex) {
-            // Log the error for user not found
-            logger.error("User with ID {} not found.", userId);
-            throw ex;  // This will be handled by your GlobalExceptionHandler
-
+        } catch (UserNotFoundException e) {
+            logger.warn("User not found with ID: {}", userId);
+            throw e;
         } catch (Exception e) {
-            // Log unexpected errors
-            logger.error("Unexpected error while fetching user with ID {}: {}", userId, e.getMessage());
+            logger.error("Error fetching user with ID: {}", userId, e);
             throw new DatabaseException("An error occurred while retrieving the user.");
         }
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> deleteUserByEmail(String email) {
+        logger.info("Deleting user with email: {}", email);
 
         try {
-            // Log the attempt to delete the user
-            logger.info("Attempting to delete user with ID: {}", email);
+            User existingUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("User with email " + email + " does not exist."));
 
-            // Check if user exists by userId
-            User existingUser = userRepository.findByEmail(email).orElseThrow(() ->
-                    new UserNotFoundException("User with ID " + email + " does not exist.")
-            );
-
-            // Delete the user
             userRepository.delete(existingUser);
 
-            // Log successful deletion
-            logger.info("User with ID {} deleted successfully.", email);
+            // Invalidate cache
+            invalidateUserCache(email);
 
-            // Return a response after successful deletion
-            return new ResponseEntity<>(new ApiResponseObject(
-                    "Deleted Successfully", true, null
-            ), HttpStatus.OK);
+            logger.info("Successfully deleted user with email: {}", email);
+            return ResponseEntity.ok(
+                    new ApiResponseObject("Deleted Successfully", true, null)
+            );
 
-        } catch (UserNotFoundException ex) {
-            // Log the error for user not found
-            logger.error("User with ID {} not found for deletion.", email);
-            throw ex;  // Will be handled by the GlobalExceptionHandler
-
+        } catch (UserNotFoundException e) {
+            logger.warn("User not found for deletion: {}", email);
+            throw e;
         } catch (DataIntegrityViolationException e) {
-            // Log constraint violation errors (e.g., foreign key constraints)
-            logger.error("Error deleting user with ID {}: Data integrity violation.", email);
+            logger.error("Data integrity violation while deleting user: {}", email, e);
             throw new DatabaseException("Cannot delete user due to database constraints.");
-
         } catch (Exception e) {
-            // Log unexpected errors
-            logger.error("Unexpected error while deleting user with ID {}: {}", email, e.getMessage());
+            logger.error("Error deleting user: {}", email, e);
             throw new DatabaseException("An error occurred while deleting the user.");
         }
     }
 
-    // Redis Enabled
     @Override
     public ResponseEntity<ApiResponseObject> getUserByEmail(String email) {
         logger.info("Fetching user by email: {}", email);
 
         try {
-            // 1. First try to get from cache
+            // Try cache first
+            String cacheKey = CACHE_KEY_PREFIX + email;
             if (redisService != null) {
-                Optional<UserDto> cachedUser = redisService.get(email, UserDto.class);
+                Optional<UserDto> cachedUser = redisService.get(cacheKey, UserDto.class);
                 if (cachedUser.isPresent()) {
-                    System.out.println("\n\n\n\n Redis Chal Gya \n\n\n\n");
-                    logger.debug("User found in cache for email: {}", email);
+                    logger.debug("Cache hit for user email: {}", email);
                     return ResponseEntity.ok(
                             new ApiResponseObject("User found in cache", true, cachedUser.get())
                     );
                 }
             }
 
-            // 2. If not in cache, fetch from database
-            logger.debug("User not in cache, querying database for email: {}", email);
+            // Cache miss - fetch from database
             User existingUser = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UserNotFoundException("User with email: " + email + " not found"));
 
-            // 3. Map to DTO and cache it
             UserDto userDto = modelMapper.map(existingUser, UserDto.class);
 
+            // Cache the result asynchronously
             if (redisService != null) {
-                try {
-                    // Cache asynchronously to not block the response
-                    CompletableFuture.runAsync(() -> {
-                        redisService.set(email, userDto, Duration.ofMinutes(10));
+                CompletableFuture.runAsync(() -> {
+                    try {
+                        redisService.set(cacheKey, userDto, CACHE_TTL);
                         logger.debug("Cached user data for email: {}", email);
-                    });
-                } catch (Exception e) {
-                    logger.error("Failed to cache user data for email: {}", email, e);
-                    // Don't fail the request if caching fails
-                }
+                    } catch (Exception e) {
+                        logger.error("Failed to cache user data for email: {}", email, e);
+                    }
+                });
             }
 
-            // 4. Return response
+            logger.info("Successfully retrieved user with email: {}", email);
             return ResponseEntity.ok(
                     new ApiResponseObject("User found successfully", true, userDto)
             );
 
-        } catch (UserNotFoundException ex) {
-            logger.error("User not found for email: {}", email);
-            throw ex; // Let GlobalExceptionHandler handle it
-
+        } catch (UserNotFoundException e) {
+            logger.warn("User not found with email: {}", email);
+            throw e;
         } catch (Exception e) {
-            logger.error("Unexpected error fetching user by email {}: {}", email, e.getMessage(), e);
+            logger.error("Error fetching user with email: {}", email, e);
             throw new DatabaseException("Failed to retrieve user data");
         }
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> sendOTPForEmailVerification(String email) {
-        String token = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 999999));
-        // Put in redis for this email
-        redisService.set(email, token, Duration.ofMinutes(2));
+        logger.info("Sending OTP for email verification to: {}", email);
 
-        emailService.sendEmail(email, "Here's your OTP for GORentzyy", "OTP: " + token);
-        return new ResponseEntity<>(new ApiResponseObject("OTP Sent successfully", true, null), HttpStatus.OK);
+        try {
+            // Check if user exists
+            if (!userRepository.existsByEmail(email)) {
+                logger.warn("Attempt to send OTP to non-existent email: {}", email);
+                throw new UserNotFoundException("User with email " + email + " not found");
+            }
+
+            String token = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 999999));
+            redisService.set(email, token, Duration.ofMinutes(2));
+
+            // Send email asynchronously
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendEmail(email, "Here's your OTP for GORentzyy", "OTP: " + token);
+                    logger.info("OTP email sent to: {}", email);
+                } catch (Exception e) {
+                    logger.error("Failed to send OTP email to: {}", email, e);
+                }
+            });
+
+            return ResponseEntity.ok(
+                    new ApiResponseObject("OTP Sent successfully", true, null)
+            );
+
+        } catch (UserNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error sending OTP to: {}", email, e);
+            throw new ServiceException("Failed to send OTP");
+        }
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> validateOTPForEmailVerification(String email, String token) {
-        if (null != redisService) {
-            String cachedToken = String.valueOf(redisService.get(email, String.class).get());
-            if (Objects.equals(cachedToken, token)) {
-                User existingUser = userRepository.findByEmail(email)
-                        .orElseThrow(() -> new UserNotFoundException("User with email: " + email + " not found"));
+        logger.info("Validating OTP for email: {}", email);
 
-                existingUser.setEmailVerified(true);
-                userRepository.save(existingUser);
-                emailService.sendEmail(email, "Verified Email Successfully", "Email is validated Successfully");
+        try {
+            if (redisService == null) {
+                logger.error("Redis service not available for OTP validation");
+                throw new ServiceException("OTP validation service unavailable");
+            }
 
-                return new ResponseEntity<>(new ApiResponseObject("Email Verified Successfully", true, null), HttpStatus.OK);
-            } else return new ResponseEntity<>(new ApiResponseObject("OTP Expired", false, null), HttpStatus.NOT_FOUND);
+            Optional<String> cachedTokenOpt = redisService.get(email, String.class);
+            if (cachedTokenOpt.isEmpty() || !cachedTokenOpt.get().equals(token)) {
+                logger.warn("Invalid or expired OTP for email: {}", email);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ApiResponseObject("Invalid or expired OTP", false, null));
+            }
+
+            User existingUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("User with email: " + email + " not found"));
+
+            existingUser.setEmailVerified(true);
+            userRepository.save(existingUser);
+
+            // Remove used OTP from cache
+            redisService.delete(email);
+
+            // Send confirmation email asynchronously
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendEmail(email, "Verified Email Successfully",
+                            "Email is validated Successfully");
+                    logger.info("Email verification confirmation sent to: {}", email);
+                } catch (Exception e) {
+                    logger.error("Failed to send verification confirmation to: {}", email, e);
+                }
+            });
+
+            return ResponseEntity.ok(
+                    new ApiResponseObject("Email Verified Successfully", true, null)
+            );
+
+        } catch (UserNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error validating OTP for email: {}", email, e);
+            throw new ServiceException("Failed to validate OTP");
         }
-        return new ResponseEntity<>(new ApiResponseObject("Internal Server Error", false, null), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> sendOTpForPhoneNumberVerification(String phoneNumber) {
-        smsService.sendSMS(phoneNumber, "Hello from GoRentzyy");
-        return new ResponseEntity<>(new ApiResponseObject("Message Sent", true, null), HttpStatus.OK);
+        logger.info("Sending OTP for phone number verification: {}", phoneNumber);
+
+        try {
+            // Check if phone number exists
+            if (!userRepository.existsByPhoneNumber(phoneNumber)) {
+                logger.warn("Attempt to send OTP to non-existent phone number: {}", phoneNumber);
+                throw new UserNotFoundException("User with phone number " + phoneNumber + " not found");
+            }
+
+            // Send SMS asynchronously
+            CompletableFuture.runAsync(() -> {
+                try {
+                    smsService.sendSMS(phoneNumber, "Hello from GoRentzyy");
+                    logger.info("OTP SMS sent to: {}", phoneNumber);
+                } catch (Exception e) {
+                    logger.error("Failed to send OTP SMS to: {}", phoneNumber, e);
+                }
+            });
+
+            return ResponseEntity.ok(
+                    new ApiResponseObject("Message Sent", true, null)
+            );
+
+        } catch (UserNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error sending OTP to phone: {}", phoneNumber, e);
+            throw new ServiceException("Failed to send OTP");
+        }
     }
 
     @Override
     public ResponseEntity<ApiResponseObject> validateOTPForPhoneNumberVerification(String phoneNumber, String token) {
-        return null;
+        // TODO: Implement phone OTP validation similar to email OTP validation
+        throw new UnsupportedOperationException("Phone number OTP validation not yet implemented");
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> forgotPassword(ForgotPasswordRequest request) {
+        logger.info("Processing forgot password request for email: {}", request.getEmail());
+
+        try {
+            Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+
+            // Always return OK to prevent email enumeration
+            if (userOptional.isEmpty()) {
+                logger.debug("Forgot password request for non-existent email: {}", request.getEmail());
+                return ResponseEntity.ok().build();
+            }
+
+            User user = userOptional.get();
+            String resetToken = jwtUtils.createToken(user.getEmail(), "PASSWORD_RESET");
+
+            // Set token and expiry
+            user.setPasswordResetToken(resetToken);
+            user.setPasswordResetTokenExpiry(new Date(System.currentTimeMillis() + resetTokenExpiryMillis));
+            userRepository.save(user);
+
+            // Create deep link
+            String deepLink = deepLinkBase + "?token=" + resetToken;
+            String emailBody = "Click the following link to reset your password: " + deepLink +
+                    "\n\nThis link will expire in 1 hour.";
+
+            // Send email asynchronously
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendEmail(user.getEmail(), "Password Reset Request", emailBody);
+                    logger.info("Password reset email sent to: {}", user.getEmail());
+                } catch (Exception e) {
+                    logger.error("Failed to send password reset email to: {}", user.getEmail(), e);
+                }
+            });
+
+            return ResponseEntity.ok(
+                    new ApiResponseObject("Email sent for changing password", true, null)
+            );
+
+        } catch (Exception e) {
+            logger.error("Error processing forgot password for email: {}", request.getEmail(), e);
+            throw new ServiceException("Failed to process password reset request");
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> validateResetToken(String token) {
+        logger.info("Validating password reset token");
+
+        try {
+            User user = validatePasswordResetToken(token);
+            if (user == null) {
+                logger.warn("Invalid password reset token provided");
+                return ResponseEntity.badRequest()
+                        .body(new ApiResponseObject("Invalid or expired token", false, null));
+            }
+
+            return ResponseEntity.ok(
+                    new ApiResponseObject("Validated Token", true, null)
+            );
+
+        } catch (Exception e) {
+            logger.error("Error validating reset token", e);
+            throw new ServiceException("Failed to validate reset token");
+        }
+    }
+
+    @Override
+    public ResponseEntity<ApiResponseObject> resetPassword(ResetPasswordRequest request) {
+        logger.info("Processing password reset request");
+
+        try {
+            User user = validatePasswordResetToken(request.getToken());
+            if (user == null) {
+                logger.warn("Invalid password reset token provided");
+                return ResponseEntity.badRequest()
+                        .body(new ApiResponseObject("Invalid or expired token", false, null));
+            }
+
+            // Update password
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            user.setPasswordResetToken(null);
+            user.setPasswordResetTokenExpiry(null);
+            userRepository.save(user);
+
+            // Invalidate cache
+            invalidateUserCache(user.getEmail());
+
+            // Send confirmation email asynchronously
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendEmail(user.getEmail(),
+                            "Password Changed Successfully",
+                            "Your password has been changed successfully.");
+                    logger.info("Password change confirmation sent to: {}", user.getEmail());
+                } catch (Exception e) {
+                    logger.error("Failed to send password change confirmation to: {}", user.getEmail(), e);
+                }
+            });
+
+            logger.info("Password reset successfully for user: {}", user.getEmail());
+            return ResponseEntity.ok(
+                    new ApiResponseObject("Changed Password Successfully", true, null)
+            );
+
+        } catch (Exception e) {
+            logger.error("Error resetting password", e);
+            throw new ServiceException("Failed to reset password");
+        }
+    }
+
+    private User validatePasswordResetToken(String token) {
+        try {
+            if (!jwtUtils.validateToken(token)) {
+                return null;
+            }
+
+            String email = jwtUtils.extractUsername(token);
+            Optional<User> userOptional = userRepository.findByEmail(email);
+            if (userOptional.isEmpty()) {
+                return null;
+            }
+
+            User user = userOptional.get();
+            if (!token.equals(user.getPasswordResetToken())) {
+                return null;
+            }
+
+            if (user.getPasswordResetTokenExpiry().before(new Date())) {
+                return null;
+            }
+
+            return user;
+        } catch (Exception e) {
+            logger.error("Error validating password reset token", e);
+            return null;
+        }
+    }
+
+    private void validateProfilePhoto(MultipartFile file) {
+        if (!file.getContentType().startsWith("image/")) {
+            throw new InvalidFileTypeException("Only image files are allowed");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) { // 5MB limit
+            throw new FileSizeExceededException("File size exceeds maximum limit of 5MB");
+        }
+    }
+
+    private void invalidateUserCache(String email) {
+        if (redisService != null) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    redisService.delete(CACHE_KEY_PREFIX + email);
+                    logger.debug("Invalidated cache for user: {}", email);
+                } catch (Exception e) {
+                    logger.error("Failed to invalidate cache for user: {}", email, e);
+                }
+            });
+        }
+    }
+
+    private void invalidateUserCache(Long userId) {
+        if (redisService != null) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    redisService.delete(CACHE_KEY_PREFIX + userId);
+                    logger.debug("Invalidated cache for user ID: {}", userId);
+                } catch (Exception e) {
+                    logger.error("Failed to invalidate cache for user ID: {}", userId, e);
+                }
+            });
+        }
     }
 }
