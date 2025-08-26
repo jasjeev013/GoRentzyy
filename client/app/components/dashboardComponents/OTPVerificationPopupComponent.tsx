@@ -11,13 +11,12 @@ import { authService } from '../../../app/api/auth/services';
 interface OTPVerificationPopupProps {
   email: string;
   onClose: () => void;
-  onVerificationSuccess: () => void;
+
 }
 
 const OTPVerificationPopup: React.FC<OTPVerificationPopupProps> = ({
   email,
-  onClose,
-  onVerificationSuccess}) => {
+  onClose}) => {
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,7 +47,7 @@ const OTPVerificationPopup: React.FC<OTPVerificationPopupProps> = ({
     try {
       await authService.requestEmailOTP(token);
       setOtpSent(true);
-      setCountdown(60); // 60 seconds countdown
+      setCountdown(120); 
     } catch (err) {
       setError('Failed to send OTP. Please try again.');
       console.error('Error requesting OTP:', err);
@@ -66,12 +65,11 @@ const OTPVerificationPopup: React.FC<OTPVerificationPopupProps> = ({
     setIsLoading(true);
     setError('');
     try {
-      const result = await authService.verifyEmailOTP(token, otp);
-      console.log('OTP verification result:', result);
-      if (result.result) {
+      const response = await authService.verifyEmailOTP(token, otp);
+      console.log('OTP verification result:', response);
+      if (response) {
         setSuccess(true);
         setTimeout(() => {
-          onVerificationSuccess();
           onClose();
         }, 1500);
       } else {
@@ -101,7 +99,6 @@ const OTPVerificationPopup: React.FC<OTPVerificationPopupProps> = ({
       {/* Backdrop */}
       <motion.div
         className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
       />
 
       {/* Popup content */}
@@ -110,13 +107,6 @@ const OTPVerificationPopup: React.FC<OTPVerificationPopupProps> = ({
         animate={{ scale: 1, y: 0 }}
         className="relative w-full max-w-md bg-white dark:bg-zinc-800 rounded-xl shadow-xl p-6 z-10 mx-4 border border-gray-200 dark:border-gray-700"
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-        >
-          <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-        </button>
 
         {/* Header */}
         <div className="text-center mb-6">

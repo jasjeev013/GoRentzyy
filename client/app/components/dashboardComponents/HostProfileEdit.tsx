@@ -1,7 +1,8 @@
 // app/components/dashboardComponents/HostProfileEdit.tsx
 "use client";
 import React, { use, useState } from 'react';
-import { Camera, Check, X, Mail, Phone } from 'lucide-react';
+import { Camera, Check, X, Mail, Phone, Trash2 } from 'lucide-react';
+import { redirect, useRouter } from 'next/navigation';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
 import { Label } from '../../../components/ui/label';
@@ -12,11 +13,16 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui
 import { useAuthStore } from '../../../stores/authStore';
 import { authService } from '../../api/auth/services';
 import OTPVerificationModal from './OTPVerificationModal';
-
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '../../../components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const HostProfileEdit = () => {
-  const { userData, updateUserData, token, setUserData } = useAuthStore();
+  const router = useRouter();
+  
 
+  const { userData, updateUserData, token, setUserData,logout } = useAuthStore();
   const [user, setuser] = useState({
     fullName: userData?.fullName,
     address: userData?.address,
@@ -28,15 +34,15 @@ const HostProfileEdit = () => {
     role: userData?.role
   });
 
+
   console.log('userData', userData);
 
   const [originalData] = useState({ ...user });
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-  // const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [phoneOTP, setPhoneOTP] = useState('');
-  // const [emailOTP, setEmailOTP] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [showEmailOTPModal, setShowEmailOTPModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -84,7 +90,7 @@ const HostProfileEdit = () => {
 
     try {
       const response = await authService.verifyEmailOTP(token, otp);
-      if (response.status === 'success') {
+      if (response) {
         setuser(prev => ({ ...prev, emailVerified: true }));
         setUserData({
           ...userData,
@@ -99,8 +105,9 @@ const HostProfileEdit = () => {
   };
 
   const handleResendOTP = async () => {
-    if (!token) return;
-    return authService.requestEmailOTP(token);
+    if (token) {
+      authService.requestEmailOTP(token);
+    }
   };
   const handleSave = async () => {
     // In a real app, you would save to backend here
@@ -113,6 +120,27 @@ const HostProfileEdit = () => {
     setFile(null);
     setIsEditingPhone(false);
 
+  };
+  const handleDeleteAccount = async () => {
+    // TODO: Implement account deletion logic
+    console.log('Account deletion requested');
+    // This is where you would call your API to delete the account
+    // Example:
+    try {
+          const response = await authService.deleteUser();
+          if (response.result) {
+            toast.success('Account deleted successfully');
+            logout();
+            router.push('/home'); // Redirect to home or login page
+          }else {
+            console.error('Failed to delete account:', response.message);
+            toast.error('Failed to delete account: ' + response.message);
+          }
+        } catch (error) {
+          console.error('Failed to delete account:', error);
+        }
+        setShowDeleteDialog(false);
+    setShowDeleteDialog(false);
   };
 
   return (
@@ -258,17 +286,16 @@ const HostProfileEdit = () => {
                   )}
                 </div>
               </div>
-              {/* Add the OTP Modal */}
-              {showEmailOTPModal && (
-                <OTPVerificationModal
-                  email={user.email}
-                  onVerify={handleVerifyOTP}
-                  onResend={handleResendOTP}
-                  onClose={() => setShowEmailOTPModal(false)}
-                />
-              )}
+             
               {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-6">
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Account
+                </Button>
                 <Button
                   variant="outline"
                   className="border-gray-600"
@@ -286,6 +313,38 @@ const HostProfileEdit = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Delete Account Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your account
+              and remove your data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Account
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Email OTP Modal */}
+      {showEmailOTPModal && (
+        <OTPVerificationModal
+          email={user.email}
+          onVerify={handleVerifyOTP}
+          onResend={handleResendOTP}
+          onClose={() => setShowEmailOTPModal(false)}
+        />
+      )}
     </div>
 
   );

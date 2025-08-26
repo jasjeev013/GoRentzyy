@@ -29,6 +29,10 @@ export const authService = {
 
     return response.data;
   },
+  deleteUser: async (): Promise<ApiResponseObject<null>> => {
+    const response = await api.delete("/api/user/delete");
+    return response.data;
+  },
 
   register: async (userData: RegisterDto): Promise<ApiResponseObject<UserDto>> => {
     const response = await api.post("/api/user/create", userData);
@@ -79,16 +83,16 @@ export const authService = {
       throw error;
     }
   },
-  requestEmailOTP: async (token: string): Promise<{ status: string }> => {
+  requestEmailOTP: async (token: string): Promise<ApiResponseObject<null>> => {
     const response = await api.get("/api/user/getOTPEmail", {
       headers: {
         Authorization: token,
       },
     });
-    return response.data;
+    return response.data.result;
   },
 
-  verifyEmailOTP: async (token: string, otp: string): Promise<{ result: boolean }> => {
+  verifyEmailOTP: async (token: string, otp: string): Promise<ApiResponseObject<null>> => {
     const response = await api.post(
       "/api/user/verifyOTPEmail",
       { token: otp },

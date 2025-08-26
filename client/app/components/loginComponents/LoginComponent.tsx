@@ -29,6 +29,12 @@ const LoginComponent = () => {
     setIsClient(true);
   }, []);
 
+  const emailValidated = () => {
+    setShowOTPVerification(false);
+    toast.success('Email verified successfully! Redirecting to home...');
+    router.push('/home');
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -345,11 +351,9 @@ const LoginComponent = () => {
 
       {showOTPVerification && (
         <OTPVerificationPopup
-          email={username} // or the email from registration form
-          onClose={() => setShowOTPVerification(false)}
-          onVerificationSuccess={() => {
-            setShowOTPVerification(false);
-            router.push('/home'); 
+          email={username} 
+          onClose={() => {
+            emailValidated()
           }}
         />
       )}

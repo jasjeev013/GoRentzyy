@@ -35,7 +35,7 @@ const Navbar = ({ isScrolled }: { isScrolled: boolean }) => {
                         >
                             <Avatar className="h-10 w-10 py-">
                                 <AvatarImage src={userData?.profilePicture} />
-                                <AvatarFallback>P</AvatarFallback>
+                                <AvatarFallback>{userData?.fullName.charAt(0)}</AvatarFallback>
                             </Avatar>
                         </a>
                     )}

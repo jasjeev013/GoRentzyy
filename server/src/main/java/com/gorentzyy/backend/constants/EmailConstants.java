@@ -1,7 +1,7 @@
 package com.gorentzyy.backend.constants;
 
 public final class EmailConstants {
-    public static String getNewUserCreatedSubject = "Welcome to GoRentzyy - Get Started Today!";
+    public static String getNewUserCreatedSubject =  "Welcome to GoRentzyy - Get Started Today!";
     public static String getNewUserCreatedBody(String name){
         return "Hello "+name+",\n" +
                 "\n" +

@@ -8,7 +8,7 @@ import { Button } from '../../../components/ui/button';
 interface OTPVerificationModalProps {
   email: string;
   onVerify: (otp: string) => Promise<void>;
-  onResend: () => Promise<{ status: string; }>;
+  onResend: () => Promise<void>;
   onClose: () => void;
 }
 

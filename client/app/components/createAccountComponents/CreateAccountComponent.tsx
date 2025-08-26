@@ -10,6 +10,7 @@ import { redirect, useRouter } from 'next/navigation';
 import {Select, SelectContent,SelectItem,SelectTrigger,SelectValue,} from '../../../components/ui/select';
 import OTPVerificationPopup from '../dashboardComponents/OTPVerificationPopupComponent';
 import { useAuth } from '../../../hooks/useAuth';
+import { toast } from 'sonner';
 
 const CreateAccountComponent = () => {
   const router = useRouter();
@@ -51,7 +52,11 @@ const CreateAccountComponent = () => {
       role: value
     }));
   };
-
+  const emailValidated = () => {
+    setShowOTPVerification(false);
+    toast.success('Email verified successfully! Redirecting to home...');
+    router.push('/home');
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordMatch || !formData.role) return;
@@ -370,10 +375,8 @@ const CreateAccountComponent = () => {
       {showOTPVerification && (
         <OTPVerificationPopup
           email={formData.email} // or the email from registration form
-          onClose={() => setShowOTPVerification(false)}
-          onVerificationSuccess={() => {
-            redirect('/home'); // Redirect to home after successful verification
-          }}
+          onClose={() => emailValidated()}
+          
         />
       )}
     </div>
