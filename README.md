@@ -1,146 +1,198 @@
-# Car Rental System
+````markdown
+# 🚗 GO Rentzyy: The Car Rental SaaS
 
-This project is a Car Rental System with a Spring Boot backend and a Next.js frontend. The backend and frontend are located in the `server` and `client` folders, respectively.
+<p align="center">
+  <img src="client/public/logo.png" alt="GO Rentzyy Logo" width="150"/>
+</p>
 
-## Project Structure
+> A full-featured **peer-to-peer car rental platform** connecting **Hosts (lenders)** and **Renters (borrowers)**.  
+> It delivers a **secure, scalable, and user-friendly** experience with real-time availability, location-based filters, payments, and admin controls.
 
+---
+
+## 📖 About
+
+GO Rentzyy is a SaaS-based **Car Rental Platform** that bridges the gap between vehicle owners and renters.  
+It ensures **security, flexibility, and transparency** in the rental process with:
+
+- 🔒 **User Authentication & Authorization** (JWT + OAuth with Google & GitHub)
+- 🚘 **Car Listings & Booking Management**
+- 📍 **Location-based Search with Google Maps**
+- 💰 **Dynamic Pricing & Razorpay Payment Gateway**
+- 📝 **Rental Agreement Handling**
+- 📨 **Email & SMS Notifications (Twilio)**
+- 📦 **Containerization (Docker)**
+- 🔎 **ElasticSearch for optimized search**
+- ☁️ **Cloudinary for media storage**
+- 📊 **Admin Dashboard with health metrics (Spring Actuator)**
+- ✅ **Unit Testing with JUnit & Mockito**
+
+---
+
+## 🖼️ Screenshots
+
+<p align="center">
+  <img src="client/public/readme/dashboard.png" alt="Dashboard Screenshot" width="600"/>
+</p>
+
+<p align="center">
+  <img src="client/public/readme/rental.png" alt="Rental Page Screenshot" width="600"/>
+</p>
+
+---
+
+## ⚙️ Tech Stack
+
+### 🖥️ Frontend (Next.js)
+- **Framework**: Next.js 15 (App Router)  
+- **Styling**: Tailwind CSS + Radix UI + Framer Motion  
+- **State Management**: Zustand  
+- **Authentication**: NextAuth.js (Google/GitHub OAuth)  
+- **UI Components**: shadcn/ui, Lucide Icons, Embla Carousel  
+- **API Integration**: Axios  
+- **Maps**: @react-google-maps/api  
+- **Charts**: Recharts  
+
+### ⚡ Backend (Spring Boot)
+- **Core**: Spring Boot (REST APIs)  
+- **Security**: JWT Auth + OAuth2 (Google, GitHub)  
+- **Scheduling**: Spring Scheduler for rentals/notifications  
+- **Payments**: Razorpay integration  
+- **Storage**: Cloudinary for images/videos  
+- **Database**: PostgreSQL (local) + Supabase (production)  
+- **Search**: ElasticSearch  
+- **Notifications**: Email (SMTP) + Twilio SMS/OTP  
+- **Docs**: Swagger UI  
+- **Health Metrics**: Spring Actuator  
+- **Testing**: JUnit + Mockito  
+- **Containerization**: Docker + docker-compose  
+
+---
+
+## 📂 Directory Structure
+
+```bash
+jasjeev013-gorentzyy/
+├── client/                 # Next.js Frontend
+│   ├── app/                # Next.js App Router
+│   ├── components/         # Reusable UI components
+│   ├── hooks/              # Custom React hooks
+│   ├── public/             # Static assets (logo, screenshots, images)
+│   ├── stores/             # Zustand stores
+│   └── utils/              # Utilities (razorpay config, helpers)
+│
+├── server/                 # Spring Boot Backend
+│   ├── src/main/java/...   # Java source code
+│   │   ├── controllers/    # REST Controllers
+│   │   ├── services/       # Business Logic
+│   │   ├── repositories/   # JPA Repositories
+│   │   ├── models/         # Entity Models
+│   │   └── config/         # Security & App Configs
+│   ├── src/test/java/...   # Unit Tests (JUnit, Mockito)
+│   ├── pom.xml             # Maven dependencies
+│   ├── Dockerfile          # Docker containerization
+│   └── docker-compose.yml  # Compose for DB & services
+│
+├── resources/
+│   └── Car Rental System.docx   # Project Documentation
+│
+└── README.md               # This file
+````
+
+---
+
+## 🚀 Getting Started
+
+### 🔧 Prerequisites
+
+* Node.js (v20+)
+* Java 21 + Maven
+* PostgreSQL
+* Docker (optional for containerization)
+
+---
+
+### 🖥️ Frontend Setup (Next.js)
+
+```bash
+cd client
+npm install
+npm run dev
 ```
-/C:/Users/jasje/Desktop/GoRentzyy/
-├── client/   # Next.js frontend
-└── server/   # Spring Boot backend
+
+Runs the app in development mode on **[http://localhost:3001](http://localhost:3001)**
+
+---
+
+### ⚡ Backend Setup (Spring Boot)
+
+```bash
+cd server
+./mvnw spring-boot:run
 ```
 
-## Technologies Used
+Runs the backend on **[http://localhost:8080](http://localhost:8080)**
 
-- **Backend**: Spring Boot
-- **Frontend**: Next.js
+Swagger Docs available at: **[http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)**
 
-## Getting Started
+---
 
-### Prerequisites
+### 🗄️ Database (Postgres + Supabase)
 
-- Java 11 or higher
-- Node.js 14 or higher
-- npm or yarn
+* Configure local DB in `application.properties`
+* For production, Supabase connection details are in `application-prod.properties`
 
-### Installation
+---
 
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/yourusername/GoRentzyy.git
-    cd GoRentzyy
-    ```
+### 🐳 Docker Setup (Optional)
 
-2. Install backend dependencies:
-    ```bash
-    cd server
-    ./mvnw install
-    ```
+```bash
+docker-compose up --build
+```
 
-3. Install frontend dependencies:
-    ```bash
-    cd ../client
-    npm install
-    ```
+---
 
-### Running the Application
+## 🧪 Testing
 
-1. Start the backend server:
-    ```bash
-    cd server
-    ./mvnw spring-boot:run
-    ```
+Run unit tests with:
 
-2. Start the frontend server:
-    ```bash
-    cd ../client
-    npm run dev
-    ```
+```bash
+cd server
+./mvnw test
+```
 
-3. Open your browser and navigate to `http://localhost:3000` to see the application running.
+Generates test coverage reports in `/htmlReport/`.
 
-## Features
+---
 
-- User authentication and authorization
-- Car listing and booking
-- Admin panel for managing cars and bookings
+## 📌 Features Roadmap
 
-## Contributing
+* [x] Car Listing & Rental Booking
+* [x] Secure Authentication (JWT, OAuth)
+* [x] Payment Gateway (Razorpay)
+* [x] Location Tracking (Google Maps)
+* [x] Cloud Storage (Cloudinary)
+* [ ] Mobile App (React Native)
+* [ ] Advanced Analytics Dashboard
 
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
+---
 
-## License
+## 🤝 Contributing
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+Contributions are welcome! 🎉
+Fork the repo, create a new branch, and submit a PR.
 
-## Contact
+---
 
-For any inquiries, please contact [your-email@example.com](mailto:your-email@example.com).
+## 📜 License
 
-## Extras
+This project is licensed under the **MIT License**.
 
-1. Accessing Data through Dtos
-2. Added Validations in DTo
-3. GlobalExceptionHandler for exceptions & with custom exceptions
-<!-- 4. Added Swagger for API Documentation -->
-5. Added Custom UserDetails Service & Authentication Provider
-6. Done with the concept of Profiles
-7. Added AUthenticationEntryPoint & AccessDeniedHandler
-8. Session time & no. of session control
-9. Authentication events
-10. CORS  
-11. JWT
-12. Validations 
-13. Juit Tests with mockito
-14. Test Coverage reports 
-15. Added Cloudinary Image Service - with multiple file at one time uploading
-16. Email Service Added
-17. OpenAuth ID - Google - Github 
-<!-- 18. Cron Jobs  -->
-<!-- 19. Kafka Implementation  -->
-20. Redis Implementation
-<!-- 21. Deployment at serverless OR EC2 Instance with AWS Postgres Service -->
-<!-- 22. NGRX -->
-<!-- 23. MicroServices -->
-<!-- 24. Dockerize And upload at Docker & Containersization Uploading -->
-<!-- 24. Actuator Health & AOP -->
+---
 
+<p align="center">Made with ❤️ by <b>jasjeev013</b></p>
+```
 
-------------
-Redis Setup: (On WSL)
-curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+---
 
-echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list
-
-sudo apt-get update
-sudo apt-get install redis
-
-sudo service redis-server start
-
-redis-cli
-
-Yt Link: https://www.youtube.com/watch?v=2srQ-RiJHps
-
---------------------------
-REDIS CACHED API ROUTES 
-
-getUserById(Long userId)
-
-getUserByEmail(String email)
-
-getBookingById(Long bookingId)
-
-getBookingsByRenter(String emailId)
-
-getBookingsByCar(Long carId)
-
-getBookingsByHost(String emailId)
-
-getCarById(Long carId)
-
-getAllCarsForSpecificHost(String email)
-
------------------------------------------------------------
-
-
-
+👉 Do you also want me to create **badges** (e.g., build passing, license, Next.js, Spring Boot, PostgreSQL, Docker) at the top of the README for extra polish?
