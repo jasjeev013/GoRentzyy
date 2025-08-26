@@ -1,4 +1,4 @@
-````markdown
+
 # 🚗 GO Rentzyy: The Car Rental SaaS
 
 <p align="center">
@@ -30,14 +30,16 @@ It ensures **security, flexibility, and transparency** in the rental process wit
 ---
 
 ## 🖼️ Screenshots
-
-<p align="center">
-  <img src="client/public/readme/dashboard.png" alt="Dashboard Screenshot" width="600"/>
-</p>
-
-<p align="center">
-  <img src="client/public/readme/rental.png" alt="Rental Page Screenshot" width="600"/>
-</p>
+<table>
+  <tr>
+    <td align="left" width="50%">
+      <img src="client/public/readme/dashboard.png" alt="Dashboard Screenshot" width="100%"/>
+    </td>
+    <td align="right" width="50%">
+      <img src="client/public/readme/rental.png" alt="Rental Page Screenshot" width="100%"/>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -190,9 +192,6 @@ This project is licensed under the **MIT License**.
 
 ---
 
-<p align="center">Made with ❤️ by <b>jasjeev013</b></p>
-```
+<p align="center">Made by <b>jasjeev013</b></p>
 
----
 
-👉 Do you also want me to create **badges** (e.g., build passing, license, Next.js, Spring Boot, PostgreSQL, Docker) at the top of the README for extra polish?
